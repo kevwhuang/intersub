@@ -1,0 +1,174 @@
+---
+import type { GetStaticPaths } from 'astro';
+
+import { getCollection } from 'astro:content';
+
+import Footer from '@sections/Footer.astro';
+import Layout from '@/Layout.astro';
+import Navbar from '@sections/Navbar.astro';
+import { formatDate, getDifficultyMeta, getInitials, parseSeminarContent } from '@lib/utils';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+    const seminars = await getCollection('seminars');
+
+    return seminars.map(seminar => ({
+        params: { slug: seminar.id },
+        props: { seminar },
+    }));
+};
+
+const { seminar } = Astro.props;
+const meta = getDifficultyMeta(seminar.data.difficulty);
+const initials = getInitials(seminar.data.title);
+const rawBlocks = parseSeminarContent(seminar.data.content);
+const grouped: Array<{ items: string[]; type: 'h' | 'li' | 'p' }> = [];
+for (const block of rawBlocks) {
+    if (block.type === 'li' && grouped.length && grouped[grouped.length - 1].type === 'li') {
+        grouped[grouped.length - 1].items.push(block.c);
+    } else {
+        grouped.push({ items: [block.c], type: block.type });
+    }
+}
+---
+
+<Layout
+    description={`${seminar.data.title} — ${meta.label ? `${meta.label.toLowerCase()} level, ` : ''}${seminar.data.location}. A focused business English session by InterSub.`}
+    title={`${seminar.data.title} &mdash; InterSub`}
+>
+    <Navbar />
+    <div class="seminar-detail">
+        <div class="shell">
+            <a class="seminar-detail__back" href="/seminars">
+                <span>&larr;</span>
+                <span data-i18n="All seminars">All seminars</span>
+            </a>
+            <h1 class="seminar-detail__title">{seminar.data.title}</h1>
+            <dl class="seminar-detail__meta">
+                <div>
+                    <dt class="seminar-detail__meta-label" data-i18n="Date">Date</dt>
+                    <dd class="seminar-detail__meta-value">
+                        <time data-i18n-date={seminar.data.date} datetime={seminar.data.date}>{formatDate(seminar.data.date)}</time>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="seminar-detail__meta-label" data-i18n="Location">Location</dt>
+                    <dd class="seminar-detail__meta-value" data-i18n={seminar.data.location}>{seminar.data.location}</dd>
+                </div>
+                {seminar.data.difficulty && (
+                    <div>
+                        <dt class="seminar-detail__meta-label" data-i18n="Level">Level</dt>
+                        <dd class="seminar-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
+                    </div>
+                )}
+            </dl>
+            <div
+                class="seminar-detail__cover"
+                style={`background:${meta.cover};color:${meta.ink}`}
+            >
+                <span class="seminar-detail__cover-initials">{initials}</span>
+            </div>
+            <div class="prose seminar-detail__content">
+                {grouped.map(group => {
+                    if (group.type === 'h') return <h2>{group.items[0]}</h2>;
+                    if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
+                    return <p>{group.items[0]}</p>;
+                })}
+            </div>
+            <div class="seminar-detail__cta">
+                <a class="btn" href="/#contact"><span data-i18n="Enquire about this seminar">Enquire about this seminar</span></a>
+                <a class="btn btn--outline" href="/seminars"><span data-i18n="Back to all">Back to all</span></a>
+            </div>
+        </div>
+    </div>
+    <Footer />
+</Layout>
+
+<style>
+    .seminar-detail {
+        padding-bottom: clamp(64px, 9vw, 110px);
+        padding-top: calc(var(--header-height) + clamp(28px, 4vw, 44px));
+    }
+
+    .seminar-detail__back {
+        align-items: center;
+        color: var(--color-ink-faint);
+        display: inline-flex;
+        font-size: 14.5px;
+        font-weight: 600;
+        gap: 8px;
+        margin-bottom: 28px;
+        text-decoration: none;
+        transition: color var(--duration-fast) ease;
+    }
+
+    .seminar-detail__back:hover {
+        color: var(--color-accent);
+    }
+
+    .seminar-detail__content {
+        margin-bottom: 48px;
+    }
+
+    .seminar-detail__cover {
+        align-items: center;
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        display: flex;
+        height: clamp(200px, 32vw, 320px);
+        justify-content: center;
+        margin-bottom: 44px;
+    }
+
+    .seminar-detail__cover-initials {
+        font-family: var(--font-heading);
+        font-size: clamp(60px, 12vw, 120px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        opacity: 0.26;
+    }
+
+    .seminar-detail__cta {
+        align-items: center;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        padding-top: 36px;
+    }
+
+    .seminar-detail__meta {
+        border-bottom: 1px solid var(--color-border);
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px 40px;
+        margin-bottom: 36px;
+        padding: 22px 0;
+    }
+
+    .seminar-detail__meta-label {
+        color: var(--color-ink-ghost);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        margin: 0 0 6px;
+        text-transform: uppercase;
+    }
+
+    .seminar-detail__meta-value {
+        color: var(--color-ink);
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .seminar-detail__title {
+        color: var(--color-ink);
+        font-size: clamp(30px, 4.4vw, 50px);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 1.06;
+        margin: 0 0 28px;
+        text-wrap: balance;
+    }
+</style>

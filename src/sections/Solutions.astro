@@ -1,0 +1,173 @@
+---
+import { SOLUTIONS } from '@lib/utils';
+---
+
+<section
+    class="solutions"
+    aria-labelledby="solutions-title"
+>
+    <div class="shell">
+        <div class="solutions__header" data-scroll>
+            <h2 id="solutions-title" class="solutions__title" data-i18n="Solutions">Solutions</h2>
+            <p class="solutions__intro" data-i18n-html="solutions-intro">Three formats, each built around your real situations &mdash; the meetings you run, the clients you email, the rooms you need to win.</p>
+        </div>
+        <div class="solutions__list">
+            {SOLUTIONS.map(s => (
+                <article class="solutions__card" data-scroll>
+                    <div class="solutions__card-main">
+                        <div class="solutions__card-head">
+                            <span class="solutions__badge">{s.num}</span>
+                            <div>
+                                <h3 class="solutions__card-title" data-i18n={s.title}>{s.title}</h3>
+                                <p class="solutions__card-desc" data-i18n={s.desc}>{s.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="solutions__details">
+                        {s.details.map(d => (
+                            <li class="solutions__detail">
+                                <span class="solutions__detail-key" data-i18n={d.k}>{d.k}</span>
+                                <span class="solutions__detail-val" data-i18n={d.v}>{d.v}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </article>
+            ))}
+        </div>
+    </div>
+</section>
+
+<style>
+    .solutions {
+        background: var(--color-surface-raised);
+        border-bottom: 1px solid var(--color-border);
+        padding: clamp(64px, 9vw, 120px) 0;
+    }
+
+    .solutions__badge {
+        align-items: center;
+        background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
+        border: 1px solid color-mix(in srgb, var(--color-accent) 26%, var(--color-surface));
+        border-radius: 11px;
+        color: var(--color-accent);
+        display: flex;
+        flex: none;
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 500;
+        height: 44px;
+        justify-content: center;
+        width: 44px;
+    }
+
+    .solutions__card {
+        align-items: start;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-strong);
+        border-radius: 18px;
+        display: grid;
+        gap: clamp(24px, 4vw, 56px);
+        grid-template-columns: 1.1fr 1fr;
+        padding: clamp(28px, 3.5vw, 44px);
+        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
+    }
+
+    .solutions__card:hover {
+        border-color: var(--color-border-hover);
+        box-shadow: 0 10px 30px rgba(20, 22, 28, 0.06);
+        transform: translateY(-2px);
+    }
+
+    .solutions__card-desc {
+        color: var(--color-ink-muted);
+        font-size: 16px;
+        line-height: 1.6;
+        margin: 0;
+        max-width: 42ch;
+    }
+
+    .solutions__card-head {
+        align-items: flex-start;
+        display: flex;
+        gap: 20px;
+    }
+
+    .solutions__card-main {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .solutions__card-title {
+        font-size: clamp(21px, 2.2vw, 27px);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+        margin: 0 0 12px;
+    }
+
+    .solutions__detail {
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        font-size: 14.5px;
+        gap: 16px;
+        justify-content: space-between;
+        padding-bottom: 13px;
+    }
+
+    .solutions__detail-key {
+        color: var(--color-ink-ghost);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        padding-top: 2px;
+        text-transform: uppercase;
+    }
+
+    .solutions__detail-val {
+        color: var(--color-ink);
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .solutions__details {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .solutions__header {
+        margin-bottom: clamp(40px, 5vw, 64px);
+        max-width: 640px;
+    }
+
+    .solutions__intro {
+        color: var(--color-ink-muted);
+        font-size: clamp(16px, 1.3vw, 18px);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .solutions__list {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .solutions__title {
+        font-size: clamp(28px, 4vw, 46px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        margin: 0 0 18px;
+        text-wrap: balance;
+    }
+
+    @media (max-width: 768px) {
+        .solutions__card {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

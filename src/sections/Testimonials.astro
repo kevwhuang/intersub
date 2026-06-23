@@ -1,0 +1,187 @@
+---
+import { getCollection } from 'astro:content';
+
+const testimonials = await getCollection('testimonials');
+---
+
+<section
+    class="testimonials"
+    aria-label="Client testimonials"
+>
+    <div class="shell testimonials__inner">
+        <p class="testimonials__eyebrow" data-i18n="From the people in the room" data-scroll>From the people in the room</p>
+        <div class="testimonials__carousel">
+            {testimonials.map((testimonial, i) => (
+                <figure
+                    class="testimonials__slide"
+                    data-slide={i}
+                    style={i === 0 ? 'opacity:1' : undefined}
+                >
+                    <blockquote class="testimonials__quote" data-i18n-html={`testimonial-quote-${i}`}>&ldquo;{testimonial.data.quote}&rdquo;</blockquote>
+                    <figcaption>
+                        <span class="testimonials__name">{testimonial.data.name}</span>
+                        <span class="testimonials__role" data-i18n={testimonial.data.role}>{testimonial.data.role}</span>
+                        <span class="testimonials__company" data-i18n={testimonial.data.company}>{testimonial.data.company}</span>
+                    </figcaption>
+                </figure>
+            ))}
+        </div>
+        <div class="testimonials__dots">
+            {testimonials.map((_, i) => (
+                <button
+                    class:list={['testimonials__dot', { 'testimonials__dot--active': i === 0 }]}
+                    data-dot={i}
+                    aria-label={`Show testimonial ${i + 1}`}
+                    type="button"
+                />
+            ))}
+        </div>
+    </div>
+</section>
+
+<style>
+    .testimonials {
+        background: var(--color-dark);
+    }
+
+    .testimonials__carousel {
+        margin-bottom: clamp(36px, 5vw, 52px);
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 800px;
+        min-height: clamp(220px, 30vh, 260px);
+        position: relative;
+    }
+
+    .testimonials__company {
+        color: var(--color-ink-pale);
+        display: block;
+        font-size: 13px;
+    }
+
+    .testimonials__dot {
+        background: var(--color-dark-surface);
+        border: none;
+        border-radius: 99px;
+        cursor: pointer;
+        height: 6px;
+        padding: 0;
+        position: relative;
+        transition: background var(--duration-slow) ease, width var(--duration-slow) ease;
+        width: 6px;
+    }
+
+    .testimonials__dot::after {
+        content: '';
+        inset: -18px -8px;
+        position: absolute;
+    }
+
+    .testimonials__dot--active {
+        background: var(--color-accent);
+        width: 28px;
+    }
+
+    .testimonials__dots {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .testimonials__eyebrow {
+        color: color-mix(in srgb, var(--color-accent) 70%, var(--color-surface));
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        margin: 0 0 44px;
+        text-transform: uppercase;
+    }
+
+    .testimonials__inner {
+        padding-block: clamp(72px, 10vw, 128px);
+        text-align: center;
+    }
+
+    .testimonials__name {
+        color: var(--color-surface);
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .testimonials__quote {
+        color: var(--color-dark-text);
+        font-family: var(--font-heading);
+        font-size: clamp(22px, 3.2vw, 34px);
+        font-weight: 500;
+        letter-spacing: -0.015em;
+        line-height: 1.32;
+        margin: 0 0 32px;
+        text-wrap: balance;
+    }
+
+    .testimonials__role {
+        color: var(--color-ink-pale);
+        display: block;
+        font-size: 14px;
+    }
+
+    .testimonials__slide {
+        inset: 0;
+        margin: 0;
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+        transition: opacity 0.9s ease;
+    }
+</style>
+
+<script>
+    let testimonialInterval: ReturnType<typeof setInterval> | undefined;
+
+    function initTestimonials() {
+        if (testimonialInterval) clearInterval(testimonialInterval);
+
+        const slides = document.querySelectorAll<HTMLElement>('[data-slide]');
+        const dots = document.querySelectorAll<HTMLElement>('[data-dot]');
+
+        if (!slides.length) return;
+
+        let current = 0;
+
+        function show(index: number) {
+            slides.forEach((s, i) => {
+                s.style.opacity = i === index ? '1' : '0';
+            });
+            dots.forEach((d, i) => {
+                d.classList.toggle('testimonials__dot--active', i === index);
+            });
+            current = index;
+        }
+
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const idx = Number(dot.dataset.dot);
+                show(idx);
+                resetInterval();
+            });
+        });
+
+        function resetInterval() {
+            if (testimonialInterval) clearInterval(testimonialInterval);
+            testimonialInterval = setInterval(() => {
+                show((current + 1) % slides.length);
+            }, 5_200);
+        }
+
+        resetInterval();
+    }
+
+    document.addEventListener('astro:before-swap', () => {
+        if (testimonialInterval) clearInterval(testimonialInterval);
+    });
+
+    document.addEventListener('astro:page-load', initTestimonials);
+</script>

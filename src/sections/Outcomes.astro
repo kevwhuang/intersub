@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content';
+
+const outcomes = await getCollection('outcomes');
+---
+
+<section
+    class="outcomes"
+    aria-labelledby="outcomes-title"
+>
+    <div class="shell">
+        <div class="outcomes__header" data-scroll>
+            <h2 id="outcomes-title" class="outcomes__title" data-i18n="Case Studies">Case Studies</h2>
+        </div>
+        <div class="outcomes__grid">
+            {outcomes.map(outcome => (
+                <article class="outcomes__card" data-scroll>
+                    <h3 class="outcomes__card-title" data-i18n={outcome.data.title}>{outcome.data.title}</h3>
+                    <p class="outcomes__card-summary" data-i18n={outcome.data.summary}>{outcome.data.summary}</p>
+                    <ul class="outcomes__points">
+                        {outcome.data.points.map(point => (
+                            <li class="outcomes__point" data-i18n={point}>{point}</li>
+                        ))}
+                    </ul>
+                </article>
+            ))}
+        </div>
+    </div>
+</section>
+
+<style>
+    .outcomes {
+        border-bottom: 1px solid var(--color-border);
+        padding: clamp(64px, 9vw, 120px) 0;
+    }
+
+    .outcomes__card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-strong);
+        border-radius: 14px;
+        border-top: 3px solid var(--color-accent);
+        display: flex;
+        flex-direction: column;
+        padding: 28px;
+        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    }
+
+    .outcomes__card:nth-child(3n+2) {
+        border-top-color: var(--color-success);
+    }
+
+    .outcomes__card:nth-child(3n+3) {
+        border-top-color: var(--color-warn);
+    }
+
+    .outcomes__card:hover {
+        border-color: var(--color-border-hover);
+        box-shadow: 0 8px 22px rgba(20, 22, 28, 0.05);
+    }
+
+    .outcomes__card-summary {
+        color: var(--color-ink-muted);
+        font-size: 14.5px;
+        line-height: 1.55;
+        margin: 0 0 18px;
+    }
+
+    .outcomes__card-title {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+        margin: 0 0 10px;
+    }
+
+    .outcomes__grid {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    }
+
+    .outcomes__header {
+        margin-bottom: clamp(40px, 5vw, 64px);
+        max-width: 640px;
+    }
+
+    .outcomes__point {
+        color: var(--color-ink-faint);
+        display: flex;
+        font-size: 13.5px;
+        gap: 9px;
+        line-height: 1.45;
+    }
+
+    .outcomes__point::before {
+        color: var(--color-accent);
+        content: '·';
+        flex: none;
+        font-weight: 700;
+    }
+
+    .outcomes__points {
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        list-style: none;
+        margin: auto 0 0;
+        padding: 16px 0 0;
+    }
+
+    .outcomes__title {
+        font-size: clamp(28px, 4vw, 46px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.08;
+        margin: 0;
+        text-wrap: balance;
+    }
+</style>

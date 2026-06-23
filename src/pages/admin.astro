@@ -1,0 +1,11 @@
+---
+import Dashboard from '@components/Dashboard';
+import Layout from '@/Layout.astro';
+---
+
+<Layout
+    description="Manage seminars, content, and site deployments."
+    title="Admin &mdash; InterSub"
+>
+    <Dashboard client:only="react" />
+</Layout>

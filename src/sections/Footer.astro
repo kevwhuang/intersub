@@ -1,0 +1,160 @@
+---
+import { ROUTES, SOCIALS } from '@lib/utils';
+---
+
+<footer
+    class="site-footer"
+    aria-label="Site footer"
+>
+    <div class="shell site-footer__inner grid items-start">
+        <div>
+            <h2 class="site-footer__wordmark">InterSub</h2>
+            <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and seminars for Chinese professionals. Based in Shanghai.">Business English coaching, workshops, and seminars for Chinese professionals. Based in Shanghai.</p>
+        </div>
+        <div class="site-footer__col">
+            <p class="site-footer__heading" data-i18n="Pages">Pages</p>
+            <div class="flex flex-col gap-3">
+                {ROUTES.map(route => (
+                    <a
+                        class="site-footer__link"
+                        href={route.href}
+                    >
+                        <span data-i18n={route.label}>{route.label}</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+        <div class="site-footer__col">
+            <p class="site-footer__heading" data-i18n="Follow">Follow</p>
+            <div class="site-footer__socials flex flex-wrap">
+                {SOCIALS.map(soc => (
+                    <a
+                        class="site-footer__social flex items-center justify-center"
+                        aria-label={soc.label}
+                        href={soc.href}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        title={soc.label}
+                    >
+                        {soc.mark}
+                    </a>
+                ))}
+            </div>
+            <div class="site-footer__qr">
+                <p class="site-footer__heading" data-i18n="Weixin">Weixin</p>
+                <img
+                    class="site-footer__qr-img"
+                    alt="Weixin QR code"
+                    height="80"
+                    src="/qr.png"
+                    width="80"
+                />
+            </div>
+        </div>
+    </div>
+    <div class="shell site-footer__bottom flex flex-wrap items-center justify-between select-none">
+        <span data-i18n-html="footer-copyright">&copy; 2026 InterSub. All rights reserved.</span>
+        <span data-i18n="Founded by Lydia Zhu">Founded by Lydia Zhu</span>
+    </div>
+</footer>
+
+<style>
+    .site-footer {
+        background: var(--color-dark);
+        color: var(--color-ink-pale);
+    }
+
+    .site-footer__bottom {
+        border-top: 1px solid var(--color-dark-edge);
+        color: var(--color-dark-muted);
+        font-size: 13.5px;
+        gap: 8px 24px;
+        padding-block: 28px;
+    }
+
+    .site-footer__col {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .site-footer__heading {
+        color: var(--color-dark-muted);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        margin: 0 0 16px;
+        text-transform: uppercase;
+    }
+
+    .site-footer__inner {
+        gap: 40px;
+        grid-template-columns: 1.6fr 1fr 1.2fr;
+        padding-bottom: 40px;
+        padding-top: clamp(48px, 6vw, 72px);
+    }
+
+    .site-footer__link {
+        color: var(--color-dark-text);
+        font-size: 15px;
+        text-decoration: none;
+        transition: color var(--duration-fast) ease;
+    }
+
+    .site-footer__link:hover {
+        color: var(--color-surface);
+    }
+
+    .site-footer__qr {
+        margin-top: 20px;
+    }
+
+    .site-footer__qr-img {
+        border-radius: 8px;
+        display: block;
+    }
+
+    .site-footer__social {
+        background: var(--color-dark-mid);
+        border: 1px solid var(--color-dark-edge);
+        border-radius: 10px;
+        color: var(--color-dark-text);
+        font-family: var(--font-heading);
+        font-size: 15px;
+        font-weight: 600;
+        height: 40px;
+        text-decoration: none;
+        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+        width: 40px;
+    }
+
+    .site-footer__social:hover {
+        border-color: var(--color-accent);
+        color: var(--color-surface);
+    }
+
+    .site-footer__socials {
+        gap: 9px;
+    }
+
+    .site-footer__tag {
+        color: var(--color-ink-pale);
+        font-size: 14.5px;
+        line-height: 1.6;
+        margin: 0;
+        max-width: 34ch;
+    }
+
+    .site-footer__wordmark {
+        color: var(--color-surface);
+        font-size: clamp(24px, 3vw, 32px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 14px;
+    }
+
+    @media (max-width: 768px) {
+        .site-footer__inner {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

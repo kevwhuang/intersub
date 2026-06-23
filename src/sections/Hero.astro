@@ -1,0 +1,79 @@
+---
+import hero from '@images/hero.jpg';
+import { Image } from 'astro:assets';
+---
+
+<section
+    class="hero relative isolate grid overflow-hidden"
+    aria-label="InterSub, a business English communication studio. A laptop on a sunlit office windowsill shows a presentation titled The Power of Intersubjectivity in Business, framed by the Shanghai skyline beyond the glass."
+>
+    <div class="hero__background absolute" aria-hidden="true">
+        <Image
+            alt=""
+            src={hero}
+            widths={[768, 1280, 1920]}
+            sizes="100vw"
+            loading="eager"
+        />
+    </div>
+    <div class="hero__overlay absolute" aria-hidden="true" />
+    <div class="hero__content shell relative">
+        <h1 class="hero__title" data-i18n="Your authority, in English." data-scroll>Your authority, in English.</h1>
+        <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused seminars for Chinese professionals who lead meetings, close deals, and write under pressure &mdash; in English.</p>
+    </div>
+</section>
+
+<style>
+    .hero {
+        align-items: center;
+        background: var(--color-dark-deep);
+        min-height: 100vh;
+    }
+
+    .hero__background {
+        inset: 0;
+        z-index: -2;
+    }
+
+    .hero__background img {
+        height: 100%;
+        object-fit: cover;
+        object-position: 65% 42%;
+        width: 100%;
+    }
+
+    .hero__content {
+        padding-bottom: clamp(56px, 10vh, 104px);
+        padding-top: clamp(116px, 16vh, 176px);
+    }
+
+    .hero__overlay {
+        background:
+            linear-gradient(to right, rgba(9, 11, 17, 0.72) 0%, rgba(9, 11, 17, 0.38) 70%, rgba(9, 11, 17, 0.28) 100%),
+            rgba(9, 11, 17, 0.22);
+        inset: 0;
+        z-index: -1;
+    }
+
+    .hero__subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: clamp(17px, 1.5vw, 21px);
+        line-height: 1.6;
+        margin: 0;
+        max-width: 56ch;
+        text-shadow: 0 1px 24px rgba(0, 0, 0, 0.5);
+        text-wrap: pretty;
+    }
+
+    .hero__title {
+        color: var(--color-surface);
+        font-size: clamp(36px, 6vw, 72px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.03;
+        margin: 0 0 28px;
+        max-width: 17ch;
+        text-shadow: 0 2px 34px rgba(0, 0, 0, 0.5);
+        text-wrap: balance;
+    }
+</style>
