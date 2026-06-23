@@ -1,0 +1,135 @@
+---
+import { METHOD_BLOCKS } from '@lib/utils';
+---
+
+<section class="method" aria-label="Our method">
+    <div class="shell method__inner">
+        <svg class="method__curve" aria-hidden="true" viewBox="0 0 300 1000" preserveAspectRatio="none">
+            <path class="method__curve-path" d="M 30 60 C 30 170, 200 170, 200 280 S 30 390, 30 500 S 200 610, 200 720 S 30 830, 30 960" />
+            <circle class="method__curve-dot" cx="30" cy="60" r="4" />
+            <circle class="method__curve-dot" cx="200" cy="280" r="4" />
+            <circle class="method__curve-dot" cx="30" cy="500" r="4" />
+            <circle class="method__curve-dot" cx="200" cy="720" r="4" />
+        </svg>
+        {METHOD_BLOCKS.map((b, i) => (
+            <div class:list={['method__block', { 'method__block--indent': i % 2 === 1 }]} data-scroll>
+                <div class="method__label">
+                    <span class="method__num">{b.num}</span>
+                    <p class="method__tag" data-i18n={b.label}>{b.label}</p>
+                </div>
+                <div class="method__text">
+                    <h2 class="method__statement" data-i18n={b.statement}>{b.statement}</h2>
+                    <p class="method__detail" data-i18n={b.detail}>{b.detail}</p>
+                </div>
+            </div>
+        ))}
+    </div>
+</section>
+
+<style>
+    .method {
+        border-bottom: 1px solid var(--color-border);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .method__block {
+        align-items: start;
+        display: grid;
+        gap: clamp(20px, 4vw, 64px);
+        grid-template-columns: 0.72fr 1.28fr;
+        position: relative;
+    }
+
+    .method__block--indent {
+        margin-left: clamp(0px, 14vw, 180px);
+    }
+
+    .method__curve {
+        height: 100%;
+        left: 0;
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        width: clamp(100px, 18vw, 240px);
+    }
+
+    .method__curve-dot {
+        fill: var(--color-border-hover);
+        opacity: 0.7;
+    }
+
+    .method__curve-path {
+        fill: none;
+        opacity: 0.5;
+        stroke: var(--color-border-hover);
+        stroke-linecap: round;
+        stroke-width: 1;
+    }
+
+    .method__detail {
+        color: var(--color-ink-muted);
+        font-size: clamp(16px, 1.3vw, 18px);
+        line-height: 1.65;
+        margin: 0;
+        max-width: 56ch;
+        text-wrap: pretty;
+    }
+
+    .method__label {
+        position: relative;
+        text-align: center;
+    }
+
+    .method__inner {
+        display: flex;
+        position: relative;
+        flex-direction: column;
+        gap: clamp(44px, 7vw, 88px);
+        padding-bottom: clamp(64px, 9vw, 120px);
+        padding-top: clamp(64px, 9vw, 120px);
+    }
+
+    .method__num {
+        color: color-mix(in srgb, var(--color-accent) 26%, var(--color-surface));
+        display: block;
+        font-family: var(--font-heading);
+        font-size: clamp(46px, 7vw, 90px);
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        line-height: 0.85;
+    }
+
+    .method__statement {
+        font-size: clamp(21px, 2.6vw, 32px);
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        line-height: 1.2;
+        margin: 0 0 18px;
+        text-wrap: balance;
+    }
+
+    .method__tag {
+        color: var(--color-ink-ghost);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        margin: 16px 0 0;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 768px) {
+        .method__block {
+            grid-template-columns: 1fr;
+        }
+
+        .method__block--indent {
+            margin-left: 0;
+        }
+
+        .method__curve {
+            display: none;
+        }
+    }
+</style>

@@ -1,0 +1,22 @@
+{
+    "permissions": {
+        "allow": [
+            "Agent",
+            "Bash",
+            "Edit",
+            "EnterPlanMode",
+            "ExitPlanMode",
+            "Glob",
+            "Grep",
+            "NotebookEdit",
+            "Read",
+            "TodoWrite",
+            "WebFetch",
+            "WebSearch",
+            "Workflow",
+            "Write",
+            "mcp__ide__*",
+            "mcp__supabase__*"
+        ]
+    }
+}

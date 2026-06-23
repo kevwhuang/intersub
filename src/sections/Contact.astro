@@ -1,0 +1,206 @@
+---
+
+---
+
+<section
+    id="contact"
+    class="contact section"
+    aria-labelledby="contact-title"
+>
+    <div class="shell contact__inner">
+        <div data-scroll>
+            <h2 id="contact-title" class="contact__title" data-i18n="Get in Touch">Get in Touch</h2>
+            <p class="contact__intro" data-i18n="Tell us what your team needs to communicate, and to whom. We'll reply within two business days with a specific recommendation.">Tell us what your team needs to communicate, and to whom. We'll reply within two business days with a specific recommendation.</p>
+        </div>
+        <div class="contact__success" hidden>
+            <h3 class="contact__success-title" data-i18n-html="contact-success-title">Thank you &mdash; message sent.</h3>
+            <p class="contact__success-text" data-i18n-html="contact-success-text">We've received your note and will be in touch at the email you provided. A copy was routed to lydia@intersubstudio.com.</p>
+            <button class="btn btn--outline contact__reset" data-i18n="Send another" type="button">Send another</button>
+        </div>
+        <form class="contact__form" novalidate>
+            <div>
+                <label class="label" data-i18n-html="contact-label-name" for="contact-name">Name <span class="label__required">*</span></label>
+                <input
+                    class="input"
+                    id="contact-name"
+                    name="name"
+                    data-i18n-placeholder="Your full name"
+                    placeholder="Your full name"
+                    required
+                    type="text"
+                />
+                <p class="contact__error" data-i18n="Please enter your name." hidden>Please enter your name.</p>
+            </div>
+            <div>
+                <label class="label" data-i18n-html="contact-label-email" for="contact-email">Email <span class="label__required">*</span></label>
+                <input
+                    class="input"
+                    id="contact-email"
+                    name="email"
+                    placeholder="you@company.com"
+                    required
+                    type="email"
+                />
+                <p class="contact__error" data-i18n="Please enter a valid email address." hidden>Please enter a valid email address.</p>
+            </div>
+            <div>
+                <label class="label" data-i18n-html="contact-label-message" for="contact-message">Message <span class="label__required">*</span></label>
+                <textarea
+                    class="textarea"
+                    id="contact-message"
+                    name="message"
+                    data-i18n-placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
+                    placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
+                    required
+                    rows="5"
+                />
+                <p class="contact__error" data-i18n="Please add a short message." hidden>Please add a short message.</p>
+            </div>
+            <button class="btn contact__submit" data-i18n="Send message" type="submit">Send message</button>
+        </form>
+    </div>
+</section>
+
+<style>
+    .contact {
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .contact__error {
+        color: var(--color-error);
+        font-size: 13px;
+        margin: 7px 0 0;
+    }
+
+    .contact__form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        text-align: left;
+    }
+
+    .contact__inner {
+        max-width: 620px;
+        text-align: center;
+    }
+
+    .contact__intro {
+        color: var(--color-ink-muted);
+        font-size: 17px;
+        line-height: 1.6;
+        margin: 0 0 44px;
+    }
+
+    .contact__reset {
+        font-size: 14px;
+        padding: 10px 18px;
+    }
+
+    .contact__submit {
+        align-self: center;
+        margin-top: 6px;
+    }
+
+    .contact__success {
+        background: var(--color-accent-7);
+        border: 1px solid var(--color-accent-22);
+        border-radius: 14px;
+        padding: 40px;
+        text-align: center;
+    }
+
+    .contact__success-text {
+        color: var(--color-ink-muted);
+        font-size: 15.5px;
+        line-height: 1.6;
+        margin: 0 0 20px;
+    }
+
+    .contact__success-title {
+        color: var(--color-ink);
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 10px;
+    }
+
+    .contact__title {
+        color: var(--color-ink);
+        font-size: clamp(28px, 4vw, 44px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 16px;
+    }
+
+    .input--error,
+    .textarea--error {
+        border-color: var(--color-error-soft);
+    }
+</style>
+
+<script>
+    function initContact() {
+        const section = document.querySelector('.contact');
+        if (!section) return;
+
+        const form = section.querySelector<HTMLFormElement>('.contact__form');
+        const success = section.querySelector<HTMLElement>('.contact__success');
+        const reset = section.querySelector<HTMLElement>('.contact__reset');
+
+        if (!form || !success || !reset) return;
+
+        const nameInput = form.querySelector<HTMLInputElement>('#contact-name');
+        const emailInput = form.querySelector<HTMLInputElement>('#contact-email');
+        const msgInput = form.querySelector<HTMLTextAreaElement>('#contact-message');
+        const errors = form.querySelectorAll<HTMLElement>('.contact__error');
+
+        function clearErrors() {
+            errors.forEach(e => e.hidden = true);
+            form!.querySelectorAll('.input--error, .textarea--error').forEach(el => {
+                el.classList.remove('input--error', 'textarea--error');
+            });
+        }
+
+        nameInput?.addEventListener('input', clearErrors);
+        emailInput?.addEventListener('input', clearErrors);
+        msgInput?.addEventListener('input', clearErrors);
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            clearErrors();
+
+            let valid = true;
+
+            if (!nameInput?.value.trim()) {
+                errors[0].hidden = false;
+                nameInput?.classList.add('input--error');
+                valid = false;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput?.value.trim() ?? '')) {
+                errors[1].hidden = false;
+                emailInput?.classList.add('input--error');
+                valid = false;
+            }
+
+            if (!msgInput?.value.trim()) {
+                errors[2].hidden = false;
+                msgInput?.classList.add('textarea--error');
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            form.hidden = true;
+            success.hidden = false;
+        });
+
+        reset.addEventListener('click', () => {
+            form.reset();
+            clearErrors();
+            success.hidden = true;
+            form.hidden = false;
+        });
+    }
+
+    document.addEventListener('astro:page-load', initContact);
+</script>

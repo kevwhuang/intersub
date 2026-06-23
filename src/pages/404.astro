@@ -1,0 +1,17 @@
+---
+import Footer from '@sections/Footer.astro';
+import Layout from '@/Layout.astro';
+import Navbar from '@sections/Navbar.astro';
+import NotFound from '@sections/NotFound.astro';
+
+export const prerender = false;
+---
+
+<Layout
+    description="This page does not exist. Return to the InterSub homepage or browse upcoming seminars."
+    title="Page Not Found &mdash; InterSub"
+>
+    <Navbar />
+    <NotFound />
+    <Footer />
+</Layout>
