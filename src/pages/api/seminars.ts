@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
-import { getCollection } from 'astro:content';
 import { getStore } from '@netlify/blobs';
+import { getSeminars } from '@lib/store';
 
 export const prerender = false;
 
@@ -20,40 +20,9 @@ export const DELETE: APIRoute = async ({ request }) => {
 };
 
 export const GET: APIRoute = async () => {
-    try {
-        const store = getStore('seminars');
-        const { blobs } = await store.list();
+    const seminars = await getSeminars();
 
-        if (blobs.length > 0) {
-            const seminars = await Promise.all(
-                blobs.map(async (blob) => {
-                    const data = await store.get(blob.key, { type: 'json' });
-                    return { id: blob.key, ...data };
-                }),
-            );
-
-            seminars.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-            return new Response(JSON.stringify(seminars), {
-                headers: { 'content-type': 'application/json' },
-            });
-        }
-    } catch {
-        return Response.json([]);
-    }
-
-    const entries = await getCollection('seminars');
-
-    const seminars = entries
-        .sort((a, b) => b.data.date.localeCompare(a.data.date))
-        .map(entry => ({
-            id: entry.id,
-            ...entry.data,
-        }));
-
-    return new Response(JSON.stringify(seminars), {
-        headers: { 'content-type': 'application/json' },
-    });
+    return Response.json(seminars);
 };
 
 export const POST: APIRoute = async ({ request }) => {
@@ -63,9 +32,9 @@ export const POST: APIRoute = async ({ request }) => {
     let id = body.id ? String(body.id) : null;
 
     if (!id) {
-        const { blobs } = await store.list();
-        const maxId = blobs.reduce((max, blob) => {
-            const num = parseInt(blob.key, 10);
+        const seminars = await getSeminars();
+        const maxId = seminars.reduce((max, entry) => {
+            const num = parseInt(String(entry.id), 10);
             return isNaN(num) ? max : Math.max(max, num);
         }, 0);
         id = String(maxId + 1);

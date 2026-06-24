@@ -1,58 +1,49 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const API_URL = process.argv[2] || 'http://localhost:8888/api/seminars';
-const OUTPUT_DIR = join(import.meta.dirname, '..', 'src', 'content', 'seminars');
+const BASE_URL = process.argv[2] || 'https://intersubstudio.com';
+const COLLECTIONS = ['outcomes', 'seminars'] as const;
+const CONTENT_DIR = join(import.meta.dirname, '..', 'src', 'content');
 
-interface Seminar {
-    content: string;
-    cover?: string;
-    date: string;
-    difficulty?: string;
-    id: string;
-    location: string;
-    title: string;
-}
-
-async function importSeminars() {
-    console.log(`Fetching from ${API_URL}`);
-
-    const response = await fetch(API_URL);
+async function fetchCollection(endpoint: string): Promise<Record<string, unknown>[]> {
+    const response = await fetch(`${BASE_URL}/api/${endpoint}`);
 
     if (!response.ok) {
-        console.error(`Failed: ${response.status} ${response.statusText}`);
-        process.exit(1);
+        throw new Error(`Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`);
     }
 
-    const seminars: Seminar[] = await response.json();
+    const data: Record<string, unknown>[] = await response.json();
 
-    console.log(`Found ${seminars.length} seminars`);
-
-    if (existsSync(OUTPUT_DIR)) {
-        rmSync(OUTPUT_DIR, { recursive: true });
+    if (!data.length) {
+        throw new Error(`Failed to fetch ${endpoint}: empty response, aborting to prevent data loss`);
     }
 
-    mkdirSync(OUTPUT_DIR, { recursive: true });
-
-    for (let index = 0; index < seminars.length; index++) {
-        const seminar = seminars[index];
-        const filename = `${index + 1}.json`;
-        const data: Record<string, string> = {
-            content: seminar.content,
-            ...(seminar.cover ? { cover: seminar.cover } : {}),
-            date: seminar.date,
-            ...(seminar.difficulty ? { difficulty: seminar.difficulty } : {}),
-            location: seminar.location,
-            title: seminar.title,
-        };
-
-        const json = JSON.stringify(data, Object.keys(data).sort(), 4);
-
-        writeFileSync(join(OUTPUT_DIR, filename), json);
-        console.log(`  ${filename}: ${seminar.title}`);
-    }
-
-    console.log(`\nWrote ${seminars.length} files to src/content/seminars/`);
+    return data;
 }
 
-importSeminars();
+function writeCollection(directory: string, items: Record<string, unknown>[]) {
+    const outputDirectory = join(CONTENT_DIR, directory);
+
+    if (existsSync(outputDirectory)) {
+        rmSync(outputDirectory, { recursive: true });
+    }
+
+    mkdirSync(outputDirectory, { recursive: true });
+
+    for (let index = 0; index < items.length; index++) {
+        const entry = { ...items[index] };
+
+        delete entry.id;
+
+        const filename = `${index + 1}.json`;
+        const json = JSON.stringify(entry, Object.keys(entry).sort(), 4);
+
+        writeFileSync(join(outputDirectory, filename), json + '\n');
+    }
+}
+
+for (const collection of COLLECTIONS) {
+    const data = await fetchCollection(collection);
+
+    writeCollection(collection, data);
+}

@@ -14,7 +14,7 @@ import { METHOD_BLOCKS } from '@lib/utils';
         {METHOD_BLOCKS.map((b, i) => (
             <div class:list={['method__block', { 'method__block--indent': i % 2 === 1 }]} data-scroll>
                 <div class="method__label">
-                    <span class="method__num">{b.num}</span>
+                    <span class="method__number">{b.num}</span>
                     <p class="method__tag" data-i18n={b.label}>{b.label}</p>
                 </div>
                 <div class="method__text">
@@ -55,16 +55,15 @@ import { METHOD_BLOCKS } from '@lib/utils';
     }
 
     .method__curve-dot {
-        fill: var(--color-border-hover);
-        opacity: 0.7;
+        fill: color-mix(in srgb, var(--color-accent) 40%, var(--color-border-hover));
     }
 
     .method__curve-path {
         fill: none;
-        opacity: 0.5;
-        stroke: var(--color-border-hover);
+        opacity: 0.7;
+        stroke: color-mix(in srgb, var(--color-accent) 25%, var(--color-border-hover));
         stroke-linecap: round;
-        stroke-width: 1;
+        stroke-width: 1.5;
     }
 
     .method__detail {
@@ -72,7 +71,6 @@ import { METHOD_BLOCKS } from '@lib/utils';
         font-size: clamp(16px, 1.3vw, 18px);
         line-height: 1.65;
         margin: 0;
-        max-width: 56ch;
         text-wrap: pretty;
     }
 
@@ -90,8 +88,8 @@ import { METHOD_BLOCKS } from '@lib/utils';
         padding-top: clamp(64px, 9vw, 120px);
     }
 
-    .method__num {
-        color: color-mix(in srgb, var(--color-accent) 26%, var(--color-surface));
+    .method__number {
+        color: color-mix(in srgb, var(--color-accent) 40%, var(--color-surface));
         display: block;
         font-family: var(--font-heading);
         font-size: clamp(46px, 7vw, 90px);
@@ -130,6 +128,31 @@ import { METHOD_BLOCKS } from '@lib/utils';
 
         .method__curve {
             display: none;
+        }
+
+        .method__label {
+            align-items: baseline;
+            display: flex;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .method__number {
+            font-size: clamp(40px, 12vw, 56px);
+            line-height: 1;
+        }
+
+        .method__statement {
+            font-size: clamp(22px, 5.5vw, 28px);
+        }
+
+        .method__tag {
+            font-size: clamp(13px, 3.5vw, 15px);
+            margin: 0;
+        }
+
+        .method__text {
+            width: 100%;
         }
     }
 </style>

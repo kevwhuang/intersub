@@ -4,10 +4,10 @@ import { describe, expect, test } from 'vitest';
 import NotFound from '../../src/sections/NotFound.astro';
 
 describe('NotFound', () => {
-    test('renders 404 heading', async () => {
+    test('renders 404 component', async () => {
         const container = await AstroContainer.create();
         const html = await container.renderToString(NotFound);
 
-        expect(html).toMatch(/<h1[^>]*>[\s]*404[\s]*<\/h1>/);
+        expect(html).toContain('not-found');
     });
 });

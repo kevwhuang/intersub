@@ -2,8 +2,8 @@
 
 @theme {
     --color-accent: #2a52e0;
-    --color-accent-7: #2a52e012;
-    --color-accent-22: #2a52e038;
+    --color-accent-10: #2a52e012;
+    --color-accent-20: #2a52e038;
     --color-accent-dark: #2245c0;
     --color-accent-darker: #1b389e;
     --color-border: #eceef2;
@@ -40,7 +40,6 @@
 }
 
 :root {
-    --duration-base: 0.3s;
     --duration-fast: 0.15s;
     --duration-slow: 0.4s;
     --header-height: 68px;
@@ -64,14 +63,14 @@ html {
     outline: none;
 }
 
-:focus-visible:not(input):not(textarea):not(select) {
+:focus-visible:not(input) {
     border-radius: 2px;
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
 }
 
 ::selection {
-    background: var(--color-accent-22);
+    background: var(--color-accent-20);
 }
 
 ::placeholder {

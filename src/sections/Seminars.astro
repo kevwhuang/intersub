@@ -1,13 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
-
+import { getSeminars } from '@lib/store';
 import { formatDate, getDifficultyMeta, getInitials } from '@lib/utils';
 
-const allSeminars = await getCollection('seminars');
-const seminars = allSeminars.sort((a, b) => b.data.date.localeCompare(a.data.date));
-const locations = [...new Set(seminars.map(seminar => seminar.data.location))];
-const difficulties = ['all', 'beginner', 'intermediate', 'advanced'] as const;
-const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All levels', beginner: 'Beginner', intermediate: 'Intermediate' };
+const seminars = await getSeminars();
+const locations = [...new Set(seminars.map(seminar => String(seminar.location)))].sort();
+const DIFFICULTIES = ['all', 'beginner', 'intermediate', 'advanced'] as const;
+const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: 'All levels', beginner: 'Beginner', intermediate: 'Intermediate' };
 ---
 
 <div class="seminars" data-seminars>
@@ -46,13 +44,13 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
                     <div>
                         <p class="seminars__filter-label" data-i18n="Level">Level</p>
                         <div class="flex flex-wrap gap-2">
-                            {difficulties.map(d => (
+                            {DIFFICULTIES.map(d => (
                                 <button
                                     class:list={['chip', { 'chip--active': d === 'all' }]}
                                     data-filter-difficulty={d}
                                     type="button"
                                 >
-                                    <span data-i18n={diffLabels[d]}>{diffLabels[d]}</span>
+                                    <span data-i18n={DIFFICULTY_LABELS[d]}>{DIFFICULTY_LABELS[d]}</span>
                                 </button>
                             ))}
                         </div>
@@ -64,15 +62,15 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
             </div>
 
             <div class="seminars__grid" data-grid>
-                {seminars.map(sem => {
-                    const meta = getDifficultyMeta(sem.data.difficulty);
-                    const initials = getInitials(sem.data.title);
+                {seminars.map((sem) => {
+                    const meta = getDifficultyMeta(sem.difficulty);
+                    const initials = getInitials(sem.title);
                     return (
                         <a
                             class="seminars__card"
                             data-card
-                            data-card-difficulty={sem.data.difficulty}
-                            data-card-location={sem.data.location}
+                            data-card-difficulty={sem.difficulty}
+                            data-card-location={sem.location}
                             href={`/seminars/${sem.id}`}
                         >
                             <div
@@ -82,20 +80,20 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
                                 <span class="seminars__card-initials">{initials}</span>
                             </div>
                             <div class="seminars__card-body">
-                                <h2 class="seminars__card-title">{sem.data.title}</h2>
-                                {sem.data.difficulty && (
+                                <h2 class="seminars__card-title">{sem.title}</h2>
+                                {sem.difficulty && (
                                     <div class="seminars__card-badge">
-                                        <span class={`tag tag--${sem.data.difficulty}`} data-i18n={meta.label}>{meta.label}</span>
+                                        <span class={`tag tag--${sem.difficulty}`} data-i18n={meta.label}>{meta.label}</span>
                                     </div>
                                 )}
                                 <div class="seminars__card-details">
                                     <div class="seminars__card-row">
                                         <span class="seminars__card-key" data-i18n="Date">Date</span>
-                                        <span class="seminars__card-val" data-i18n-date={sem.data.date}>{formatDate(sem.data.date)}</span>
+                                        <span class="seminars__card-value" data-i18n-date={sem.date}>{formatDate(sem.date)}</span>
                                     </div>
                                     <div class="seminars__card-row">
                                         <span class="seminars__card-key" data-i18n="Location">Location</span>
-                                        <span class="seminars__card-val" data-i18n={sem.data.location}>{sem.data.location}</span>
+                                        <span class="seminars__card-value" data-i18n={sem.location}>{sem.location}</span>
                                     </div>
                                 </div>
                             </div>
@@ -106,8 +104,8 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
 
             <div class="seminars__empty" data-empty style="display:none">
                 <h2 class="seminars__empty-title" data-i18n="No seminars match those filters">No seminars match those filters</h2>
-                <p class="seminars__empty-text">Try widening your selection &mdash; new sessions are added throughout the season.</p>
-                <button class="btn" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
+                <p class="seminars__empty-text">Try widening your selection. New sessions are added throughout the season.</p>
+                <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
             </div>
         </div>
     </section>
@@ -127,7 +125,7 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
 
     .seminars__card:focus-visible {
         border-color: var(--color-accent);
-        box-shadow: 0 0 0 3px var(--color-accent-22);
+        box-shadow: 0 0 0 3px var(--color-accent-20);
         outline: none;
     }
 
@@ -195,7 +193,7 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
         margin: 0 0 16px;
     }
 
-    .seminars__card-val {
+    .seminars__card-value {
         color: var(--color-ink);
         font-weight: 600;
         text-align: right;
@@ -222,7 +220,6 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
         font-size: 15.5px;
         line-height: 1.6;
         margin: 0 auto 24px;
-        max-width: 42ch;
     }
 
     .seminars__empty-title {
@@ -264,7 +261,6 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
         font-size: clamp(16px, 1.3vw, 18px);
         line-height: 1.6;
         margin: 20px 0 0;
-        max-width: 56ch;
     }
 
     .seminars__title {
@@ -274,7 +270,6 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
         letter-spacing: -0.025em;
         line-height: 1.06;
         margin: 0;
-        max-width: 18ch;
         text-wrap: balance;
     }
 
@@ -302,13 +297,13 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
         const countEl = root.querySelector<HTMLElement>('[data-count]');
         const emptyEl = root.querySelector<HTMLElement>('[data-empty]');
         const gridEl = root.querySelector<HTMLElement>('[data-grid]');
-        const diffBtns = root.querySelectorAll<HTMLButtonElement>('[data-filter-difficulty]');
-        const locBtns = root.querySelectorAll<HTMLButtonElement>('[data-filter-location]');
+        const difficultyButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-difficulty]');
+        const locationButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-location]');
 
         function update() {
             let visible = 0;
 
-            cards.forEach(card => {
+            cards.forEach((card) => {
                 const d = card.dataset.cardDifficulty;
                 const l = card.dataset.cardLocation;
                 const show =
@@ -319,11 +314,11 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
                 if (show) visible++;
             });
 
-            diffBtns.forEach(btn => {
-                btn.classList.toggle('chip--active', btn.dataset.filterDifficulty === activeDifficulty);
+            difficultyButtons.forEach((button) => {
+                button.classList.toggle('chip--active', button.dataset.filterDifficulty === activeDifficulty);
             });
-            locBtns.forEach(btn => {
-                btn.classList.toggle('chip--active', btn.dataset.filterLocation === activeLocation);
+            locationButtons.forEach((button) => {
+                button.classList.toggle('chip--active', button.dataset.filterLocation === activeLocation);
             });
 
             if (countEl) {
@@ -333,16 +328,16 @@ const diffLabels: Record<string, string> = { advanced: 'Advanced', all: 'All lev
             if (emptyEl) emptyEl.style.display = visible ? 'none' : '';
         }
 
-        diffBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeDifficulty = btn.dataset.filterDifficulty || 'all';
+        difficultyButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                activeDifficulty = button.dataset.filterDifficulty || 'all';
                 update();
             });
         });
 
-        locBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeLocation = btn.dataset.filterLocation || 'all';
+        locationButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                activeLocation = button.dataset.filterLocation || 'all';
                 update();
             });
         });

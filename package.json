@@ -1,6 +1,6 @@
 {
     "name": "intersub",
-    "version": "26.6.23",
+    "version": "26.6.25",
     "type": "module",
     "author": "Kevin Huang",
     "scripts": {
@@ -32,7 +32,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
-        "@playwright/test": "^1.61.0",
+        "@playwright/test": "^1.61.1",
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/node": "^25.9.4",
         "@types/react": "^19.2.17",

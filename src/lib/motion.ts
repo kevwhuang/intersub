@@ -11,14 +11,14 @@ function initScrollAnimations() {
     const elements = document.querySelectorAll<HTMLElement>('[data-scroll]');
 
     if (prefersReducedMotion) {
-        elements.forEach(element => {
+        elements.forEach((element) => {
             element.style.opacity = '1';
         });
 
         return;
     }
 
-    elements.forEach(element => {
+    elements.forEach((element) => {
         const delay = Number.parseFloat(element.dataset.scrollDelay || '0');
         const stagger = Number.parseFloat(element.dataset.scrollStagger || '0');
 

@@ -9,25 +9,22 @@ import { SOLUTIONS } from '@lib/utils';
     <div class="shell">
         <div class="solutions__header" data-scroll>
             <h2 id="solutions-title" class="solutions__title" data-i18n="Solutions">Solutions</h2>
-            <p class="solutions__intro" data-i18n-html="solutions-intro">Three formats, each built around your real situations &mdash; the meetings you run, the clients you email, the rooms you need to win.</p>
+            <p class="solutions__intro" data-i18n-html="solutions-intro">Three formats, each built around your real situations: the meetings you run, the clients you email, the rooms you need to win.</p>
         </div>
         <div class="solutions__list">
             {SOLUTIONS.map(s => (
                 <article class="solutions__card" data-scroll>
                     <div class="solutions__card-main">
-                        <div class="solutions__card-head">
-                            <span class="solutions__badge">{s.num}</span>
-                            <div>
-                                <h3 class="solutions__card-title" data-i18n={s.title}>{s.title}</h3>
-                                <p class="solutions__card-desc" data-i18n={s.desc}>{s.desc}</p>
-                            </div>
+                        <div>
+                            <h3 class="solutions__card-title" data-i18n={s.title}>{s.title}</h3>
+                            <p class="solutions__card-description" data-i18n={s.desc}>{s.desc}</p>
                         </div>
                     </div>
                     <ul class="solutions__details">
                         {s.details.map(d => (
                             <li class="solutions__detail">
                                 <span class="solutions__detail-key" data-i18n={d.k}>{d.k}</span>
-                                <span class="solutions__detail-val" data-i18n={d.v}>{d.v}</span>
+                                <span class="solutions__detail-value" data-i18n={d.v}>{d.v}</span>
                             </li>
                         ))}
                     </ul>
@@ -44,22 +41,6 @@ import { SOLUTIONS } from '@lib/utils';
         padding: clamp(64px, 9vw, 120px) 0;
     }
 
-    .solutions__badge {
-        align-items: center;
-        background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
-        border: 1px solid color-mix(in srgb, var(--color-accent) 26%, var(--color-surface));
-        border-radius: 11px;
-        color: var(--color-accent);
-        display: flex;
-        flex: none;
-        font-family: var(--font-heading);
-        font-size: 15px;
-        font-weight: 500;
-        height: 44px;
-        justify-content: center;
-        width: 44px;
-    }
-
     .solutions__card {
         align-items: start;
         background: var(--color-surface);
@@ -72,24 +53,23 @@ import { SOLUTIONS } from '@lib/utils';
         transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
+    .solutions__card:focus-visible {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px var(--color-accent-20);
+        outline: none;
+    }
+
     .solutions__card:hover {
         border-color: var(--color-border-hover);
         box-shadow: 0 10px 30px rgba(20, 22, 28, 0.06);
         transform: translateY(-2px);
     }
 
-    .solutions__card-desc {
+    .solutions__card-description {
         color: var(--color-ink-muted);
         font-size: 16px;
         line-height: 1.6;
         margin: 0;
-        max-width: 42ch;
-    }
-
-    .solutions__card-head {
-        align-items: flex-start;
-        display: flex;
-        gap: 20px;
     }
 
     .solutions__card-main {
@@ -123,7 +103,7 @@ import { SOLUTIONS } from '@lib/utils';
         text-transform: uppercase;
     }
 
-    .solutions__detail-val {
+    .solutions__detail-value {
         color: var(--color-ink);
         font-weight: 600;
         text-align: right;
@@ -168,6 +148,10 @@ import { SOLUTIONS } from '@lib/utils';
     @media (max-width: 768px) {
         .solutions__card {
             grid-template-columns: 1fr;
+        }
+
+        .solutions__header {
+            text-align: center;
         }
     }
 </style>

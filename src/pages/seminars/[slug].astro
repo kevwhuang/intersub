@@ -1,26 +1,21 @@
 ---
-import type { GetStaticPaths } from 'astro';
-
-import { getCollection } from 'astro:content';
-
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
+import { getSeminars } from '@lib/store';
 import { formatDate, getDifficultyMeta, getInitials, parseSeminarContent } from '@lib/utils';
 
-export const getStaticPaths: GetStaticPaths = async () => {
-    const seminars = await getCollection('seminars');
+export const prerender = false;
 
-    return seminars.map(seminar => ({
-        params: { slug: seminar.id },
-        props: { seminar },
-    }));
-};
+const { slug } = Astro.params;
+const seminars = await getSeminars();
+const seminar = seminars.find(s => String(s.id) === slug) as Record<string, string> | undefined;
 
-const { seminar } = Astro.props;
-const meta = getDifficultyMeta(seminar.data.difficulty);
-const initials = getInitials(seminar.data.title);
-const rawBlocks = parseSeminarContent(seminar.data.content);
+if (!seminar) return Astro.redirect('/404');
+
+const meta = getDifficultyMeta(seminar.difficulty);
+const initials = getInitials(seminar.title);
+const rawBlocks = parseSeminarContent(seminar.content);
 const grouped: Array<{ items: string[]; type: 'h' | 'li' | 'p' }> = [];
 for (const block of rawBlocks) {
     if (block.type === 'li' && grouped.length && grouped[grouped.length - 1].type === 'li') {
@@ -32,8 +27,8 @@ for (const block of rawBlocks) {
 ---
 
 <Layout
-    description={`${seminar.data.title} — ${meta.label ? `${meta.label.toLowerCase()} level, ` : ''}${seminar.data.location}. A focused business English session by InterSub.`}
-    title={`${seminar.data.title} &mdash; InterSub`}
+    description={`${seminar.title}. ${meta.label ? `${meta.label} level, ` : ''}${seminar.location}. A focused business English session by InterSub.`}
+    title={`${seminar.title} | InterSub`}
 >
     <Navbar />
     <div class="seminar-detail">
@@ -42,19 +37,19 @@ for (const block of rawBlocks) {
                 <span>&larr;</span>
                 <span data-i18n="All seminars">All seminars</span>
             </a>
-            <h1 class="seminar-detail__title">{seminar.data.title}</h1>
+            <h1 class="seminar-detail__title">{seminar.title}</h1>
             <dl class="seminar-detail__meta">
                 <div>
                     <dt class="seminar-detail__meta-label" data-i18n="Date">Date</dt>
                     <dd class="seminar-detail__meta-value">
-                        <time data-i18n-date={seminar.data.date} datetime={seminar.data.date}>{formatDate(seminar.data.date)}</time>
+                        <time data-i18n-date={seminar.date} datetime={seminar.date}>{formatDate(seminar.date)}</time>
                     </dd>
                 </div>
                 <div>
                     <dt class="seminar-detail__meta-label" data-i18n="Location">Location</dt>
-                    <dd class="seminar-detail__meta-value" data-i18n={seminar.data.location}>{seminar.data.location}</dd>
+                    <dd class="seminar-detail__meta-value" data-i18n={seminar.location}>{seminar.location}</dd>
                 </div>
-                {seminar.data.difficulty && (
+                {seminar.difficulty && (
                     <div>
                         <dt class="seminar-detail__meta-label" data-i18n="Level">Level</dt>
                         <dd class="seminar-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
@@ -68,15 +63,15 @@ for (const block of rawBlocks) {
                 <span class="seminar-detail__cover-initials">{initials}</span>
             </div>
             <div class="prose seminar-detail__content">
-                {grouped.map(group => {
+                {grouped.map((group) => {
                     if (group.type === 'h') return <h2>{group.items[0]}</h2>;
                     if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
                     return <p>{group.items[0]}</p>;
                 })}
             </div>
-            <div class="seminar-detail__cta">
-                <a class="btn" href="/#contact"><span data-i18n="Enquire about this seminar">Enquire about this seminar</span></a>
-                <a class="btn btn--outline" href="/seminars"><span data-i18n="Back to all">Back to all</span></a>
+            <div class="seminar-detail__actions">
+                <a class="button" href="/#contact"><span data-i18n="Enquire about this seminar">Enquire about this seminar</span></a>
+                <a class="button button--outline" href="/seminars"><span data-i18n="Back to all">Back to all</span></a>
             </div>
         </div>
     </div>
@@ -98,7 +93,16 @@ for (const block of rawBlocks) {
         gap: 8px;
         margin-bottom: 28px;
         text-decoration: none;
-        transition: color var(--duration-fast) ease;
+        transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+    }
+
+    .seminar-detail__back:active {
+        opacity: 0.7;
+    }
+
+    .seminar-detail__back:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-accent-20);
+        outline: none;
     }
 
     .seminar-detail__back:hover {
@@ -127,7 +131,7 @@ for (const block of rawBlocks) {
         opacity: 0.26;
     }
 
-    .seminar-detail__cta {
+    .seminar-detail__actions {
         align-items: center;
         border-top: 1px solid var(--color-border);
         display: flex;

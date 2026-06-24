@@ -29,7 +29,7 @@ const seminars = defineCollection({
 const testimonials = defineCollection({
     loader: glob({ base: `./${CONTENT_PATH}/testimonials`, pattern: '**/*.json' }),
     schema: z.object({
-        company: z.string(),
+        industry: z.string(),
         name: z.string(),
         quote: z.string(),
         role: z.string(),
