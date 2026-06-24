@@ -36,7 +36,7 @@ export function useAuth() {
         setError('');
 
         if (!email.trim() || !password.trim()) {
-            setError('Enter your email and password.');
+            setError('Email and password are required.');
             return;
         }
 

@@ -1,4 +1,7 @@
 ---
+import { Image } from 'astro:assets';
+
+import qrCode from '@images/qr.png';
 import { ROUTES, SOCIALS } from '@lib/utils';
 ---
 
@@ -9,9 +12,9 @@ import { ROUTES, SOCIALS } from '@lib/utils';
     <div class="shell site-footer__inner grid items-start">
         <div>
             <h2 class="site-footer__wordmark">InterSub</h2>
-            <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and seminars for Chinese professionals. Based in Shanghai.">Business English coaching, workshops, and seminars for Chinese professionals. Based in Shanghai.</p>
+            <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and seminars for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and seminars for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
         </div>
-        <div class="site-footer__col">
+        <div class="site-footer__column">
             <p class="site-footer__heading" data-i18n="Pages">Pages</p>
             <div class="flex flex-col gap-3">
                 {ROUTES.map(route => (
@@ -24,7 +27,7 @@ import { ROUTES, SOCIALS } from '@lib/utils';
                 ))}
             </div>
         </div>
-        <div class="site-footer__col">
+        <div class="site-footer__column">
             <p class="site-footer__heading" data-i18n="Follow">Follow</p>
             <div class="site-footer__socials flex flex-wrap">
                 {SOCIALS.map(soc => (
@@ -40,19 +43,19 @@ import { ROUTES, SOCIALS } from '@lib/utils';
                     </a>
                 ))}
             </div>
-            <div class="site-footer__qr">
+            <div class="site-footer__qr-code">
                 <p class="site-footer__heading" data-i18n="Weixin">Weixin</p>
-                <img
-                    class="site-footer__qr-img"
+                <Image
+                    class="site-footer__qr-code-image"
                     alt="Weixin QR code"
-                    height="80"
-                    src="/qr.png"
-                    width="80"
+                    height={80}
+                    src={qrCode}
+                    width={80}
                 />
             </div>
         </div>
     </div>
-    <div class="shell site-footer__bottom flex flex-wrap items-center justify-between select-none">
+    <div class="shell site-footer__bottom flex flex-col items-start gap-2 select-none">
         <span data-i18n-html="footer-copyright">&copy; 2026 InterSub. All rights reserved.</span>
         <span data-i18n="Founded by Lydia Zhu">Founded by Lydia Zhu</span>
     </div>
@@ -72,7 +75,7 @@ import { ROUTES, SOCIALS } from '@lib/utils';
         padding-block: 28px;
     }
 
-    .site-footer__col {
+    .site-footer__column {
         display: flex;
         flex-direction: column;
     }
@@ -97,18 +100,27 @@ import { ROUTES, SOCIALS } from '@lib/utils';
         color: var(--color-dark-text);
         font-size: 15px;
         text-decoration: none;
-        transition: color var(--duration-fast) ease;
+        transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+    }
+
+    .site-footer__link:active {
+        opacity: 0.7;
+    }
+
+    .site-footer__link:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-accent-20);
+        outline: none;
     }
 
     .site-footer__link:hover {
         color: var(--color-surface);
     }
 
-    .site-footer__qr {
+    .site-footer__qr-code {
         margin-top: 20px;
     }
 
-    .site-footer__qr-img {
+    .site-footer__qr-code-image {
         border-radius: 8px;
         display: block;
     }
@@ -123,8 +135,17 @@ import { ROUTES, SOCIALS } from '@lib/utils';
         font-weight: 600;
         height: 40px;
         text-decoration: none;
-        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
         width: 40px;
+    }
+
+    .site-footer__social:active {
+        opacity: 0.8;
+    }
+
+    .site-footer__social:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-accent-20);
+        outline: none;
     }
 
     .site-footer__social:hover {
@@ -141,7 +162,6 @@ import { ROUTES, SOCIALS } from '@lib/utils';
         font-size: 14.5px;
         line-height: 1.6;
         margin: 0;
-        max-width: 34ch;
     }
 
     .site-footer__wordmark {

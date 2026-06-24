@@ -22,19 +22,17 @@ interface AdminSeminar {
 }
 
 interface DashboardState {
-    activePanel: 'case-studies' | 'seminars';
+    activePanel: 'outcomes' | 'seminars';
     adminFilters: string[];
     adminLocation: string;
     adminSearch: string;
     confirmDelete: string | null;
     confirmDeleteType: 'outcome' | 'seminar';
-    deployState: 'building' | 'done' | 'idle';
     drawerOpen: boolean;
     editing: string | null;
     editingOutcome: string | null;
     form: SeminarFormData | null;
     formErrors: Record<string, boolean>;
-    lastDeploy: string;
     outcomeForm: OutcomeFormData | null;
     outcomeFormErrors: Record<string, boolean>;
     outcomes: AdminOutcome[];
@@ -65,14 +63,11 @@ type DashboardAction
         | { payload: (state: DashboardState) => Partial<DashboardState>; type: 'FN' };
 
 const ACCENT = '#2a52e0';
-const DEPLOY_BUILD_MS = 3_000;
-const DEPLOY_DONE_MS = 4_000;
-
 const FONT_HEADING = '\'Space Grotesk\', sans-serif';
 const FONT_MONO = '\'IBM Plex Mono\', monospace';
 
 const NAV_ITEMS = [
-    { key: 'case-studies', label: 'Case Studies' },
+    { key: 'outcomes', label: 'Outcomes' },
     { key: 'seminars', label: 'Seminars' },
 ];
 
@@ -120,13 +115,11 @@ function useDashboardState() {
         adminSearch: '',
         confirmDelete: null,
         confirmDeleteType: 'seminar',
-        deployState: 'idle',
-        drawerOpen: typeof window !== 'undefined' && window.innerWidth > 768,
+        drawerOpen: typeof window !== 'undefined' && window.innerWidth > 1024,
         editing: null,
         editingOutcome: null,
         form: null,
         formErrors: {},
-        lastDeploy: 'Jun 22, 2026 · 4:12 PM',
         outcomeForm: null,
         outcomeFormErrors: {},
         outcomes: [],
@@ -147,8 +140,6 @@ function useDashboardState() {
         [],
     );
 
-    const deployTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-    const deployTimer2 = useRef<ReturnType<typeof setTimeout>>(undefined);
     const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const [isMobile, setIsMobile] = useState(false);
 
@@ -162,7 +153,7 @@ function useDashboardState() {
     }, []);
 
     useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        const mediaQuery = window.matchMedia('(max-width: 1024px)');
         setIsMobile(mediaQuery.matches);
         const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
         mediaQuery.addEventListener('change', onChange);
@@ -171,8 +162,6 @@ function useDashboardState() {
 
     useEffect(() => {
         return () => {
-            clearTimeout(deployTimer.current);
-            clearTimeout(deployTimer2.current);
             clearTimeout(toastTimer.current);
         };
     }, []);
@@ -189,18 +178,6 @@ function useDashboardState() {
 
     function handleResetForLogout() {
         set({ drawerOpen: false, editing: null });
-    }
-
-    function handleRedeploy() {
-        if (state.deployState === 'building') return;
-        set({ deployState: 'building' });
-        clearTimeout(deployTimer.current);
-        deployTimer.current = setTimeout(() => {
-            const now = new Date();
-            const formatted = now.toLocaleString('en-US', { day: 'numeric', hour: 'numeric', minute: '2-digit', month: 'short', year: 'numeric' }).replace(',', '').replace(/(\d{4}) /, '$1 · ');
-            set({ deployState: 'done', lastDeploy: formatted });
-            deployTimer2.current = setTimeout(() => set({ deployState: 'idle' }), DEPLOY_DONE_MS);
-        }, DEPLOY_BUILD_MS);
     }
 
     async function handleSaveForm() {
@@ -277,7 +254,7 @@ function useDashboardState() {
             await fetch('/api/outcomes', { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
             set({ editingOutcome: null, outcomeForm: null, outcomeFormErrors: {} });
             fetchData();
-            showToast(isNew ? 'Case study created' : 'Changes saved');
+            showToast(isNew ? 'Outcome created' : 'Changes saved');
         } catch {
             showToast('Failed to save');
         }
@@ -318,7 +295,6 @@ function useDashboardState() {
         fetchData,
         handleCancelEdit,
         handleCancelOutcomeEdit,
-        handleRedeploy,
         handleResetForLogout,
         handleSaveForm,
         handleSaveOutcome,
@@ -361,43 +337,43 @@ function AdminForm({ editing, form, formErrors, isMobile, onCancel, onDelete, on
                     event.preventDefault();
                     onSave();
                 }}
-                style={{ background: '#fff', border: STYLES.border, borderRadius: STYLES.borderRadiusLg, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(26px, 3.5vw, 40px)' }}
+                style={{ background: '#ffffff', border: STYLES.border, borderRadius: STYLES.borderRadiusLg, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, 3.5vw, 40px)' }}
             >
-                <FormField errorBorder={errorBorder('title')} errorMessage={formErrors.title ? 'Title is required.' : undefined} label="Title" required>
-                    <input className="db-input" value={form.title} onChange={event => onUpdate({ title: event.target.value })} placeholder="e.g. Executive Presence in English Meetings" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('title')}` }} />
+                <FormField errorMessage={formErrors.title ? 'Title is required.' : undefined} label="Title" required>
+                    <input className="dashboard-input" value={form.title} onChange={event => onUpdate({ title: event.target.value })} placeholder="e.g. Executive Presence in English Meetings" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('title')}` }} />
                 </FormField>
                 <div style={{ display: 'grid', gap: 16, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
-                    <FormField errorBorder={errorBorder('date')} errorMessage={formErrors.date ? 'Date is required.' : undefined} label="Date" required>
-                        <input className="db-input" value={form.date} onChange={event => onUpdate({ date: event.target.value })} type="date" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('date')}`, padding: '11px 14px' }} />
+                    <FormField errorMessage={formErrors.date ? 'Date is required.' : undefined} label="Date" required>
+                        <input className="dashboard-input" value={form.date} onChange={event => onUpdate({ date: event.target.value })} type="date" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('date')}`, padding: '11px 14px' }} />
                     </FormField>
                     <FormField label="Difficulty">
-                        <select className="db-input" value={form.difficulty} onChange={event => onUpdate({ difficulty: event.target.value })} style={{ ...STYLES.inputBase, background: '#fff', border: STYLES.borderMuted, cursor: 'pointer', padding: '11px 14px' }}>
+                        <select className="dashboard-input" value={form.difficulty} onChange={event => onUpdate({ difficulty: event.target.value })} style={{ ...STYLES.inputBase, background: '#ffffff', border: STYLES.borderMuted, cursor: 'pointer', padding: '11px 14px' }}>
                             <option value="beginner">Beginner</option>
                             <option value="intermediate">Intermediate</option>
                             <option value="advanced">Advanced</option>
                         </select>
                     </FormField>
                 </div>
-                <FormField errorBorder={errorBorder('location')} errorMessage={formErrors.location ? 'Location is required.' : undefined} label="Location" required>
-                    <input className="db-input" value={form.location} onChange={event => onUpdate({ location: event.target.value })} placeholder="e.g. Shanghai" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('location')}` }} />
+                <FormField errorMessage={formErrors.location ? 'Location is required.' : undefined} label="Location" required>
+                    <input className="dashboard-input" value={form.location} onChange={event => onUpdate({ location: event.target.value })} placeholder="e.g. Shanghai" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('location')}` }} />
                 </FormField>
-                <FormField label="Cover image URL">
-                    <input className="db-input" value={form.cover} onChange={event => onUpdate({ cover: event.target.value })} placeholder="https://…" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
+                <FormField label="Cover">
+                    <input className="dashboard-input" value={form.cover} onChange={event => onUpdate({ cover: event.target.value })} placeholder="https://…" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
                 </FormField>
-                <FormField errorBorder={errorBorder('content')} errorMessage={formErrors.content ? 'Content is required.' : undefined} label="Content" labelSuffix="· Markdown" required>
-                    <textarea className="db-input" value={form.content} onChange={event => onUpdate({ content: event.target.value })} rows={9} placeholder={'Intro paragraph…\n\n## What you\'ll learn\n- Point one\n- Point two'} style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('content')}`, fontFamily: FONT_MONO, fontSize: 13.5, lineHeight: 1.6, resize: 'vertical' as const }} />
+                <FormField errorMessage={formErrors.content ? 'Content is required.' : undefined} label="Content" labelSuffix="· Markdown" required>
+                    <textarea className="dashboard-input" value={form.content} onChange={event => onUpdate({ content: event.target.value })} rows={9} placeholder={'Intro paragraph…\n\n## What you\'ll learn\n- Point one\n- Point two'} style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('content')}`, fontFamily: FONT_MONO, fontSize: 13.5, lineHeight: 1.6, minHeight: 200, resize: 'vertical' as const }} />
                 </FormField>
                 <div style={{ borderTop: '1px solid #eceef2', display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                    <button className="db-btn-primary" type="submit" style={{ background: ACCENT, border: 'none', borderRadius: STYLES.borderRadius, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, padding: '12px 22px' }}>
+                    <button className="dashboard-button--primary" type="submit">
                         {editing === 'new' ? 'Create seminar' : 'Save changes'}
                     </button>
-                    <button className="db-btn-outline" type="button" onClick={onCancel} style={{ background: 'none', border: '1px solid #d4d8e0', borderRadius: STYLES.borderRadius, color: STYLES.colorInk, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, padding: '12px 22px' }}>
+                    <button className="dashboard-button--outline" type="button" onClick={onCancel}>
                         Cancel
                     </button>
                     {editing !== 'new' && (
                         <>
                             <div style={{ flex: 1 }} />
-                            <button className="db-btn-danger" type="button" onClick={onDelete} style={{ background: 'none', border: `1px solid ${STYLES.colorErrorBorder}`, borderRadius: STYLES.borderRadius, color: STYLES.colorErrorInk, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, padding: '12px 22px' }}>
+                            <button className="dashboard-button--danger" type="button" onClick={onDelete}>
                                 Delete seminar
                             </button>
                         </>
@@ -417,25 +393,26 @@ function AdminSidebar({ activePanel, drawerOpen, isMobile, onCloseDrawer, onLogo
     onSelectPanel: (key: string) => void;
 }) {
     const sidebarStyle: React.CSSProperties = isMobile
-        ? { background: '#fff', borderRight: STYLES.border, bottom: 0, boxShadow: drawerOpen ? '0 16px 40px rgba(20,22,28,.18)' : 'none', display: 'flex', flexDirection: 'column', left: 0, position: 'fixed', top: 60, transform: drawerOpen ? 'translateX(0)' : 'translateX(-110%)', transition: 'transform .2s ease', width: 240, zIndex: 35 }
-        : { alignSelf: 'flex-start', background: '#fff', borderRight: STYLES.border, display: 'flex', flex: 'none', flexDirection: 'column', height: 'calc(100vh - 60px)', marginLeft: drawerOpen ? 0 : -240, overflow: 'auto', position: 'sticky', top: 60, transition: 'margin-left .2s ease', width: 240 };
+        ? { background: '#ffffff', borderRight: STYLES.border, bottom: 0, boxShadow: drawerOpen ? '0 16px 40px rgba(20,22,28,.18)' : 'none', display: 'flex', flexDirection: 'column', left: 0, position: 'fixed', top: 60, transform: drawerOpen ? 'translateX(0)' : 'translateX(-110%)', transition: 'transform .2s ease', width: 240, zIndex: 35 }
+        : { alignSelf: 'flex-start', background: '#ffffff', borderRight: STYLES.border, display: 'flex', flex: 'none', flexDirection: 'column', height: 'calc(100vh - 60px)', marginLeft: drawerOpen ? 0 : -240, overflow: 'auto', position: 'sticky', top: 60, transition: 'margin-left .2s ease', width: 240 };
 
     return (
         <aside style={sidebarStyle}>
+            <a className="dashboard-link" href="/" style={{ borderBottom: '1px solid #eceef2', color: STYLES.colorGhost, display: 'block', fontSize: 12.5, fontWeight: 600, padding: '14px 24px' }}>&larr; Back to site</a>
             <nav style={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 4, padding: '14px 12px' }}>
                 {NAV_ITEMS.map((item) => {
                     const active = item.key === activePanel;
                     return (
                         <button
-                            className="db-nav"
+                            className="dashboard-nav"
                             key={item.key}
                             onClick={() => {
                                 onSelectPanel(item.key);
                                 if (isMobile) onCloseDrawer();
                             }}
-                            style={{ alignItems: 'center', background: active ? `color-mix(in srgb, ${ACCENT} 10%, #fff)` : 'transparent', border: 'none', borderRadius: STYLES.borderRadiusSm, color: active ? ACCENT : '#3f4654', cursor: 'pointer', display: 'flex', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, gap: 12, overflow: 'hidden', padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', width: '100%' }}
+                            style={{ alignItems: 'center', background: active ? `color-mix(in srgb, ${ACCENT} 10%, #fff)` : 'transparent', border: 'none', borderRadius: STYLES.borderRadiusSm, color: active ? ACCENT : '#3f4654', display: 'flex', fontSize: 14, fontWeight: 600, gap: 12, overflow: 'hidden', padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', width: '100%' }}
                         >
-                            <span style={{ background: active ? `color-mix(in srgb, ${ACCENT} 22%, #fff)` : 'transparent', border: `1.7px solid ${active ? ACCENT : '#aab0bb'}`, borderRadius: 5, flex: 'none', height: 18, width: 18 }} />
+                            <span style={{ background: active ? `color-mix(in srgb, ${ACCENT} 22%, #fff)` : 'transparent', border: `1.7px solid ${active ? ACCENT : STYLES.colorGhost}`, borderRadius: 5, flex: 'none', height: 18, width: 18 }} />
                             <span>{item.label}</span>
                         </button>
                     );
@@ -443,9 +420,9 @@ function AdminSidebar({ activePanel, drawerOpen, isMobile, onCloseDrawer, onLogo
             </nav>
             <div style={{ borderTop: '1px solid #eceef2', padding: '14px 12px' }}>
                 <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 12px' }}>
-                    <span style={{ alignItems: 'center', background: ACCENT, borderRadius: '50%', color: '#fff', display: 'flex', flex: 'none', fontFamily: FONT_HEADING, fontSize: 16, fontWeight: 600, height: 44, justifyContent: 'center', width: 44 }}>LZ</span>
-                    <button className="db-btn-ghost" onClick={onLogout} style={{ background: 'none', border: 'none', color: STYLES.colorGhost, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 500, padding: 0 }}>
-                        Log out
+                    <span style={{ alignItems: 'center', background: ACCENT, borderRadius: '50%', color: '#ffffff', display: 'flex', flex: 'none', fontFamily: FONT_HEADING, fontSize: 16, fontWeight: 600, height: 44, justifyContent: 'center', width: 44 }}>LZ</span>
+                    <button className="dashboard-button--ghost" onClick={onLogout} style={{ color: STYLES.colorGhost, fontSize: 12, fontWeight: 500, padding: 0 }}>
+                        Sign out
                     </button>
                 </div>
             </div>
@@ -453,33 +430,20 @@ function AdminSidebar({ activePanel, drawerOpen, isMobile, onCloseDrawer, onLogo
     );
 }
 
-function AdminTopBar({ deployState, onRedeploy, onToggleNav, searchValue, onSearchChange }: {
-    deployState: DashboardState['deployState'];
-    onRedeploy: () => void;
+function AdminTopBar({ onToggleNav, searchValue, onSearchChange }: {
     onSearchChange: (value: string) => void;
     onToggleNav: () => void;
     searchValue: string;
 }) {
     return (
-        <>
-            <header style={{ alignItems: 'center', backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,.9)', borderBottom: STYLES.border, display: 'flex', flex: 'none', gap: 14, height: 60, padding: '0 16px', position: 'sticky', top: 0, zIndex: 40 }}>
-                <button className="db-btn-ghost" aria-label="Toggle navigation" onClick={onToggleNav} style={{ alignItems: 'center', background: 'none', border: STYLES.border, borderRadius: STYLES.borderRadiusSm, cursor: 'pointer', display: 'flex', flex: 'none', height: 38, justifyContent: 'center', width: 38 }}>
-                    <span style={{ background: STYLES.colorInk, boxShadow: `0 -5px 0 ${STYLES.colorInk}, 0 5px 0 ${STYLES.colorInk}`, display: 'block', height: 1.6, width: 16 }} />
-                </button>
-                <div style={{ flex: 1, position: 'relative' }}>
-                    <input className="db-input" value={searchValue} onChange={event => onSearchChange(event.target.value)} placeholder="Search seminars…" style={{ background: '#f7f8fa', border: STYLES.border, borderRadius: STYLES.borderRadiusSm, color: STYLES.colorInk, fontFamily: 'inherit', fontSize: 14, outline: 'none', padding: '9px 12px 9px 14px', width: '100%' }} />
-                </div>
-                <button className="db-btn-outline" disabled={deployState === 'building'} onClick={onRedeploy} style={{ background: '#fff', border: `1px solid ${STYLES.colorMuted}`, borderRadius: STYLES.borderRadiusSm, color: deployState === 'building' ? STYLES.colorGhost : STYLES.colorInk, cursor: deployState === 'building' ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: 600, opacity: deployState === 'building' ? 0.5 : 1, padding: '9px 15px', whiteSpace: 'nowrap' }}>
-                    Redeploy
-                </button>
-            </header>
-            {deployState !== 'idle' && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'is-toast-in .3s ease both', background: deployState === 'done' ? '#e7f4ef' : '#fbf0df', border: `1px solid ${deployState === 'done' ? '#0d7a5f' : '#9a5b00'}`, borderRadius: 14, bottom: 36, boxShadow: '0 8px 32px rgba(20,22,28,.18)', color: deployState === 'done' ? '#0d7a5f' : '#9a5b00', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', fontSize: 15, fontWeight: 600, gap: 12, left: '50%', padding: '16px 28px', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
-                    <span style={{ animation: deployState === 'building' ? 'is-pulse 1.1s ease-in-out infinite' : 'none', background: deployState === 'done' ? '#0d7a5f' : '#9a5b00', borderRadius: '50%', display: 'inline-block', height: 9, width: 9 }} />
-                    {deployState === 'building' ? 'Building site…' : 'Deploy complete'}
-                </div>
-            )}
-        </>
+        <header style={{ alignItems: 'center', backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,.9)', borderBottom: STYLES.border, display: 'flex', flex: 'none', gap: 14, height: 60, padding: '0 16px', position: 'sticky', top: 0, zIndex: 40 }}>
+            <button className="dashboard-button--ghost" aria-label="Toggle navigation" onClick={onToggleNav} style={{ alignItems: 'center', border: STYLES.border, borderRadius: STYLES.borderRadiusSm, display: 'flex', flex: 'none', height: 38, justifyContent: 'center', width: 38 }}>
+                <span style={{ background: STYLES.colorInk, boxShadow: `0 -5px 0 ${STYLES.colorInk}, 0 5px 0 ${STYLES.colorInk}`, display: 'block', height: 1.6, width: 16 }} />
+            </button>
+            <div style={{ flex: 1, position: 'relative' }}>
+                <input className="dashboard-input" value={searchValue} onChange={event => onSearchChange(event.target.value)} placeholder="Search…" style={{ background: '#f7f8fa', border: STYLES.border, borderRadius: STYLES.borderRadiusSm, color: STYLES.colorInk, fontSize: 14, padding: '9px 12px 9px 14px', width: '100%' }} />
+            </div>
+        </header>
     );
 }
 
@@ -488,20 +452,28 @@ function DeleteModal({ onCancel, onConfirm, title }: {
     onConfirm: () => void;
     title: string;
 }) {
+    function handleBackdropClick(event: React.MouseEvent<HTMLDivElement>) {
+        if (event.target === event.currentTarget) onCancel();
+    }
+
+    function handleBackdropKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+        if (event.key === 'Escape') onCancel();
+    }
+
     return (
-        <div onClick={onCancel} style={{ alignItems: 'center', background: 'rgba(20,22,28,.45)', display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: 60 }}>
-            <div onClick={event => event.stopPropagation()} style={{ background: '#fff', borderRadius: STYLES.borderRadiusLg, boxShadow: '0 24px 60px rgba(20,22,28,.25)', maxWidth: 400, padding: 30, width: '100%' }}>
-                <h3 style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this seminar?</h3>
+        <div role="button" tabIndex={-1} onClick={handleBackdropClick} onKeyDown={handleBackdropKeyDown} style={{ alignItems: 'center', background: 'rgba(20,22,28,.45)', display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: 60 }}>
+            <div role="dialog" aria-labelledby="delete-modal-title" style={{ background: '#ffffff', borderRadius: STYLES.borderRadiusLg, boxShadow: '0 24px 60px rgba(20,22,28,.25)', maxWidth: 400, padding: 'clamp(20px, 4vw, 30px)', width: '100%' }}>
+                <h3 id="delete-modal-title" style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this seminar?</h3>
                 <p style={{ color: STYLES.colorMuted, fontSize: 14.5, lineHeight: 1.55, margin: '0 0 24px' }}>
                     &ldquo;
                     {title}
-                    &rdquo; will be permanently removed from Netlify Blobs after the next redeploy. This cannot be undone.
+                    &rdquo; will be permanently deleted. This cannot be undone.
                 </p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                    <button className="db-btn-outline" onClick={onCancel} style={{ background: 'none', border: '1px solid #d4d8e0', borderRadius: STYLES.borderRadiusSm, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, padding: '10px 18px' }}>
+                    <button className="dashboard-button--outline" onClick={onCancel} style={{ borderRadius: STYLES.borderRadiusSm, fontSize: 14, padding: '10px 18px' }}>
                         Cancel
                     </button>
-                    <button className="db-btn-primary" onClick={onConfirm} style={{ background: STYLES.colorError, border: 'none', borderRadius: STYLES.borderRadiusSm, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, padding: '10px 18px' }}>
+                    <button className="dashboard-button--danger" onClick={onConfirm} style={{ background: STYLES.colorError, borderColor: STYLES.colorError, borderRadius: STYLES.borderRadiusSm, color: '#ffffff', fontSize: 14, padding: '10px 18px' }}>
                         Delete
                     </button>
                 </div>
@@ -518,36 +490,40 @@ function FilterChips({ activeFilters, activeLocation, locations, onFilterToggle,
     onLocationChange: (value: string) => void;
     onNewSeminar: () => void;
 }) {
-    function chipStyle(active: boolean): React.CSSProperties {
-        return active
-            ? { background: ACCENT, borderColor: ACCENT, color: '#fff' }
-            : { background: '#fff', borderColor: '#dfe2e8', color: STYLES.colorMuted };
+    function chipClassName(active: boolean) {
+        return active ? 'dashboard-chip dashboard-chip--active' : 'dashboard-chip';
     }
 
-    const chipBase: React.CSSProperties = { border: '1px solid', borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, padding: '7px 14px' };
+    const groupLabelStyle: React.CSSProperties = { color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' };
 
     return (
-        <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {['all', ...locations].map(location => (
-                        <button className="db-chip" key={location} onClick={() => onLocationChange(location)} style={{ ...chipStyle(activeLocation === location), ...chipBase }}>
-                            {location === 'all' ? 'All locations' : location}
-                        </button>
-                    ))}
+        <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', marginBottom: 24 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <div>
+                    <p style={groupLabelStyle}>Location</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {['all', ...locations].map(location => (
+                            <button className={chipClassName(activeLocation === location)} key={location} onClick={() => onLocationChange(location)}>
+                                {location === 'all' ? 'All locations' : location}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    <button className="db-chip" onClick={() => onFilterToggle('all')} style={{ ...chipStyle(activeFilters.length === 0), ...chipBase }}>
-                        All levels
-                    </button>
-                    {['beginner', 'intermediate', 'advanced'].map(difficulty => (
-                        <button className="db-chip" key={difficulty} onClick={() => onFilterToggle(difficulty)} style={{ ...chipStyle(activeFilters.includes(difficulty)), ...chipBase }}>
-                            {getDifficultyMeta(difficulty).label}
+                <div>
+                    <p style={groupLabelStyle}>Level</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <button className={chipClassName(activeFilters.length === 0)} onClick={() => onFilterToggle('all')}>
+                            All levels
                         </button>
-                    ))}
+                        {['beginner', 'intermediate', 'advanced'].map(difficulty => (
+                            <button className={chipClassName(activeFilters.includes(difficulty))} key={difficulty} onClick={() => onFilterToggle(difficulty)}>
+                                {getDifficultyMeta(difficulty).label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
-            <button className="db-btn-primary" onClick={onNewSeminar} style={{ alignItems: 'center', background: ACCENT, border: 'none', borderRadius: STYLES.borderRadius, color: '#fff', cursor: 'pointer', display: 'inline-flex', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+            <button className="dashboard-button--primary" onClick={onNewSeminar} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 14, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
                 +&ensp;New seminar
             </button>
         </div>
@@ -562,20 +538,20 @@ function FormField({ children, errorMessage, label, labelSuffix, required }: {
     required?: boolean;
 }) {
     return (
-        <div>
-            <label style={STYLES.labelBase}>
+        <label style={{ display: 'block' }}>
+            <span style={STYLES.labelBase}>
                 {label}
                 {labelSuffix && (
-                    <span style={{ color: '#aab0bb', fontWeight: 500 }}>
+                    <span style={{ color: STYLES.colorGhost, fontWeight: 500 }}>
                         {' '}
                         {labelSuffix}
                     </span>
                 )}
                 {required && <span style={{ color: ACCENT }}> *</span>}
-            </label>
+            </span>
             {children}
             {errorMessage && <p style={{ color: STYLES.colorError, fontSize: 12.5, margin: '6px 0 0' }}>{errorMessage}</p>}
-        </div>
+        </label>
     );
 }
 
@@ -590,7 +566,7 @@ function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                     <span style={{ background: ACCENT, borderRadius: 10, display: 'inline-block', height: 36, width: 36 }} />
                     <span style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>InterSub</span>
                 </div>
-                <div style={{ background: '#fff', border: STYLES.border, borderRadius: 16, boxShadow: '0 1px 3px rgba(20,22,28,.04), 0 10px 40px rgba(20,22,28,.06)', padding: '32px 28px' }}>
+                <div style={{ background: '#ffffff', border: STYLES.border, borderRadius: 16, boxShadow: '0 1px 3px rgba(20,22,28,.04), 0 10px 40px rgba(20,22,28,.06)', padding: 'clamp(24px, 4vw, 32px) clamp(20px, 3.5vw, 28px)' }}>
                     <h1 style={{ fontFamily: FONT_HEADING, fontSize: 21, fontWeight: 600, letterSpacing: '-0.01em', margin: '0 0 4px', textAlign: 'center' }}>Sign in</h1>
                     <p style={{ color: STYLES.colorGhost, fontSize: 13.5, lineHeight: 1.5, margin: '0 0 24px', textAlign: 'center' }}>Secured with Netlify Identity.</p>
                     <form
@@ -601,18 +577,18 @@ function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                         style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
                     >
                         <div>
-                            <label style={STYLES.labelBase}>Email</label>
-                            <input className="db-input" value={email} onChange={event => setEmail(event.target.value)} type="email" placeholder="lydia@intersubstudio.com" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
+                            <label htmlFor="dashboard-email" style={STYLES.labelBase}>Email</label>
+                            <input className="dashboard-input" id="dashboard-email" value={email} onChange={event => setEmail(event.target.value)} type="email" placeholder="lydia@intersubstudio.com" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
                         </div>
                         <div>
-                            <label style={STYLES.labelBase}>Password</label>
-                            <input className="db-input" value={password} onChange={event => setPassword(event.target.value)} type="password" placeholder="••••••••" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
+                            <label htmlFor="dashboard-password" style={STYLES.labelBase}>Password</label>
+                            <input className="dashboard-input" id="dashboard-password" value={password} onChange={event => setPassword(event.target.value)} type="password" placeholder="••••••••" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
                         </div>
                         {auth.error && <p style={{ color: STYLES.colorError, fontSize: 13, margin: 0 }}>{auth.error}</p>}
-                        <button className="db-btn-primary" type="submit" style={{ background: ACCENT, border: 'none', borderRadius: STYLES.borderRadius, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, marginTop: 6, padding: '13px 0' }}>Sign in</button>
+                        <button className="dashboard-button--primary" type="submit" style={{ fontSize: 15, marginTop: 6, padding: '13px 0' }}>Sign in</button>
                     </form>
                 </div>
-                <a className="db-link" href="/" style={{ color: STYLES.colorGhost, display: 'block', fontFamily: 'inherit', fontSize: 13, marginTop: 20, textAlign: 'center', textDecoration: 'none' }}>&larr; Back to site</a>
+                <a className="dashboard-link" href="/" style={{ color: STYLES.colorGhost, display: 'block', fontSize: 13, marginTop: 20, textAlign: 'center' }}>&larr; Back to site</a>
             </div>
         </div>
     );
@@ -626,30 +602,33 @@ function SeminarRow({ isMobile, onDelete, onEdit, seminar }: {
 }) {
     const meta = seminar.difficulty ? getDifficultyMeta(seminar.difficulty) : null;
     const tagStyle: React.CSSProperties | null = meta ? { background: meta.bg, borderRadius: 6, color: meta.fg, fontFamily: FONT_MONO, fontSize: 10.5, fontWeight: 500, letterSpacing: '.04em', padding: '4px 9px', textTransform: 'uppercase', whiteSpace: 'nowrap' } : null;
-    const actionStyle: React.CSSProperties = { background: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, padding: '7px 12px' };
+    const actionStyle: React.CSSProperties = { borderRadius: 8, fontSize: 13, padding: '7px 12px' };
 
     if (isMobile) {
         return (
-            <div style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 8, padding: '16px 22px' }}>
-                <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{seminar.title}</p>
-                <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
-                    {meta && <span style={tagStyle!}>{meta.label}</span>}
-                    <span style={{ color: STYLES.colorMuted, fontSize: 14 }}>{formatDate(seminar.date)}</span>
-                    <span style={{ color: STYLES.colorMuted, fontSize: 14 }}>{seminar.location}</span>
+            <div style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px clamp(14px, 2.5vw, 22px)' }}>
+                <div>
+                    <p style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{seminar.title}</p>
+                    <div style={{ alignItems: 'center', color: STYLES.colorMuted, display: 'flex', fontSize: 13.5, gap: 8, marginTop: 6 }}>
+                        <span>{formatDate(seminar.date)}</span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>{seminar.location}</span>
+                    </div>
                 </div>
+                {meta && <span style={{ ...tagStyle!, alignSelf: 'flex-start' }}>{meta.label}</span>}
                 <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="db-btn-outline" onClick={onEdit} style={{ ...actionStyle, border: STYLES.border }}>Edit</button>
-                    <button className="db-btn-danger" onClick={onDelete} style={{ ...actionStyle, border: `1px solid ${STYLES.colorErrorBorder}`, color: STYLES.colorErrorInk }}>Delete</button>
+                    <button className="dashboard-button--outline" onClick={onEdit} style={actionStyle}>Edit</button>
+                    <button className="dashboard-button--danger" onClick={onDelete} style={actionStyle}>Delete</button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: '16px 22px' }}>
+        <div style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
             <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{seminar.title}</p>
-                <p style={{ color: '#aab0bb', fontFamily: FONT_MONO, fontSize: 11, margin: '4px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, margin: '4px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     /
                     {seminar.id}
                 </p>
@@ -658,8 +637,8 @@ function SeminarRow({ isMobile, onDelete, onEdit, seminar }: {
             <span style={{ color: STYLES.colorMuted, fontSize: 14 }}>{seminar.location}</span>
             <span>{meta && <span style={tagStyle!}>{meta.label}</span>}</span>
             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                <button className="db-btn-outline" onClick={onEdit} style={{ ...actionStyle, border: STYLES.border }}>Edit</button>
-                <button className="db-btn-danger" onClick={onDelete} style={{ ...actionStyle, border: `1px solid ${STYLES.colorErrorBorder}`, color: STYLES.colorErrorInk }}>Delete</button>
+                <button className="dashboard-button--outline" onClick={onEdit} style={actionStyle}>Edit</button>
+                <button className="dashboard-button--danger" onClick={onDelete} style={actionStyle}>Delete</button>
             </div>
         </div>
     );
@@ -675,16 +654,16 @@ function TableHeader({ onSortByDate, onSortByTitle, sortDir, sortKey }: {
         return sortKey === field ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
     }
 
-    const headerStyle: React.CSSProperties = { alignItems: 'center', background: 'none', border: 'none', color: STYLES.colorGhost, cursor: 'pointer', display: 'flex', fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, gap: 5, justifyContent: 'flex-start', letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' };
+    const headerStyle: React.CSSProperties = { alignItems: 'center', color: STYLES.colorGhost, display: 'flex', fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, gap: 5, justifyContent: 'flex-start', letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' };
     const labelStyle: React.CSSProperties = { color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' };
 
     return (
-        <div style={{ alignItems: 'center', background: '#fafbfc', borderBottom: '1px solid #eceef2', display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: '13px 22px' }}>
-            <button className="db-btn-ghost" onClick={onSortByTitle} style={headerStyle}>
+        <div style={{ alignItems: 'center', background: '#fafbfc', borderBottom: '1px solid #eceef2', display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: 'clamp(10px, 2vw, 13px) clamp(14px, 2.5vw, 22px)' }}>
+            <button className="dashboard-button--ghost" onClick={onSortByTitle} style={headerStyle}>
                 Title
                 {sortArrow('title')}
             </button>
-            <button className="db-btn-ghost" onClick={onSortByDate} style={headerStyle}>
+            <button className="dashboard-button--ghost" onClick={onSortByDate} style={headerStyle}>
                 Date
                 {sortArrow('date')}
             </button>
@@ -695,11 +674,11 @@ function TableHeader({ onSortByDate, onSortByTitle, sortDir, sortKey }: {
     );
 }
 
-function CaseStudiesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes, set }: {
+function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes, set }: {
     editingOutcome: string | null;
     isMobile: boolean;
     onCancelEdit: () => void;
-    onSave: () => void;
+    onSave: () => Promise<void>;
     onStartEdit: (id: string) => void;
     onStartNew: () => void;
     onUpdate: (fields: Partial<OutcomeFormData>) => void;
@@ -716,36 +695,36 @@ function CaseStudiesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onSt
         return (
             <div style={{ margin: '0 auto', maxWidth: 760 }}>
                 <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 28px' }}>
-                    {editingOutcome === 'new' ? 'New case study' : 'Edit case study'}
+                    {editingOutcome === 'new' ? 'New outcome' : 'Edit outcome'}
                 </h1>
                 <form
                     onSubmit={(event) => {
                         event.preventDefault();
                         onSave();
                     }}
-                    style={{ background: '#fff', border: STYLES.border, borderRadius: STYLES.borderRadiusLg, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(26px, 3.5vw, 40px)' }}
+                    style={{ background: '#ffffff', border: STYLES.border, borderRadius: STYLES.borderRadiusLg, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, 3.5vw, 40px)' }}
                 >
                     <FormField errorMessage={outcomeFormErrors.title ? 'Title is required.' : undefined} label="Title" required>
-                        <input className="db-input" value={outcomeForm.title} onChange={event => onUpdate({ title: event.target.value })} placeholder="e.g. Regional bank · client calls" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('title')}` }} />
+                        <input className="dashboard-input" value={outcomeForm.title} onChange={event => onUpdate({ title: event.target.value })} placeholder="e.g. Regional bank · client calls" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('title')}` }} />
                     </FormField>
                     <FormField errorMessage={outcomeFormErrors.summary ? 'Summary is required.' : undefined} label="Summary" required>
-                        <textarea className="db-input" value={outcomeForm.summary} onChange={event => onUpdate({ summary: event.target.value })} rows={3} placeholder="Brief description of the challenge" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('summary')}`, lineHeight: 1.6, resize: 'vertical' as const }} />
+                        <textarea className="dashboard-input" value={outcomeForm.summary} onChange={event => onUpdate({ summary: event.target.value })} rows={3} placeholder="Brief description of the challenge" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('summary')}`, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
                     </FormField>
-                    <FormField label="Outcome points" labelSuffix="· one per line">
-                        <textarea className="db-input" value={outcomeForm.points} onChange={event => onUpdate({ points: event.target.value })} rows={5} placeholder={'Now lead calls end-to-end in English\nFollow-up emails dropped by half'} style={{ ...STYLES.inputBase, border: STYLES.borderMuted, fontFamily: FONT_MONO, fontSize: 13.5, lineHeight: 1.6, resize: 'vertical' as const }} />
+                    <FormField label="Outcomes" labelSuffix="· one per line">
+                        <textarea className="dashboard-input" value={outcomeForm.points} onChange={event => onUpdate({ points: event.target.value })} rows={5} placeholder={'Now lead calls end-to-end in English\nFollow-up emails dropped by half'} style={{ ...STYLES.inputBase, border: STYLES.borderMuted, fontFamily: FONT_MONO, fontSize: 13.5, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
                     </FormField>
                     <div style={{ borderTop: '1px solid #eceef2', display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                        <button className="db-btn-primary" type="submit" style={{ background: ACCENT, border: 'none', borderRadius: STYLES.borderRadius, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, padding: '12px 22px' }}>
-                            {editingOutcome === 'new' ? 'Create case study' : 'Save changes'}
+                        <button className="dashboard-button--primary" type="submit">
+                            {editingOutcome === 'new' ? 'Create outcome' : 'Save changes'}
                         </button>
-                        <button className="db-btn-outline" type="button" onClick={onCancelEdit} style={{ background: 'none', border: '1px solid #d4d8e0', borderRadius: STYLES.borderRadius, color: STYLES.colorInk, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, padding: '12px 22px' }}>
+                        <button className="dashboard-button--outline" type="button" onClick={onCancelEdit}>
                             Cancel
                         </button>
                         {editingOutcome !== 'new' && (
                             <>
                                 <div style={{ flex: 1 }} />
-                                <button className="db-btn-danger" type="button" onClick={() => set({ confirmDelete: editingOutcome, confirmDeleteType: 'outcome' })} style={{ background: 'none', border: `1px solid ${STYLES.colorErrorBorder}`, borderRadius: STYLES.borderRadius, color: STYLES.colorErrorInk, cursor: 'pointer', fontFamily: 'inherit', fontSize: 14.5, fontWeight: 600, padding: '12px 22px' }}>
-                                    Delete case study
+                                <button className="dashboard-button--danger" type="button" onClick={() => set({ confirmDelete: editingOutcome, confirmDeleteType: 'outcome' })}>
+                                    Delete outcome
                                 </button>
                             </>
                         )}
@@ -755,29 +734,29 @@ function CaseStudiesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onSt
         );
     }
 
-    const actionStyle: React.CSSProperties = { background: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, padding: '7px 12px' };
+    const actionStyle: React.CSSProperties = { borderRadius: 8, fontSize: 13, padding: '7px 12px' };
 
     return (
         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
             <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
-                <div style={{ marginBottom: 8 }}>
-                    <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 12px' }}>Case Studies</h1>
+                <div>
+                    <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Outcomes</h1>
                     <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12, letterSpacing: '.06em' }}>
                         {outcomes.length}
                         {' '}
-                        case studies
+                        {outcomes.length === 1 ? 'outcome' : 'outcomes'}
                     </span>
                 </div>
-                <button className="db-btn-primary" onClick={onStartNew} style={{ alignItems: 'center', background: ACCENT, border: 'none', borderRadius: STYLES.borderRadius, color: '#fff', cursor: 'pointer', display: 'inline-flex', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                    +&ensp;New case study
+                <button className="dashboard-button--primary" onClick={onStartNew} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 14, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                    +&ensp;New outcome
                 </button>
             </div>
-            <div style={{ background: '#fff', border: STYLES.border, borderRadius: 14, overflow: 'hidden' }}>
+            <div style={{ background: '#ffffff', border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
                 {!isMobile && (
-                    <div style={{ alignItems: 'center', background: '#fafbfc', borderBottom: '1px solid #eceef2', display: 'grid', gap: 16, gridTemplateColumns: '1fr 2fr 80px 130px', padding: '13px 22px' }}>
+                    <div style={{ alignItems: 'center', background: '#fafbfc', borderBottom: '1px solid #eceef2', display: 'grid', gap: 16, gridTemplateColumns: '1fr 2fr 80px 130px', padding: 'clamp(10px, 2vw, 13px) clamp(14px, 2.5vw, 22px)' }}>
                         <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Title</span>
                         <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Summary</span>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Points</span>
+                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Outcomes</span>
                         <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, letterSpacing: '.08em', textAlign: 'right', textTransform: 'uppercase', width: '100%' }}>Actions</span>
                     </div>
                 )}
@@ -785,31 +764,38 @@ function CaseStudiesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onSt
                     ? outcomes.map(outcome => (
                             isMobile
                                 ? (
-                                        <div key={outcome.id} style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 8, padding: '16px 22px' }}>
-                                            <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{outcome.title}</p>
-                                            <p style={{ color: STYLES.colorMuted, fontSize: 13.5, lineHeight: 1.4, margin: 0 }}>{outcome.summary}</p>
+                                        <div key={outcome.id} style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px clamp(14px, 2.5vw, 22px)' }}>
+                                            <div>
+                                                <p style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
+                                                <p style={{ color: STYLES.colorMuted, fontSize: 13.5, lineHeight: 1.4, margin: '6px 0 0' }}>{outcome.summary}</p>
+                                                <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, marginTop: 6, display: 'block' }}>
+                                                    {outcome.points.length}
+                                                    {' '}
+                                                    {outcome.points.length === 1 ? 'outcome' : 'outcomes'}
+                                                </span>
+                                            </div>
                                             <div style={{ display: 'flex', gap: 6 }}>
-                                                <button className="db-btn-outline" onClick={() => onStartEdit(outcome.id)} style={{ ...actionStyle, border: STYLES.border }}>Edit</button>
-                                                <button className="db-btn-danger" onClick={() => set({ confirmDelete: outcome.id, confirmDeleteType: 'outcome' })} style={{ ...actionStyle, border: `1px solid ${STYLES.colorErrorBorder}`, color: STYLES.colorErrorInk }}>Delete</button>
+                                                <button className="dashboard-button--outline" onClick={() => onStartEdit(outcome.id)} style={actionStyle}>Edit</button>
+                                                <button className="dashboard-button--danger" onClick={() => set({ confirmDelete: outcome.id, confirmDeleteType: 'outcome' })} style={actionStyle}>Delete</button>
                                             </div>
                                         </div>
                                     )
                                 : (
-                                        <div key={outcome.id} style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 2fr 80px 130px', padding: '16px 22px' }}>
+                                        <div key={outcome.id} style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 2fr 80px 130px', padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
                                             <p style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
                                             <p style={{ color: STYLES.colorMuted, fontSize: 13.5, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
                                             <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12 }}>{outcome.points.length}</span>
                                             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                                                <button className="db-btn-outline" onClick={() => onStartEdit(outcome.id)} style={{ ...actionStyle, border: STYLES.border }}>Edit</button>
-                                                <button className="db-btn-danger" onClick={() => set({ confirmDelete: outcome.id, confirmDeleteType: 'outcome' })} style={{ ...actionStyle, border: `1px solid ${STYLES.colorErrorBorder}`, color: STYLES.colorErrorInk }}>Delete</button>
+                                                <button className="dashboard-button--outline" onClick={() => onStartEdit(outcome.id)} style={actionStyle}>Edit</button>
+                                                <button className="dashboard-button--danger" onClick={() => set({ confirmDelete: outcome.id, confirmDeleteType: 'outcome' })} style={actionStyle}>Delete</button>
                                             </div>
                                         </div>
                                     )
                         ))
                     : (
                             <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-                                <p style={{ fontFamily: FONT_HEADING, fontSize: 18, fontWeight: 600, margin: '0 0 6px' }}>No case studies yet</p>
-                                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Create your first case study to showcase client outcomes.</p>
+                                <p style={{ fontFamily: FONT_HEADING, fontSize: 18, fontWeight: 600, margin: '0 0 6px' }}>No outcomes yet</p>
+                                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Create your first outcome to showcase client results.</p>
                             </div>
                         )}
             </div>
@@ -823,7 +809,6 @@ function DashboardInner() {
         fetchData,
         handleCancelEdit,
         handleCancelOutcomeEdit,
-        handleRedeploy,
         handleResetForLogout,
         handleSaveForm,
         handleSaveOutcome,
@@ -838,7 +823,6 @@ function DashboardInner() {
         set,
         showToast,
         state,
-        update,
     } = useDashboardState();
 
     if (auth.loading) {
@@ -855,6 +839,10 @@ function DashboardInner() {
 
     const query = state.adminSearch.trim().toLowerCase();
     const direction = state.sortDir === 'asc' ? 1 : -1;
+
+    const filteredOutcomes = query
+        ? state.outcomes.filter(outcome => outcome.title.toLowerCase().includes(query) || outcome.summary.toLowerCase().includes(query))
+        : state.outcomes;
 
     const filteredRows = state.seminars
         .filter(seminar =>
@@ -882,8 +870,6 @@ function DashboardInner() {
     return (
         <div style={{ background: '#f7f8fa', display: 'flex', flexDirection: 'column', fontFamily: '\'Hanken Grotesk\', sans-serif', minHeight: '100vh' }}>
             <AdminTopBar
-                deployState={state.deployState}
-                onRedeploy={handleRedeploy}
                 onSearchChange={value => set({ adminSearch: value })}
                 onToggleNav={handleToggleNav}
                 searchValue={state.adminSearch}
@@ -901,12 +887,11 @@ function DashboardInner() {
                     }}
                     onSelectPanel={key => set({ activePanel: key as DashboardState['activePanel'], editing: null, editingOutcome: null, form: null, outcomeForm: null })}
                 />
-                <main style={{ flex: 1, minWidth: 0, padding: 'clamp(28px, 4vw, 48px) clamp(24px, 3vw, 40px)' }}>
-                    {state.activePanel === 'case-studies'
+                <main style={{ flex: 1, minWidth: 0, padding: 'clamp(20px, 4vw, 48px) clamp(16px, 3vw, 40px)' }}>
+                    {state.activePanel === 'outcomes'
                         ? (
-                                <CaseStudiesPanel
+                                <OutcomesPanel
                                     editingOutcome={state.editingOutcome}
-                                    fetchData={fetchData}
                                     isMobile={isMobile}
                                     onCancelEdit={handleCancelOutcomeEdit}
                                     onSave={handleSaveOutcome}
@@ -915,27 +900,26 @@ function DashboardInner() {
                                     onUpdate={handleUpdateOutcomeForm}
                                     outcomeForm={state.outcomeForm}
                                     outcomeFormErrors={state.outcomeFormErrors}
-                                    outcomes={state.outcomes}
+                                    outcomes={filteredOutcomes}
                                     set={set}
-                                    showToast={showToast}
                                 />
                             )
                         : state.editing === null
                             ? (
                                     <div style={{ margin: '0 auto', maxWidth: 1280 }}>
-                                        <div style={{ marginBottom: 32 }}>
-                                            <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 12px' }}>Seminars</h1>
+                                        <div style={{ marginBottom: 24 }}>
+                                            <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Seminars</h1>
                                             <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em' }}>
                                                 <span>
                                                     {state.seminars.length}
                                                     {' '}
-                                                    seminars
+                                                    {state.seminars.length === 1 ? 'seminar' : 'seminars'}
                                                 </span>
                                                 <span aria-hidden="true">&middot;</span>
                                                 <span>
                                                     {[...new Set(state.seminars.map(seminar => seminar.location))].length}
                                                     {' '}
-                                                    locations
+                                                    {[...new Set(state.seminars.map(seminar => seminar.location))].length === 1 ? 'location' : 'locations'}
                                                 </span>
                                                 <span aria-hidden="true">&middot;</span>
                                                 <span>
@@ -960,7 +944,7 @@ function DashboardInner() {
                                         <FilterChips
                                             activeFilters={state.adminFilters}
                                             activeLocation={state.adminLocation}
-                                            locations={[...new Set(state.seminars.map(seminar => seminar.location))]}
+                                            locations={[...new Set(state.seminars.map(seminar => seminar.location))].sort()}
                                             onFilterToggle={(value) => {
                                                 if (value === 'all') {
                                                     set({ adminFilters: [] });
@@ -975,7 +959,7 @@ function DashboardInner() {
                                             onLocationChange={value => set({ adminLocation: value })}
                                             onNewSeminar={handleStartNew}
                                         />
-                                        <div style={{ background: '#fff', border: STYLES.border, borderRadius: 14, overflow: 'hidden' }}>
+                                        <div style={{ background: '#ffffff', border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
                                             {!isMobile && (
                                                 <TableHeader
                                                     onSortByDate={() => handleToggleSort('date')}
@@ -1025,7 +1009,7 @@ function DashboardInner() {
                     onConfirm={async () => {
                         const id = state.confirmDelete;
                         const endpoint = state.confirmDeleteType === 'outcome' ? '/api/outcomes' : '/api/seminars';
-                        const label = state.confirmDeleteType === 'outcome' ? 'Case study' : 'Seminar';
+                        const label = state.confirmDeleteType === 'outcome' ? 'Outcome' : 'Seminar';
                         set({ confirmDelete: null, editing: null, editingOutcome: null, form: null, outcomeForm: null });
                         try {
                             await fetch(endpoint, { body: JSON.stringify({ id }), headers: { 'Content-Type': 'application/json' }, method: 'DELETE' });
@@ -1039,39 +1023,10 @@ function DashboardInner() {
                 />
             )}
             {state.toast && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'is-toast-in .3s ease both', background: '#e7f4ef', border: '1px solid #0d7a5f', borderRadius: 12, bottom: 36, boxShadow: '0 8px 24px rgba(20,22,28,.16)', color: '#0d7a5f', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', fontSize: 15, fontWeight: 600, gap: 10, left: '50%', padding: '14px 24px', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
+                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'is-toast-in .3s ease both', background: '#e7f4ef', border: '1px solid #0d7a5f', borderRadius: 12, bottom: 36, boxShadow: '0 8px 24px rgba(20,22,28,.16)', color: '#0d7a5f', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', fontSize: 15, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: 'clamp(12px, 2vw, 14px) clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
                     {state.toast}
                 </div>
             )}
-            <style>
-                {`
-@keyframes is-pulse{0%,100%{opacity:1}50%{opacity:.45}}
-@keyframes is-toast-in{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.db-btn-primary:hover{filter:brightness(1.1)}
-.db-btn-primary:active{filter:brightness(0.92)}
-.db-btn-primary:focus-visible{box-shadow:0 0 0 3px rgba(42,82,224,.3);outline:none}
-.db-btn-primary:disabled{cursor:not-allowed;opacity:.5}
-.db-btn-primary:disabled:hover{filter:none}
-.db-btn-outline:hover{background:#f7f8fa!important;border-color:#14161c!important}
-.db-btn-outline:active{background:#eceef2!important}
-.db-btn-outline:focus-visible{box-shadow:0 0 0 3px rgba(42,82,224,.3);outline:none}
-.db-btn-danger:hover{background:#fbe9ee!important;border-color:#a4324a!important}
-.db-btn-danger:active{background:#f0d6dd!important}
-.db-btn-danger:focus-visible{box-shadow:0 0 0 3px rgba(164,50,74,.3);outline:none}
-.db-btn-ghost:hover{background:#f7f8fa!important;color:#14161c!important}
-.db-btn-ghost:active{background:#eceef2!important}
-.db-btn-ghost:focus-visible{box-shadow:0 0 0 3px rgba(42,82,224,.3);outline:none}
-.db-chip:hover{border-color:#878d99!important}
-.db-chip--active:hover{border-color:inherit!important}
-.db-chip:focus-visible{box-shadow:0 0 0 3px rgba(42,82,224,.3);outline:none}
-.db-input:hover{border-color:#878d99!important}
-.db-input:focus{border-color:#2a52e0!important;box-shadow:0 0 0 3px rgba(42,82,224,.2)}
-.db-link:hover{color:#14161c!important}
-.db-link:active{opacity:.7}
-.db-nav:hover{background:#f3f4f7!important}
-.db-nav:focus-visible{box-shadow:0 0 0 3px rgba(42,82,224,.3) inset;outline:none}
-            `}
-            </style>
         </div>
     );
 }

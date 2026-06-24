@@ -8,38 +8,35 @@ export const SOCIALS = [
     { href: 'https://xiaohongshu.com', label: 'Xiaohongshu (RedNote)', mark: '红' },
     { href: 'https://douyin.com', label: 'Douyin (抖音)', mark: '抖' },
     { href: 'https://xiaoyuzhou.fm', label: 'Xiaoyuzhou (小宇宙)', mark: '宇' },
-    { href: 'https://podcasts.apple.com', label: 'Apple Podcasts', mark: 'P' },
+    { href: 'https://podcasts.apple.com', label: 'Apple Podcasts', mark: '播' },
 ] as const;
 
 export const SOLUTIONS = [
     {
-        desc: 'Private, focused coaching for leaders who need to perform in English under real pressure — calls, negotiations, presentations.',
+        desc: 'Private, focused coaching for leaders who need to perform in English under real pressure: calls, negotiations, presentations.',
         details: [
             { k: 'Format', v: 'Private 1:1' },
             { k: 'Details', v: 'Weekly · 60 min' },
             { k: 'Best for', v: 'Senior leaders' },
         ],
-        num: '1',
         title: '1:1 Executive Coaching',
     },
     {
-        desc: 'Cohort training built around your team\'s actual communication — the meetings they run and the partners they email.',
+        desc: 'Cohort training built around your team\'s actual communication: the meetings they run and the partners they email.',
         details: [
             { k: 'Format', v: 'On-site or remote' },
             { k: 'Details', v: '6–14 per cohort' },
             { k: 'Best for', v: 'Functional teams' },
         ],
-        num: '2',
         title: 'Team Workshops',
     },
     {
-        desc: 'Focused sessions on a single skill — negotiation, presentations, writing — open to individuals and small groups.',
+        desc: 'Focused sessions on a single skill: negotiation, presentations, writing. Open to individuals and small groups.',
         details: [
             { k: 'Format', v: 'Half / full day' },
             { k: 'Details', v: 'Beginner–Advanced' },
             { k: 'Best for', v: 'Targeted upskilling' },
         ],
-        num: '3',
         title: 'Seminars & Intensives',
     },
 ] as const;
@@ -81,7 +78,7 @@ export interface Seminar {
 }
 
 export function formatDate(iso: string): string {
-    if (!iso) return '—';
+    if (!iso) return '';
     const date = new Date(iso + 'T00:00:00');
     return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }

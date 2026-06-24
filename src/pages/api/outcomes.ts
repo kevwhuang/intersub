@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
-import { getCollection } from 'astro:content';
 import { getStore } from '@netlify/blobs';
+import { getOutcomes } from '@lib/store';
 
 export const prerender = false;
 
@@ -20,36 +20,9 @@ export const DELETE: APIRoute = async ({ request }) => {
 };
 
 export const GET: APIRoute = async () => {
-    try {
-        const store = getStore('outcomes');
-        const { blobs } = await store.list();
+    const outcomes = await getOutcomes();
 
-        if (blobs.length > 0) {
-            const outcomes = await Promise.all(
-                blobs.map(async (blob) => {
-                    const data = await store.get(blob.key, { type: 'json' });
-                    return { id: blob.key, ...data };
-                }),
-            );
-
-            return new Response(JSON.stringify(outcomes), {
-                headers: { 'content-type': 'application/json' },
-            });
-        }
-    } catch {
-        return Response.json([]);
-    }
-
-    const entries = await getCollection('outcomes');
-
-    const outcomes = entries.map(entry => ({
-        id: entry.id,
-        ...entry.data,
-    }));
-
-    return new Response(JSON.stringify(outcomes), {
-        headers: { 'content-type': 'application/json' },
-    });
+    return Response.json(outcomes);
 };
 
 export const POST: APIRoute = async ({ request }) => {
@@ -59,9 +32,9 @@ export const POST: APIRoute = async ({ request }) => {
     let id = body.id ? String(body.id) : null;
 
     if (!id) {
-        const { blobs } = await store.list();
-        const maxId = blobs.reduce((max, blob) => {
-            const num = parseInt(blob.key, 10);
+        const outcomes = await getOutcomes();
+        const maxId = outcomes.reduce((max, entry) => {
+            const num = parseInt(String(entry.id), 10);
             return isNaN(num) ? max : Math.max(max, num);
         }, 0);
         id = String(maxId + 1);

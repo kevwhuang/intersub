@@ -11,8 +11,8 @@
         <h1 class="not-found__title" data-i18n="This page doesn't exist">This page doesn't exist</h1>
         <p class="not-found__text" data-i18n="The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.">The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.</p>
         <div class="not-found__actions">
-            <a class="btn" href="/"><span data-i18n="Home">Home</span></a>
-            <a class="btn btn--outline" href="/seminars"><span data-i18n="Seminars">Seminars</span></a>
+            <a class="button" href="/"><span data-i18n="Home">Home</span></a>
+            <a class="button button--outline" href="/seminars"><span data-i18n="Seminars">Seminars</span></a>
         </div>
     </div>
 </section>
@@ -40,7 +40,7 @@
         font-weight: 700;
         letter-spacing: -0.05em;
         line-height: 0.8;
-        margin: 0 0 16px;
+        margin: 0 0 clamp(24px, 4vw, 40px);
     }
 
     .not-found__inner {
