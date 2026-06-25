@@ -4,7 +4,6 @@
     border: none;
     border-radius: 10px;
     color: var(--color-surface);
-    cursor: pointer;
     display: inline-flex;
     font-family: var(--font-sans);
     font-size: 16px;
@@ -20,7 +19,6 @@
 }
 
 .button:disabled {
-    cursor: not-allowed;
     opacity: 0.55;
 }
 
@@ -58,7 +56,6 @@
 .chip {
     border: 1px solid var(--color-border-muted);
     border-radius: 99px;
-    cursor: pointer;
     font-family: var(--font-sans);
     font-size: 13.5px;
     font-weight: 600;
@@ -93,7 +90,6 @@
     border: 1px solid var(--color-error-bg);
     border-radius: 10px;
     color: var(--color-error-ink);
-    cursor: pointer;
     font-family: inherit;
     font-size: 14.5px;
     font-weight: 600;
@@ -105,7 +101,7 @@
 }
 
 .dashboard-button--danger:focus-visible {
-    box-shadow: 0 0 0 3px rgba(164, 50, 74, 0.3);
+    box-shadow: 0 0 0 3px #a4324a4d;
     outline: none;
 }
 
@@ -117,7 +113,6 @@
 .dashboard-button--ghost {
     background: none;
     border: none;
-    cursor: pointer;
     font-family: inherit;
 }
 
@@ -140,7 +135,6 @@
     border: 1px solid var(--color-border-hover);
     border-radius: 10px;
     color: var(--color-ink);
-    cursor: pointer;
     font-family: inherit;
     font-size: 14.5px;
     font-weight: 600;
@@ -166,7 +160,6 @@
     border: none;
     border-radius: 10px;
     color: var(--color-surface);
-    cursor: pointer;
     font-family: inherit;
     font-size: 14.5px;
     font-weight: 600;
@@ -178,7 +171,6 @@
 }
 
 .dashboard-button--primary:disabled {
-    cursor: not-allowed;
     opacity: 0.5;
 }
 
@@ -200,7 +192,6 @@
     border: 1px solid var(--color-border-muted);
     border-radius: 99px;
     color: var(--color-ink-muted);
-    cursor: pointer;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
@@ -235,14 +226,6 @@
     outline: none;
 }
 
-.dashboard-input:focus {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px var(--color-accent-20);
-}
-
-.dashboard-input:hover {
-    border-color: var(--color-ink-ghost);
-}
 
 .dashboard-link {
     text-decoration: none;
@@ -262,7 +245,6 @@
 }
 
 .dashboard-nav {
-    cursor: pointer;
     font-family: inherit;
 }
 
@@ -293,12 +275,14 @@
     width: 100%;
 }
 
+.dashboard-input:focus,
 .input:focus,
 .textarea:focus {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 3px var(--color-accent-20);
 }
 
+.dashboard-input:hover,
 .input:hover,
 .textarea:hover {
     border-color: var(--color-ink-ghost);
@@ -380,28 +364,29 @@
     text-transform: uppercase;
 }
 
-.tag--advanced {
+.tag--Advanced {
     background: var(--color-error-bg);
     color: var(--color-error-ink);
 }
 
-.tag--beginner {
+.tag--Beginner {
     background: var(--color-success-bg);
     color: var(--color-success);
 }
 
-.tag--intermediate {
+.tag--Intermediate {
     background: var(--color-warn-bg);
     color: var(--color-warn);
 }
 
 .textarea {
+    height: 140px;
     line-height: 1.5;
     min-height: 140px;
     resize: vertical;
 }
 
-@keyframes is-toast-in {
+@keyframes dashboard__toast-in {
     from {
         opacity: 0;
         transform: translateX(-50%) translateY(16px);

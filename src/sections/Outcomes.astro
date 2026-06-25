@@ -54,6 +54,11 @@ const outcomes = await getOutcomes();
         border-top-color: var(--color-warn);
     }
 
+    .outcomes__card:active {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+
     .outcomes__card:focus-visible {
         border-color: var(--color-accent);
         box-shadow: 0 0 0 3px var(--color-accent-20);
@@ -63,7 +68,7 @@ const outcomes = await getOutcomes();
     .outcomes__card:hover {
         background: var(--color-surface-raised);
         border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border-hover));
-        box-shadow: 0 14px 36px rgba(20, 22, 28, 0.1);
+        box-shadow: 0 14px 36px #14161c1a;
         transform: translateY(-4px);
     }
 

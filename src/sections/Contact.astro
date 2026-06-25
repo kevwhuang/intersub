@@ -7,10 +7,15 @@
     class="contact section"
     aria-labelledby="contact-title"
 >
+    <div class="contact__ring contact__ring--1" aria-hidden="true" />
+    <div class="contact__ring contact__ring--2" aria-hidden="true" />
+    <div class="contact__ring contact__ring--3" aria-hidden="true" />
+    <div class="contact__ring contact__ring--4" aria-hidden="true" />
+    <div class="contact__ring contact__ring--5" aria-hidden="true" />
     <div class="shell contact__inner">
         <div data-scroll>
             <h2 id="contact-title" class="contact__title" data-i18n="Get in Touch">Get in Touch</h2>
-            <p class="contact__intro" data-i18n="Tell us what your team needs to communicate, and to whom. We'll reply within two business days with a specific recommendation.">Tell us what your team needs to communicate, and to whom. We'll reply within two business days with a specific recommendation.</p>
+            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or attending a seminar? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.">Interested in coaching, a workshop, or attending a seminar? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.</p>
         </div>
         <div class="contact__success" hidden>
             <h3 class="contact__success-title" data-i18n-html="contact-success-title">Thank you, message sent.</h3>
@@ -18,50 +23,53 @@
             <button class="button button--outline contact__reset" data-i18n="Send another" type="button">Send another</button>
         </div>
         <form class="contact__form" novalidate>
-            <label class="label" data-i18n-html="contact-label-name">
-                Name <span class="label__required">*</span>
+            <label class="label">
+                <span data-i18n="Name">Name</span> <span class="label__required">*</span>
                 <input
                     class="input"
-                    name="name"
+                    aria-describedby="error-name"
                     data-i18n-placeholder="Your full name"
+                    name="name"
                     placeholder="Your full name"
                     required
                     type="text"
                 />
-                <p class="contact__error" data-i18n="Please enter your name." hidden>Please enter your name.</p>
+                <p class="contact__error" id="error-name" data-i18n="Please enter your name." hidden>Please enter your name.</p>
             </label>
-            <label class="label" data-i18n-html="contact-label-email">
-                Email <span class="label__required">*</span>
+            <label class="label">
+                <span data-i18n="Email">Email</span> <span class="label__required">*</span>
                 <input
                     class="input"
+                    aria-describedby="error-email"
                     name="email"
                     placeholder="you@company.com"
                     required
                     type="email"
                 />
-                <p class="contact__error" data-i18n="Please enter a valid email address." hidden>Please enter a valid email address.</p>
+                <p class="contact__error" id="error-email" data-i18n="Please enter a valid email address." hidden>Please enter a valid email address.</p>
             </label>
-            <label class="label" data-i18n-html="contact-label-weixin">
-                Weixin
+            <label class="label">
+                <span data-i18n="Weixin">Weixin</span>
                 <input
                     class="input"
                     name="weixin"
-                    data-i18n-placeholder="Your Weixin ID"
-                    placeholder="Your Weixin ID"
+                    data-i18n-placeholder="Your Weixin ID or number"
+                    placeholder="Your Weixin ID or number"
                     type="text"
                 />
             </label>
-            <label class="label" data-i18n-html="contact-label-message">
-                Message <span class="label__required">*</span>
+            <label class="label">
+                <span data-i18n="Message">Message</span> <span class="label__required">*</span>
                 <textarea
                     class="textarea"
-                    name="message"
+                    aria-describedby="error-message"
                     data-i18n-placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
+                    name="message"
                     placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
                     required
                     rows="5"
                 />
-                <p class="contact__error" data-i18n="Please add a short message." hidden>Please add a short message.</p>
+                <p class="contact__error" id="error-message" data-i18n="Please add a short message." hidden>Please add a short message.</p>
             </label>
             <button class="button contact__submit" data-i18n="Send message" type="submit">Send message</button>
         </form>
@@ -71,6 +79,8 @@
 <style>
     .contact {
         border-bottom: 1px solid var(--color-border);
+        overflow: hidden;
+        position: relative;
     }
 
     .contact__error {
@@ -88,7 +98,9 @@
 
     .contact__inner {
         max-width: 620px;
+        position: relative;
         text-align: center;
+        z-index: 1;
     }
 
     .contact__intro {
@@ -101,6 +113,49 @@
     .contact__reset {
         font-size: 14px;
         padding: 10px 18px;
+    }
+
+    .contact__ring {
+        border: 1.5px solid var(--color-border-muted);
+        border-radius: 50%;
+        pointer-events: none;
+        position: absolute;
+        z-index: 0;
+    }
+
+    .contact__ring--1 {
+        height: clamp(280px, 30vw, 380px);
+        right: clamp(-140px, -10vw, -80px);
+        top: clamp(-160px, -12vw, -100px);
+        width: clamp(280px, 30vw, 380px);
+    }
+
+    .contact__ring--2 {
+        height: clamp(200px, 22vw, 280px);
+        right: clamp(-100px, -7vw, -50px);
+        top: clamp(-110px, -8vw, -60px);
+        width: clamp(200px, 22vw, 280px);
+    }
+
+    .contact__ring--3 {
+        height: clamp(120px, 14vw, 180px);
+        right: clamp(-60px, -3vw, -20px);
+        top: clamp(-60px, -4vw, -20px);
+        width: clamp(120px, 14vw, 180px);
+    }
+
+    .contact__ring--4 {
+        bottom: clamp(-140px, -10vw, -80px);
+        height: clamp(240px, 26vw, 320px);
+        left: clamp(-120px, -9vw, -70px);
+        width: clamp(240px, 26vw, 320px);
+    }
+
+    .contact__ring--5 {
+        bottom: clamp(-90px, -6vw, -50px);
+        height: clamp(160px, 18vw, 220px);
+        left: clamp(-80px, -5vw, -40px);
+        width: clamp(160px, 18vw, 220px);
     }
 
     .contact__submit {
@@ -141,6 +196,12 @@
     .input--error,
     .textarea--error {
         border-color: var(--color-error-soft);
+    }
+
+    @media (max-width: 1024px) {
+        .contact__ring {
+            display: none;
+        }
     }
 </style>
 
@@ -189,7 +250,7 @@
                 valid = false;
             }
 
-            if (!msgInput?.value.trim()) {
+            if ((msgInput?.value.trim() ?? '').length < 10) {
                 errors[2].hidden = false;
                 msgInput?.classList.add('textarea--error');
                 valid = false;

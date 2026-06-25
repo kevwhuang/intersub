@@ -2,14 +2,14 @@
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
-import { getSeminars } from '@lib/store';
 import { formatDate, getDifficultyMeta, getInitials, parseSeminarContent } from '@lib/utils';
+import { getSeminars } from '@lib/store';
 
 export const prerender = false;
 
 const { slug } = Astro.params;
 const seminars = await getSeminars();
-const seminar = seminars.find(s => String(s.id) === slug) as Record<string, string> | undefined;
+const seminar = seminars.find(s => String(s.date) === slug) as Record<string, string> | undefined;
 
 if (!seminar) return Astro.redirect('/404');
 
@@ -19,9 +19,9 @@ const rawBlocks = parseSeminarContent(seminar.content);
 const grouped: Array<{ items: string[]; type: 'h' | 'li' | 'p' }> = [];
 for (const block of rawBlocks) {
     if (block.type === 'li' && grouped.length && grouped[grouped.length - 1].type === 'li') {
-        grouped[grouped.length - 1].items.push(block.c);
+        grouped[grouped.length - 1].items.push(block.content);
     } else {
-        grouped.push({ items: [block.c], type: block.type });
+        grouped.push({ items: [block.content], type: block.type });
     }
 }
 ---
@@ -31,50 +31,54 @@ for (const block of rawBlocks) {
     title={`${seminar.title} | InterSub`}
 >
     <Navbar />
-    <div class="seminar-detail">
-        <div class="shell">
-            <a class="seminar-detail__back" href="/seminars">
-                <span>&larr;</span>
-                <span data-i18n="All seminars">All seminars</span>
-            </a>
-            <h1 class="seminar-detail__title">{seminar.title}</h1>
-            <dl class="seminar-detail__meta">
-                <div>
-                    <dt class="seminar-detail__meta-label" data-i18n="Date">Date</dt>
-                    <dd class="seminar-detail__meta-value">
-                        <time data-i18n-date={seminar.date} datetime={seminar.date}>{formatDate(seminar.date)}</time>
-                    </dd>
-                </div>
-                <div>
-                    <dt class="seminar-detail__meta-label" data-i18n="Location">Location</dt>
-                    <dd class="seminar-detail__meta-value" data-i18n={seminar.location}>{seminar.location}</dd>
-                </div>
-                {seminar.difficulty && (
+    <main class="flex flex-1 flex-col">
+        <div class="seminar-detail">
+            <div class="shell">
+                <a class="seminar-detail__back" href="/seminars">
+                    <span>&larr;</span>
+                    <span data-i18n="All seminars">All seminars</span>
+                </a>
+                <h1 class="seminar-detail__title">{seminar.title}</h1>
+                <dl class="seminar-detail__meta">
                     <div>
-                        <dt class="seminar-detail__meta-label" data-i18n="Level">Level</dt>
-                        <dd class="seminar-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
+                        <dt class="seminar-detail__meta-label" data-i18n="Date">Date</dt>
+                        <dd class="seminar-detail__meta-value">
+                            <time data-i18n-date={seminar.date} datetime={seminar.date}>{formatDate(seminar.date)}</time>
+                        </dd>
                     </div>
-                )}
-            </dl>
-            <div
-                class="seminar-detail__cover"
-                style={`background:${meta.cover};color:${meta.ink}`}
-            >
-                <span class="seminar-detail__cover-initials">{initials}</span>
-            </div>
-            <div class="prose seminar-detail__content">
-                {grouped.map((group) => {
-                    if (group.type === 'h') return <h2>{group.items[0]}</h2>;
-                    if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
-                    return <p>{group.items[0]}</p>;
-                })}
-            </div>
-            <div class="seminar-detail__actions">
-                <a class="button" href="/#contact"><span data-i18n="Enquire about this seminar">Enquire about this seminar</span></a>
-                <a class="button button--outline" href="/seminars"><span data-i18n="Back to all">Back to all</span></a>
+                    <div>
+                        <dt class="seminar-detail__meta-label" data-i18n="Location">Location</dt>
+                        <dd class="seminar-detail__meta-value" data-i18n={seminar.location}>{seminar.location}</dd>
+                    </div>
+                    {seminar.difficulty && (
+                        <div>
+                            <dt class="seminar-detail__meta-label" data-i18n="Level">Level</dt>
+                            <dd class="seminar-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
+                        </div>
+                    )}
+                </dl>
+                <div
+                    class="seminar-detail__cover"
+                    style={`background:${meta.cover};color:${meta.ink}`}
+                >
+                    {seminar.cover
+                        ? <img class="seminar-detail__cover-image" alt="" src={seminar.cover} />
+                        : <span class="seminar-detail__cover-initials">{initials}</span>}
+                </div>
+                <div class="prose seminar-detail__content">
+                    {grouped.map((group) => {
+                        if (group.type === 'h') return <h2>{group.items[0]}</h2>;
+                        if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
+                        return <p>{group.items[0]}</p>;
+                    })}
+                </div>
+                <div class="seminar-detail__actions">
+                    <a class="button" href="/#contact"><span data-i18n="Register for this seminar">Register for this seminar</span></a>
+                    <a class="button button--outline" href="/seminars"><span data-i18n="Back to all">Back to all</span></a>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
     <Footer />
 </Layout>
 
@@ -109,6 +113,15 @@ for (const block of rawBlocks) {
         color: var(--color-accent);
     }
 
+    .seminar-detail__actions {
+        align-items: center;
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        padding-top: 36px;
+    }
+
     .seminar-detail__content {
         margin-bottom: 48px;
     }
@@ -123,21 +136,18 @@ for (const block of rawBlocks) {
         margin-bottom: 44px;
     }
 
+    .seminar-detail__cover-image {
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+    }
+
     .seminar-detail__cover-initials {
         font-family: var(--font-heading);
         font-size: clamp(60px, 12vw, 120px);
         font-weight: 700;
         letter-spacing: -0.03em;
         opacity: 0.26;
-    }
-
-    .seminar-detail__actions {
-        align-items: center;
-        border-top: 1px solid var(--color-border);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        padding-top: 36px;
     }
 
     .seminar-detail__meta {

@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<{ children: React.ReactNode }, { ha
                         An unexpected error occurred. Try refreshing the page or returning home.
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-                        <button onClick={() => window.location.reload()} style={{ alignItems: 'center', background: '#2a52e0', border: 'none', borderRadius: 10, color: '#ffffff', cursor: 'pointer', display: 'inline-flex', fontFamily: 'inherit', fontSize: 16, fontWeight: 600, padding: '15px 24px' }}>
+                        <button onClick={() => window.location.reload()} style={{ alignItems: 'center', background: '#2a52e0', border: 'none', borderRadius: 10, color: '#ffffff', display: 'inline-flex', fontFamily: 'inherit', fontSize: 16, fontWeight: 600, padding: '15px 24px' }}>
                             Refresh
                         </button>
                         <a href="/" style={{ alignItems: 'center', border: '1px solid #d4d8e0', borderRadius: 10, color: '#14161c', display: 'inline-flex', fontFamily: 'inherit', fontSize: 16, fontWeight: 600, padding: '15px 24px', textDecoration: 'none' }}>

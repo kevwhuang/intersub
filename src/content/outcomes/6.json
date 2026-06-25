@@ -1,5 +1,10 @@
 {
-    "points": ["Inclusive virtual standups that surface real blockers", "Weekly updates people actually open and read", "Cross-timezone handoffs stopped dropping context", "Team engagement scores rose in the next quarterly survey"],
+    "points": [
+        "Inclusive virtual standups that surface real blockers",
+        "Weekly updates people actually open and read",
+        "Cross-timezone handoffs stopped dropping context",
+        "Team engagement scores rose in the next quarterly survey"
+    ],
     "summary": "A team lead across three time zones was losing alignment. Async English was too vague to act on.",
     "title": "Pharma · remote team leadership"
 }

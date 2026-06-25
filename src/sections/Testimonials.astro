@@ -1,7 +1,7 @@
 ---
-import { getCollection } from 'astro:content';
+import { getTestimonials } from '@lib/store';
 
-const testimonials = await getCollection('testimonials');
+const testimonials = await getTestimonials();
 ---
 
 <section
@@ -17,11 +17,11 @@ const testimonials = await getCollection('testimonials');
                     data-slide={i}
                     style={i === 0 ? 'opacity:1' : undefined}
                 >
-                    <blockquote class="testimonials__quote" data-i18n-html={`testimonial-quote-${i}`}>&ldquo;{testimonial.data.quote}&rdquo;</blockquote>
+                    <blockquote class="testimonials__quote" data-i18n-html={`testimonial-quote-${i}`}>&ldquo;{testimonial.quote}&rdquo;</blockquote>
                     <figcaption>
-                        <span class="testimonials__name" data-i18n={testimonial.data.name}>{testimonial.data.name}</span>
-                        <span class="testimonials__role" data-i18n={testimonial.data.role}>{testimonial.data.role}</span>
-                        <span class="testimonials__company" data-i18n={testimonial.data.industry}>{testimonial.data.industry}</span>
+                        <span class="testimonials__name" data-i18n={testimonial.name}>{testimonial.name}</span>
+                        <span class="testimonials__role" data-i18n={testimonial.role}>{testimonial.role}</span>
+                        <span class="testimonials__company" data-i18n={testimonial.industry}>{testimonial.industry}</span>
                     </figcaption>
                 </figure>
             ))}
@@ -49,7 +49,7 @@ const testimonials = await getCollection('testimonials');
         margin-left: auto;
         margin-right: auto;
         max-width: 800px;
-        min-height: clamp(220px, 30vh, 260px);
+        min-height: clamp(220px, 42vw, 290px);
         position: relative;
     }
 
@@ -63,7 +63,6 @@ const testimonials = await getCollection('testimonials');
         background: var(--color-dark-surface);
         border: none;
         border-radius: 99px;
-        cursor: pointer;
         height: 10px;
         padding: 0;
         position: relative;
@@ -73,7 +72,7 @@ const testimonials = await getCollection('testimonials');
 
     .testimonials__dot::after {
         content: '';
-        inset: -19px -19px;
+        inset: -8px -4px;
         position: absolute;
     }
 

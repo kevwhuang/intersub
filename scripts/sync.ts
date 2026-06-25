@@ -2,8 +2,12 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BASE_URL = process.argv[2] || 'https://intersubstudio.com';
-const COLLECTIONS = ['outcomes', 'seminars'] as const;
+const COLLECTIONS = ['outcomes', 'seminars', 'testimonials'] as const;
 const CONTENT_DIR = join(import.meta.dirname, '..', 'src', 'content');
+
+function slugify(value: string): string {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
 
 async function fetchCollection(endpoint: string): Promise<Record<string, unknown>[]> {
     const response = await fetch(`${BASE_URL}/api/${endpoint}`);
@@ -35,10 +39,17 @@ function writeCollection(directory: string, items: Record<string, unknown>[]) {
 
         delete entry.id;
 
-        const filename = `${index + 1}.json`;
+        let filename = `${index + 1}.json`;
+
+        if (directory === 'seminars' && entry.date) {
+            filename = `${entry.date}.json`;
+        } else if (directory === 'testimonials' && entry.name && entry.role) {
+            filename = `${slugify(String(entry.name))}-${slugify(String(entry.role))}.json`;
+        }
+
         const json = JSON.stringify(entry, Object.keys(entry).sort(), 4);
 
-        writeFileSync(join(outputDirectory, filename), json + '\n');
+        writeFileSync(join(outputDirectory, filename), json);
     }
 }
 

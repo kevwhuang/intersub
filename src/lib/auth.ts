@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react';
 
-const BYPASS_AUTH = true;
-
-const IS_LOCAL = typeof window !== 'undefined'
-    && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-const SKIP_AUTH = IS_LOCAL || BYPASS_AUTH;
-
-export interface AuthUser {
+interface AuthUser {
     email?: string;
 }
 
+const BYPASS_AUTH = true;
+
+const IS_LOCAL = typeof window !== 'undefined'
+    && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
+
+const SKIP_AUTH = BYPASS_AUTH || IS_LOCAL;
+
+async function loadIdentity() {
+    return import('@netlify/identity');
+}
+
 export function useAuth() {
-    const [user, setUser] = useState<AuthUser | null>(SKIP_AUTH ? { email: 'dev@localhost' } : null);
-    const [loading, setLoading] = useState(!SKIP_AUTH);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(!SKIP_AUTH);
+    const [user, setUser] = useState<AuthUser | null>(SKIP_AUTH ? { email: 'dev@localhost' } : null);
 
     useEffect(() => {
         if (SKIP_AUTH) return;
@@ -22,7 +26,7 @@ export function useAuth() {
         let unsubscribe: (() => void) | undefined;
 
         (async () => {
-            const identity = await import('@netlify/identity');
+            const identity = await loadIdentity();
             await identity.handleAuthCallback();
             setUser(await identity.getUser());
             setLoading(false);
@@ -31,6 +35,18 @@ export function useAuth() {
 
         return () => unsubscribe?.();
     }, []);
+
+    async function getToken(): Promise<string | null> {
+        if (SKIP_AUTH) return 'dev-token';
+
+        try {
+            const identity = await loadIdentity();
+            const current = await identity.getUser() as Record<string, Record<string, string>> | null;
+            return current?.token?.access_token ?? null;
+        } catch {
+            return null;
+        }
+    }
 
     async function handleLogin(email: string, password: string) {
         setError('');
@@ -46,9 +62,8 @@ export function useAuth() {
         }
 
         try {
-            const identity = await import('@netlify/identity');
-            const loggedIn = await identity.login(email, password);
-            setUser(loggedIn);
+            const identity = await loadIdentity();
+            setUser(await identity.login(email, password));
         } catch {
             setError('Invalid email or password.');
         }
@@ -61,12 +76,12 @@ export function useAuth() {
         }
 
         try {
-            const identity = await import('@netlify/identity');
+            const identity = await loadIdentity();
             await identity.logout();
         } finally {
             setUser(null);
         }
     }
 
-    return { error, handleLogin, handleLogout, loading, user };
+    return { error, getToken, handleLogin, handleLogout, loading, user };
 }

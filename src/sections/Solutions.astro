@@ -53,6 +53,11 @@ import { SOLUTIONS } from '@lib/utils';
         transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
+    .solutions__card:active {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+
     .solutions__card:focus-visible {
         border-color: var(--color-accent);
         box-shadow: 0 0 0 3px var(--color-accent-20);
@@ -61,7 +66,7 @@ import { SOLUTIONS } from '@lib/utils';
 
     .solutions__card:hover {
         border-color: var(--color-border-hover);
-        box-shadow: 0 10px 30px rgba(20, 22, 28, 0.06);
+        box-shadow: 0 10px 30px #14161c0f;
         transform: translateY(-2px);
     }
 

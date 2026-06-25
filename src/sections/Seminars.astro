@@ -1,11 +1,10 @@
 ---
-import { getSeminars } from '@lib/store';
 import { formatDate, getDifficultyMeta, getInitials } from '@lib/utils';
+import { getSeminars } from '@lib/store';
 
 const seminars = await getSeminars();
 const locations = [...new Set(seminars.map(seminar => String(seminar.location)))].sort();
-const DIFFICULTIES = ['all', 'beginner', 'intermediate', 'advanced'] as const;
-const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: 'All levels', beginner: 'Beginner', intermediate: 'Intermediate' };
+const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
 ---
 
 <div class="seminars" data-seminars>
@@ -50,7 +49,7 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
                                     data-filter-difficulty={d}
                                     type="button"
                                 >
-                                    <span data-i18n={DIFFICULTY_LABELS[d]}>{DIFFICULTY_LABELS[d]}</span>
+                                    <span data-i18n={d === 'all' ? 'All levels' : d}>{d === 'all' ? 'All levels' : d}</span>
                                 </button>
                             ))}
                         </div>
@@ -71,13 +70,15 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
                             data-card
                             data-card-difficulty={sem.difficulty}
                             data-card-location={sem.location}
-                            href={`/seminars/${sem.id}`}
+                            href={`/seminars/${sem.date}`}
                         >
                             <div
                                 class="seminars__card-cover"
                                 style={`background:${meta.cover};color:${meta.ink}`}
                             >
-                                <span class="seminars__card-initials">{initials}</span>
+                                {sem.cover
+                                    ? <img class="seminars__card-image" alt="" src={sem.cover} />
+                                    : <span class="seminars__card-initials">{initials}</span>}
                             </div>
                             <div class="seminars__card-body">
                                 <h2 class="seminars__card-title">{sem.title}</h2>
@@ -104,7 +105,7 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
 
             <div class="seminars__empty" data-empty style="display:none">
                 <h2 class="seminars__empty-title" data-i18n="No seminars match those filters">No seminars match those filters</h2>
-                <p class="seminars__empty-text">Try widening your selection. New sessions are added throughout the season.</p>
+                <p class="seminars__empty-text" data-i18n="Try widening your selection. New sessions are added throughout the season.">Try widening your selection. New sessions are added throughout the season.</p>
                 <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
             </div>
         </div>
@@ -123,6 +124,11 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
         transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
+    .seminars__card:active {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+
     .seminars__card:focus-visible {
         border-color: var(--color-accent);
         box-shadow: 0 0 0 3px var(--color-accent-20);
@@ -131,7 +137,7 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
 
     .seminars__card:hover {
         border-color: var(--color-border-hover);
-        box-shadow: 0 12px 32px rgba(20, 22, 28, 0.08);
+        box-shadow: 0 12px 32px #14161c14;
         transform: translateY(-3px);
     }
 
@@ -152,6 +158,7 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
         display: flex;
         height: 150px;
         justify-content: center;
+        overflow: hidden;
     }
 
     .seminars__card-details {
@@ -160,6 +167,12 @@ const DIFFICULTY_LABELS: Record<string, string> = { advanced: 'Advanced', all: '
         flex-direction: column;
         gap: 7px;
         padding-top: 14px;
+    }
+
+    .seminars__card-image {
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
     }
 
     .seminars__card-initials {

@@ -3,12 +3,12 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const CONTENT_PATH = 'src/content';
-const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const;
+const DIFFICULTIES = ['Advanced', 'Beginner', 'Intermediate'] as const;
 
 const outcomes = defineCollection({
     loader: glob({ base: `./${CONTENT_PATH}/outcomes`, pattern: '**/*.json' }),
     schema: z.object({
-        points: z.array(z.string()),
+        points: z.array(z.string()).min(1),
         summary: z.string(),
         title: z.string(),
     }),
