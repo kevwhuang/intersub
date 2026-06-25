@@ -1,4 +1,4 @@
-export function Spinner({ size = 16 }: { size?: number }) {
+export default function Spinner({ size = 16 }: { size?: number }) {
     return (
         <span
             style={{

@@ -1,8 +1,8 @@
 import { Component } from 'react';
 
-const FONT_HEADING = '\'Space Grotesk\', system-ui, sans-serif';
+import { FONT_HEADING } from '@lib/constants';
 
-export class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+export default class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
     state = { hasError: false };
 
     static getDerivedStateFromError() {

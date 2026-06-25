@@ -1,5 +1,5 @@
 ---
-import { METHOD_BLOCKS } from '@lib/utils';
+import { METHOD_BLOCKS } from '@lib/constants';
 ---
 
 <section class="method" aria-label="Our method">
@@ -42,7 +42,7 @@ import { METHOD_BLOCKS } from '@lib/utils';
     }
 
     .method__block--indent {
-        margin-left: clamp(0px, 14vw, 180px);
+        padding-left: clamp(0px, 14vw, 180px);
     }
 
     .method__curve {
@@ -123,7 +123,7 @@ import { METHOD_BLOCKS } from '@lib/utils';
         }
 
         .method__block--indent {
-            margin-left: 0;
+            padding-left: 0;
         }
 
         .method__curve {

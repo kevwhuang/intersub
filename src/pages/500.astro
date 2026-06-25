@@ -12,14 +12,13 @@ export const prerender = false;
 >
     <Navbar />
     <main class="flex flex-1 flex-col">
-        <section class="error-page">
-            <div class="shell">
-                <p class="error-page__code" aria-hidden="true">500</p>
-                <h1 class="error-page__title" data-i18n="Something went wrong">Something went wrong</h1>
-                <p class="error-page__text" data-i18n="An unexpected error occurred. Try refreshing the page or returning home.">An unexpected error occurred. Try refreshing the page or returning home.</p>
-                <div class="error-page__actions">
-                    <button class="button" data-i18n="Refresh" onclick="window.location.reload()">Refresh</button>
-                    <a class="button button--outline" href="/"><span data-i18n="Home">Home</span></a>
+        <section class="server-error" aria-label="Server error">
+            <div class="shell server-error__inner">
+                <p class="server-error__code" aria-hidden="true">500</p>
+                <h1 class="server-error__title" data-i18n="Something went wrong">Something went wrong</h1>
+                <p class="server-error__text" data-i18n="An unexpected error occurred. Try refreshing the page or returning home.">An unexpected error occurred. Try refreshing the page or returning home.</p>
+                <div class="server-error__actions">
+                    <a class="button" href="/"><span data-i18n="Go home">Go home</span></a>
                 </div>
             </div>
         </section>
@@ -28,39 +27,43 @@ export const prerender = false;
 </Layout>
 
 <style>
-    .error-page {
+    .server-error {
         align-items: center;
         display: flex;
-        flex: 1;
         justify-content: center;
-        padding-bottom: clamp(64px, 9vw, 110px);
-        padding-top: calc(var(--header-height) + clamp(48px, 7vw, 84px));
+        min-height: calc(100vh - var(--header-height));
+        padding-bottom: clamp(48px, 8vw, 100px);
+        padding-top: calc(var(--header-height) + clamp(48px, 8vw, 100px));
     }
 
-    .error-page__actions {
+    .server-error__actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
+        justify-content: center;
     }
 
-    .error-page__code {
-        color: var(--color-accent-10);
+    .server-error__code {
+        color: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
         font-family: var(--font-heading);
         font-size: clamp(120px, 20vw, 240px);
         font-weight: 700;
         letter-spacing: -0.05em;
         line-height: 0.8;
-        margin: 0 0 16px;
+        margin: 0 0 clamp(24px, 4vw, 40px);
     }
 
-    .error-page__text {
+    .server-error__inner {
+        max-width: 600px;
+        text-align: center;
+    }
+
+    .server-error__text {
         color: var(--color-ink-muted);
         font-size: clamp(16px, 1.3vw, 18px);
         line-height: 1.6;
         margin: 0 0 32px;
     }
 
-    .error-page__title {
+    .server-error__title {
         font-size: clamp(24px, 3.5vw, 38px);
         font-weight: 700;
         letter-spacing: -0.02em;

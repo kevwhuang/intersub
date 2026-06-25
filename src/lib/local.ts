@@ -1,5 +1,5 @@
-import { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 
 const CONTENT_DIR = join(process.cwd(), 'src', 'content');
 

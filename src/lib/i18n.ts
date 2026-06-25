@@ -1,4 +1,21 @@
-import { HTML_TRANSLATIONS, PLACEHOLDER_TRANSLATIONS, TITLE_TRANSLATIONS, TRANSLATIONS } from '@lib/translations';
+import htmlTranslations from '@content/translations/html.json';
+import outcomesTranslations from '@content/translations/outcomes.json';
+import placeholderTranslations from '@content/translations/placeholders.json';
+import seminarsTranslations from '@content/translations/seminars.json';
+import testimonialsTranslations from '@content/translations/testimonials.json';
+import titleTranslations from '@content/translations/titles.json';
+import uiTranslations from '@content/translations/ui.json';
+
+const HTML_TRANSLATIONS: Record<string, string> = htmlTranslations;
+const PLACEHOLDER_TRANSLATIONS: Record<string, string> = placeholderTranslations;
+const TITLE_TRANSLATIONS: Record<string, string> = titleTranslations;
+
+const TRANSLATIONS: Record<string, string> = {
+    ...uiTranslations,
+    ...outcomesTranslations,
+    ...seminarsTranslations,
+    ...testimonialsTranslations,
+};
 
 function formatDateChinese(english: string): string {
     const date = new Date(english);
@@ -69,6 +86,8 @@ export function applyLanguage() {
     const toggle = document.querySelector<HTMLButtonElement>('[data-lang-toggle]');
 
     if (toggle) toggle.textContent = isChinese ? 'EN' : '中文';
+
+    window.dispatchEvent(new CustomEvent('lang:change'));
 }
 
 export function toggleLanguage() {
