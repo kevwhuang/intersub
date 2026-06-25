@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
+import { DeleteModal } from '@components/DeleteModal';
 import { ErrorBoundary } from '@components/ErrorBoundary';
+import { FormField } from '@components/FormField';
+import { Spinner } from '@components/Spinner';
 import { useAuth } from '@lib/auth';
 import { formatDate, getDifficultyMeta } from '@lib/utils';
 
@@ -42,15 +45,18 @@ interface DashboardState {
     editingTestimonial: string | null;
     form: SeminarFormData | null;
     formErrors: Record<string, boolean>;
+    loading: boolean;
     outcomeForm: OutcomeFormData | null;
     outcomeFormErrors: Record<string, boolean>;
     outcomes: AdminOutcome[];
+    saving: boolean;
     seminars: AdminSeminar[];
     sidebarCollapsed: boolean;
     testimonialForm: TestimonialFormData | null;
     testimonialFormErrors: Record<string, boolean>;
     testimonials: AdminTestimonial[];
     toast: string | null;
+    toastError: boolean;
     sortDir: 'asc' | 'desc';
     sortKey: string;
 }
@@ -141,15 +147,18 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         editingTestimonial: null,
         form: null,
         formErrors: {},
+        loading: true,
         outcomeForm: null,
         outcomeFormErrors: {},
         outcomes: [],
+        saving: false,
         seminars: [],
         sidebarCollapsed: false,
         testimonialForm: null,
         testimonialFormErrors: {},
         testimonials: [],
         toast: null,
+        toastError: false,
         sortDir: 'asc',
         sortKey: 'name',
     } satisfies DashboardState);
@@ -185,12 +194,13 @@ function useDashboardState(getToken: () => Promise<string | null>) {
             ]);
 
             set({
+                loading: false,
                 outcomes: await outcomesResponse.json(),
                 seminars: await seminarsResponse.json(),
                 testimonials: await testimonialsResponse.json(),
             });
         } catch {
-            return;
+            set({ loading: false });
         }
     }
 
@@ -212,10 +222,10 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         };
     }, []);
 
-    function showToast(message: string) {
+    function showToast(message: string, error = false) {
         clearTimeout(toastTimer.current);
-        set({ toast: message });
-        toastTimer.current = setTimeout(() => set({ toast: null }), 3_000);
+        set({ toast: message, toastError: error });
+        toastTimer.current = setTimeout(() => set({ toast: null, toastError: false }), 3_000);
     }
 
     function handleCancelEdit() {
@@ -232,6 +242,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         if (!state.form.title.trim()) errors.title = true;
         if (!state.form.date) errors.date = true;
         if (!state.form.location.trim()) errors.location = true;
+        if (state.form.cover.trim() && !/^https?:\/\/.+/.test(state.form.cover.trim())) errors.cover = true;
         if (!state.form.content.trim()) errors.content = true;
         if (Object.keys(errors).length) {
             set({ formErrors: errors });
@@ -243,6 +254,8 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
         if (!isNew && state.editing) body.id = state.editing;
 
+        set({ saving: true });
+
         try {
             const response = await authFetch('/api/seminars', {
                 body: JSON.stringify(body),
@@ -251,20 +264,23 @@ function useDashboardState(getToken: () => Promise<string | null>) {
             });
 
             if (response.status === 409) {
-                showToast('A seminar already exists on this date');
+                set({ saving: false });
+                showToast('A seminar already exists on this date', true);
                 return;
             }
 
             if (!response.ok) {
-                showToast('Failed to save');
+                set({ saving: false });
+                showToast('Failed to save', true);
                 return;
             }
 
-            set({ editing: null, form: null, formErrors: {} });
+            set({ editing: null, form: null, formErrors: {}, saving: false });
             fetchData();
             showToast(isNew ? 'Seminar created' : 'Changes saved');
         } catch {
-            showToast('Failed to save');
+            set({ saving: false });
+            showToast('Failed to save', true);
         }
     }
 
@@ -308,13 +324,16 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
         if (!isNew && state.editingOutcome) body.id = state.editingOutcome;
 
+        set({ saving: true });
+
         try {
             await authFetch('/api/outcomes', { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
-            set({ editingOutcome: null, outcomeForm: null, outcomeFormErrors: {} });
+            set({ editingOutcome: null, outcomeForm: null, outcomeFormErrors: {}, saving: false });
             fetchData();
             showToast(isNew ? 'Outcome created' : 'Changes saved');
         } catch {
-            showToast('Failed to save');
+            set({ saving: false });
+            showToast('Failed to save', true);
         }
     }
 
@@ -360,13 +379,16 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
         if (!isNew && state.editingTestimonial) body.id = state.editingTestimonial;
 
+        set({ saving: true });
+
         try {
             await authFetch('/api/testimonials', { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
-            set({ editingTestimonial: null, testimonialForm: null, testimonialFormErrors: {} });
+            set({ editingTestimonial: null, saving: false, testimonialForm: null, testimonialFormErrors: {} });
             fetchData();
             showToast(isNew ? 'Testimonial created' : 'Changes saved');
         } catch {
-            showToast('Failed to save');
+            set({ saving: false });
+            showToast('Failed to save', true);
         }
     }
 
@@ -429,7 +451,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
     };
 }
 
-function AdminForm({ editing, form, formErrors, isMobile, onCancel, onDelete, onSave, onUpdate }: {
+function AdminForm({ editing, form, formErrors, isMobile, onCancel, onDelete, onSave, onUpdate, saving }: {
     editing: string;
     form: SeminarFormData;
     formErrors: Record<string, boolean>;
@@ -438,6 +460,7 @@ function AdminForm({ editing, form, formErrors, isMobile, onCancel, onDelete, on
     onDelete: () => void;
     onSave: () => void;
     onUpdate: (fields: Partial<SeminarFormData>) => void;
+    saving: boolean;
 }) {
     function errorBorder(field: string) {
         return formErrors[field] ? '#e0a0a0' : '#dfe2e8';
@@ -474,23 +497,24 @@ function AdminForm({ editing, form, formErrors, isMobile, onCancel, onDelete, on
                 <FormField errorMessage={formErrors.location ? 'Location is required.' : undefined} label="Location" required>
                     <input className="dashboard-input" value={form.location} onChange={event => onUpdate({ location: event.target.value })} placeholder="e.g. Shanghai" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('location')}` }} />
                 </FormField>
-                <FormField label="Cover">
-                    <input className="dashboard-input" value={form.cover} onChange={event => onUpdate({ cover: event.target.value })} placeholder="https://…" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
+                <FormField errorMessage={formErrors.cover ? 'Must be a valid URL.' : undefined} label="Cover">
+                    <input className="dashboard-input" value={form.cover} onChange={event => onUpdate({ cover: event.target.value })} placeholder="https://…" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('cover')}` }} />
                 </FormField>
                 <FormField errorMessage={formErrors.content ? 'Content is required.' : undefined} label="Content" labelSuffix="· Markdown" required>
                     <textarea className="dashboard-input" value={form.content} onChange={event => onUpdate({ content: event.target.value })} rows={9} placeholder={'Describe what the seminar covers and who it serves.\n\n## What you\'ll learn\n- First key takeaway or skill\n- Second key takeaway or skill\n- Third key takeaway or skill\n\n## Who it\'s for\nThe target audience and their typical challenges.'} style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('content')}`, fontFamily: FONT_MONO, fontSize: 13.5, lineHeight: 1.6, minHeight: 200, resize: 'vertical' as const }} />
                 </FormField>
                 <div style={{ borderTop: '1px solid #eceef2', display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                    <button className="dashboard-button--primary" type="submit">
+                    <button className="dashboard-button--primary" disabled={saving} type="submit" style={{ alignItems: 'center', display: 'inline-flex', gap: 8 }}>
+                        {saving && <Spinner />}
                         {editing === 'new' ? 'Create seminar' : 'Save changes'}
                     </button>
-                    <button className="dashboard-button--outline" type="button" onClick={onCancel}>
+                    <button className="dashboard-button--outline" disabled={saving} type="button" onClick={onCancel}>
                         Cancel
                     </button>
                     {editing !== 'new' && (
                         <>
                             <div style={{ flex: 1 }} />
-                            <button className="dashboard-button--danger" type="button" onClick={onDelete}>
+                            <button className="dashboard-button--danger" disabled={saving} type="button" onClick={onDelete}>
                                 Delete seminar
                             </button>
                         </>
@@ -564,41 +588,6 @@ function AdminTopBar({ onToggleNav, searchValue, onSearchChange }: {
     );
 }
 
-function DeleteModal({ onCancel, onConfirm, title }: {
-    onCancel: () => void;
-    onConfirm: () => void;
-    title: string;
-}) {
-    function handleBackdropClick(event: React.MouseEvent<HTMLDivElement>) {
-        if (event.target === event.currentTarget) onCancel();
-    }
-
-    function handleBackdropKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-        if (event.key === 'Escape') onCancel();
-    }
-
-    return (
-        <div role="button" tabIndex={-1} onClick={handleBackdropClick} onKeyDown={handleBackdropKeyDown} style={{ alignItems: 'center', background: 'rgba(20,22,28,.45)', display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: 60 }}>
-            <div role="dialog" aria-labelledby="delete-modal-title" style={{ background: '#ffffff', borderRadius: STYLES.borderRadiusLg, boxShadow: '0 24px 60px rgba(20,22,28,.25)', maxWidth: 400, padding: 'clamp(20px, 4vw, 30px)', width: '100%' }}>
-                <h3 id="delete-modal-title" style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this seminar?</h3>
-                <p style={{ color: STYLES.colorMuted, fontSize: 14.5, lineHeight: 1.55, margin: '0 0 24px' }}>
-                    &ldquo;
-                    {title}
-                    &rdquo; will be permanently deleted. This cannot be undone.
-                </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                    <button className="dashboard-button--outline" onClick={onCancel} style={{ borderRadius: STYLES.borderRadiusSm, fontSize: 14, padding: '10px 18px' }}>
-                        Cancel
-                    </button>
-                    <button className="dashboard-button--danger" onClick={onConfirm} style={{ background: STYLES.colorError, borderColor: STYLES.colorError, borderRadius: STYLES.borderRadiusSm, color: '#ffffff', fontSize: 14, padding: '10px 18px' }}>
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 function FilterChips({ activeFilters, activeLocation, locations, onFilterToggle, onLocationChange, onNewSeminar }: {
     activeFilters: string[];
     activeLocation: string;
@@ -647,31 +636,6 @@ function FilterChips({ activeFilters, activeLocation, locations, onFilterToggle,
     );
 }
 
-function FormField({ children, errorMessage, label, labelSuffix, required }: {
-    children: React.ReactNode;
-    errorMessage?: string;
-    label: string;
-    labelSuffix?: string;
-    required?: boolean;
-}) {
-    return (
-        <label style={{ display: 'block' }}>
-            <span style={STYLES.labelBase}>
-                {label}
-                {labelSuffix && (
-                    <span style={{ color: STYLES.colorGhost, fontWeight: 500 }}>
-                        {' '}
-                        {labelSuffix}
-                    </span>
-                )}
-                {required && <span style={{ color: ACCENT }}> *</span>}
-            </span>
-            {children}
-            {errorMessage && <p style={{ color: STYLES.colorError, fontSize: 12.5, margin: '6px 0 0' }}>{errorMessage}</p>}
-        </label>
-    );
-}
-
 function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -685,7 +649,7 @@ function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                 </div>
                 <div style={{ background: '#ffffff', border: STYLES.border, borderRadius: 18, boxShadow: '0 1px 3px #14161c0a, 0 10px 40px #14161c0f', padding: 'clamp(28px, 5vw, 40px) clamp(24px, 4vw, 36px)' }}>
                     <h1 style={{ fontFamily: FONT_HEADING, fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', margin: '0 0 6px', textAlign: 'center' }}>Sign in</h1>
-                    <p style={{ color: STYLES.colorGhost, fontSize: 14, lineHeight: 1.5, margin: '0 0 28px', textAlign: 'center' }}>Secured with Netlify Identity.</p>
+                    <p style={{ color: STYLES.colorGhost, fontSize: 14, lineHeight: 1.5, margin: '0 0 28px', textAlign: 'center' }}>Admin access only.</p>
                     <form
                         onSubmit={(event) => {
                             event.preventDefault();
@@ -706,6 +670,39 @@ function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                     </form>
                 </div>
                 <a className="dashboard-link" href="/" style={{ color: STYLES.colorGhost, display: 'block', fontSize: 13, marginTop: 24, textAlign: 'center' }}>&larr; Back to site</a>
+            </div>
+        </div>
+    );
+}
+
+function SetPasswordScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
+    const [password, setPassword] = useState('');
+
+    return (
+        <div style={{ alignItems: 'center', background: '#f7f8fa', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', justifyContent: 'center', minHeight: '100vh', padding: 'clamp(24px, 5vw, 48px)' }}>
+            <div style={{ maxWidth: 420, width: '100%' }}>
+                <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 'clamp(32px, 5vw, 48px)' }}>
+                    <span style={{ background: ACCENT, borderRadius: 12, display: 'inline-block', height: 44, width: 44 }} />
+                    <span style={{ fontFamily: FONT_HEADING, fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em' }}>InterSub</span>
+                </div>
+                <div style={{ background: '#ffffff', border: STYLES.border, borderRadius: 18, boxShadow: '0 1px 3px #14161c0a, 0 10px 40px #14161c0f', padding: 'clamp(28px, 5vw, 40px) clamp(24px, 4vw, 36px)' }}>
+                    <h1 style={{ fontFamily: FONT_HEADING, fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', margin: '0 0 6px', textAlign: 'center' }}>Set your password</h1>
+                    <p style={{ color: STYLES.colorGhost, fontSize: 14, lineHeight: 1.5, margin: '0 0 28px', textAlign: 'center' }}>Choose a password for your admin account.</p>
+                    <form
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            auth.handleSetPassword(password);
+                        }}
+                        style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
+                    >
+                        <div>
+                            <label htmlFor="dashboard-new-password" style={STYLES.labelBase}>New password</label>
+                            <input className="dashboard-input" id="dashboard-new-password" value={password} onChange={event => setPassword(event.target.value)} type="password" placeholder="At least 8 characters" style={{ ...STYLES.inputBase, border: STYLES.borderMuted }} />
+                        </div>
+                        {auth.error && <p style={{ color: STYLES.colorError, fontSize: 13, margin: 0 }}>{auth.error}</p>}
+                        <button className="dashboard-button--primary" type="submit" style={{ fontSize: 15, marginTop: 8, padding: '14px 0' }}>Set password</button>
+                    </form>
+                </div>
             </div>
         </div>
     );
@@ -791,7 +788,7 @@ function TableHeader({ onSort, sortDir, sortKey }: {
     );
 }
 
-function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes, set }: {
+function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes, saving, set }: {
     editingOutcome: string | null;
     isMobile: boolean;
     onCancelEdit: () => void;
@@ -802,6 +799,7 @@ function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStart
     outcomeForm: OutcomeFormData | null;
     outcomeFormErrors: Record<string, boolean>;
     outcomes: AdminOutcome[];
+    saving: boolean;
     set: (payload: Partial<DashboardState>) => void;
 }) {
     if (editingOutcome !== null && outcomeForm) {
@@ -831,16 +829,17 @@ function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStart
                         <textarea className="dashboard-input" value={outcomeForm.points} onChange={event => onUpdate({ points: event.target.value })} rows={5} placeholder={'Now lead calls end-to-end in English\nFollow-up emails dropped by half'} style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('points')}`, fontFamily: FONT_MONO, fontSize: 13.5, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
                     </FormField>
                     <div style={{ borderTop: '1px solid #eceef2', display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                        <button className="dashboard-button--primary" type="submit">
+                        <button className="dashboard-button--primary" disabled={saving} type="submit" style={{ alignItems: 'center', display: 'inline-flex', gap: 8 }}>
+                            {saving && <Spinner />}
                             {editingOutcome === 'new' ? 'Create outcome' : 'Save changes'}
                         </button>
-                        <button className="dashboard-button--outline" type="button" onClick={onCancelEdit}>
+                        <button className="dashboard-button--outline" disabled={saving} type="button" onClick={onCancelEdit}>
                             Cancel
                         </button>
                         {editingOutcome !== 'new' && (
                             <>
                                 <div style={{ flex: 1 }} />
-                                <button className="dashboard-button--danger" type="button" onClick={() => set({ confirmDelete: editingOutcome, confirmDeleteType: 'outcome' })}>
+                                <button className="dashboard-button--danger" disabled={saving} type="button" onClick={() => set({ confirmDelete: editingOutcome, confirmDeleteType: 'outcome' })}>
                                     Delete outcome
                                 </button>
                             </>
@@ -920,7 +919,7 @@ function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStart
     );
 }
 
-function TestimonialsPanel({ editingTestimonial, isMobile, onCancelEdit, onSave, onSort, onStartEdit, onStartNew, onUpdate, set, sortDir, sortKey, testimonialForm, testimonialFormErrors, testimonials }: {
+function TestimonialsPanel({ editingTestimonial, isMobile, onCancelEdit, onSave, onSort, onStartEdit, onStartNew, onUpdate, saving, set, sortDir, sortKey, testimonialForm, testimonialFormErrors, testimonials }: {
     editingTestimonial: string | null;
     isMobile: boolean;
     onCancelEdit: () => void;
@@ -929,6 +928,7 @@ function TestimonialsPanel({ editingTestimonial, isMobile, onCancelEdit, onSave,
     onStartEdit: (id: string) => void;
     onStartNew: () => void;
     onUpdate: (fields: Partial<TestimonialFormData>) => void;
+    saving: boolean;
     set: (payload: Partial<DashboardState>) => void;
     sortDir: string;
     sortKey: string;
@@ -968,16 +968,17 @@ function TestimonialsPanel({ editingTestimonial, isMobile, onCancelEdit, onSave,
                         <textarea className="dashboard-input" value={testimonialForm.quote} onChange={event => onUpdate({ quote: event.target.value })} rows={4} placeholder="What the client said about working with InterSub." style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('quote')}`, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
                     </FormField>
                     <div style={{ borderTop: '1px solid #eceef2', display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                        <button className="dashboard-button--primary" type="submit">
+                        <button className="dashboard-button--primary" disabled={saving} type="submit" style={{ alignItems: 'center', display: 'inline-flex', gap: 8 }}>
+                            {saving && <Spinner />}
                             {editingTestimonial === 'new' ? 'Create testimonial' : 'Save changes'}
                         </button>
-                        <button className="dashboard-button--outline" type="button" onClick={onCancelEdit}>
+                        <button className="dashboard-button--outline" disabled={saving} type="button" onClick={onCancelEdit}>
                             Cancel
                         </button>
                         {editingTestimonial !== 'new' && (
                             <>
                                 <div style={{ flex: 1 }} />
-                                <button className="dashboard-button--danger" type="button" onClick={() => set({ confirmDelete: editingTestimonial, confirmDeleteType: 'testimonial' })}>
+                                <button className="dashboard-button--danger" disabled={saving} type="button" onClick={() => set({ confirmDelete: editingTestimonial, confirmDeleteType: 'testimonial' })}>
                                     Delete testimonial
                                 </button>
                             </>
@@ -1039,9 +1040,7 @@ function TestimonialsPanel({ editingTestimonial, isMobile, onCancelEdit, onSave,
                                                     {testimonial.industry}
                                                 </p>
                                                 <p style={{ color: STYLES.colorGhost, fontSize: 13, fontStyle: 'italic', lineHeight: 1.4, margin: '6px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                    &ldquo;
                                                     {testimonial.quote}
-                                                    &rdquo;
                                                 </p>
                                             </div>
                                             <div style={{ display: 'flex', gap: 6 }}>
@@ -1108,14 +1107,28 @@ function DashboardInner() {
 
     if (auth.loading) {
         return (
-            <div style={{ alignItems: 'center', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', justifyContent: 'center', minHeight: '100vh' }}>
-                <p style={{ color: STYLES.colorGhost, fontSize: 14 }}>Loading&hellip;</p>
+            <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', fontFamily: '\'Hanken Grotesk\', sans-serif', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
+                <Spinner size={48} />
+                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Loading&hellip;</p>
             </div>
         );
     }
 
     if (!auth.user) {
         return <LoginScreen auth={auth} />;
+    }
+
+    if (auth.recovery) {
+        return <SetPasswordScreen auth={auth} />;
+    }
+
+    if (state.loading) {
+        return (
+            <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', fontFamily: '\'Hanken Grotesk\', sans-serif', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
+                <Spinner size={48} />
+                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Loading&hellip;</p>
+            </div>
+        );
     }
 
     const query = state.adminSearch.trim().toLowerCase();
@@ -1211,6 +1224,7 @@ function DashboardInner() {
                                     onStartEdit={handleStartTestimonialEdit}
                                     onStartNew={handleStartNewTestimonial}
                                     onUpdate={handleUpdateTestimonialForm}
+                                    saving={state.saving}
                                     set={set}
                                     sortDir={state.sortDir}
                                     sortKey={state.sortKey}
@@ -1232,6 +1246,7 @@ function DashboardInner() {
                                         outcomeForm={state.outcomeForm}
                                         outcomeFormErrors={state.outcomeFormErrors}
                                         outcomes={filteredOutcomes}
+                                        saving={state.saving}
                                         set={set}
                                     />
                                 )
@@ -1328,6 +1343,7 @@ function DashboardInner() {
                                                 onDelete={() => set({ confirmDelete: state.editing, confirmDeleteType: 'seminar' })}
                                                 onSave={handleSaveForm}
                                                 onUpdate={handleUpdateForm}
+                                                saving={state.saving}
                                             />
                                         )
                                     : null}
@@ -1348,14 +1364,14 @@ function DashboardInner() {
                             fetchData();
                             showToast(`${label} deleted`);
                         } catch {
-                            showToast('Failed to delete');
+                            showToast('Failed to delete', true);
                         }
                     }}
                     title={'title' in confirmItem ? confirmItem.title : confirmItem.name}
                 />
             )}
             {state.toast && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: '#e7f4ef', border: '1px solid #0d7a5f', borderRadius: 12, bottom: 36, boxShadow: '0 8px 24px rgba(20,22,28,.16)', color: '#0d7a5f', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', fontSize: 15, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: 'clamp(12px, 2vw, 14px) clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
+                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.toastError ? '#fdecea' : '#e7f4ef', border: `1px solid ${state.toastError ? '#c0392b' : '#0d7a5f'}`, borderRadius: 12, bottom: 36, boxShadow: '0 8px 24px rgba(20,22,28,.16)', color: state.toastError ? '#c0392b' : '#0d7a5f', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', fontSize: 15, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: 'clamp(12px, 2vw, 14px) clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
                     {state.toast}
                 </div>
             )}
