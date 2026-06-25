@@ -1,12 +1,21 @@
 import { getStore } from '@netlify/blobs';
 
+import { deleteEntry, readCollection, writeEntry } from '@lib/content-fs';
 import { getTestimonials } from '@lib/store';
 import { verifyAuth } from '@lib/auth-server';
 
 import type { APIRoute } from 'astro';
 
+const DEV = import.meta.env.DEV;
+
 function slugify(value: string): string {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+async function loadTestimonials(): Promise<Record<string, unknown>[]> {
+    if (DEV) return readCollection('testimonials');
+
+    return getTestimonials();
 }
 
 export const prerender = false;
@@ -28,15 +37,17 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Missing id' }, { status: 400 });
     }
 
-    const store = getStore('testimonials');
-
-    await store.delete(String(id));
+    if (DEV) {
+        deleteEntry('testimonials', id);
+    } else {
+        await getStore('testimonials').delete(String(id));
+    }
 
     return Response.json({ deleted: true });
 };
 
 export const GET: APIRoute = async () => {
-    const testimonials = await getTestimonials();
+    const testimonials = await loadTestimonials();
 
     return Response.json(testimonials, {
         headers: { 'Cache-Control': 'no-store' },
@@ -49,7 +60,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const store = getStore('testimonials');
 
     const name = body.name || '';
     const role = body.role || '';
@@ -71,7 +81,11 @@ export const POST: APIRoute = async ({ request }) => {
         id = slugify(`${name}-${role}`);
     }
 
-    await store.setJSON(id, data);
+    if (DEV) {
+        writeEntry('testimonials', id, data);
+    } else {
+        await getStore('testimonials').setJSON(id, data);
+    }
 
     return Response.json({ id, ...data });
 };

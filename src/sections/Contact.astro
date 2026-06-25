@@ -232,7 +232,7 @@
         emailInput?.addEventListener('input', clearErrors);
         msgInput?.addEventListener('input', clearErrors);
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             clearErrors();
 
@@ -258,8 +258,25 @@
 
             if (!valid) return;
 
-            form.hidden = true;
-            success.hidden = false;
+            try {
+                const response = await fetch('/api/contact', {
+                    body: JSON.stringify({
+                        email: emailInput?.value.trim(),
+                        message: msgInput?.value.trim(),
+                        name: nameInput?.value.trim(),
+                        weixin: form.querySelector<HTMLInputElement>('input[name="weixin"]')?.value.trim(),
+                    }),
+                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                });
+
+                if (!response.ok) throw new Error();
+
+                form.hidden = true;
+                success.hidden = false;
+            } catch {
+                return;
+            }
         });
 
         reset.addEventListener('click', () => {

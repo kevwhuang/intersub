@@ -1,9 +1,18 @@
 import { getStore } from '@netlify/blobs';
 
+import { deleteEntry, readCollection, writeEntry } from '@lib/content-fs';
 import { getSeminars } from '@lib/store';
 import { verifyAuth } from '@lib/auth-server';
 
 import type { APIRoute } from 'astro';
+
+const DEV = import.meta.env.DEV;
+
+async function loadSeminars(): Promise<Record<string, unknown>[]> {
+    if (DEV) return readCollection('seminars');
+
+    return getSeminars();
+}
 
 export const prerender = false;
 
@@ -24,15 +33,19 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Missing id' }, { status: 400 });
     }
 
-    const store = getStore('seminars');
-
-    await store.delete(String(id));
+    if (DEV) {
+        deleteEntry('seminars', id);
+    } else {
+        await getStore('seminars').delete(String(id));
+    }
 
     return Response.json({ deleted: true });
 };
 
 export const GET: APIRoute = async () => {
-    const seminars = await getSeminars();
+    const seminars = await loadSeminars();
+
+    seminars.sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')));
 
     return Response.json(seminars, {
         headers: { 'Cache-Control': 'no-store' },
@@ -45,7 +58,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const store = getStore('seminars');
     const date = body.date || '';
 
     if (!date) {
@@ -54,23 +66,20 @@ export const POST: APIRoute = async ({ request }) => {
 
     const previousId = body.id ? String(body.id) : null;
     const id = date;
+    const seminars = await loadSeminars();
 
     if (previousId && previousId !== id) {
-        const seminars = await getSeminars();
-        const conflict = seminars.find(s => String(s.date) === date && String(s.id) !== previousId);
-
-        if (conflict) {
+        if (seminars.find(s => String(s.date) === date && String(s.id) !== previousId)) {
             return Response.json({ error: 'A seminar already exists on this date' }, { status: 409 });
         }
 
-        await store.delete(previousId);
-    } else if (!previousId) {
-        const seminars = await getSeminars();
-        const conflict = seminars.find(s => String(s.date) === date);
-
-        if (conflict) {
-            return Response.json({ error: 'A seminar already exists on this date' }, { status: 409 });
+        if (DEV) {
+            deleteEntry('seminars', previousId);
+        } else {
+            await getStore('seminars').delete(previousId);
         }
+    } else if (!previousId && seminars.find(s => String(s.date) === date)) {
+        return Response.json({ error: 'A seminar already exists on this date' }, { status: 409 });
     }
 
     const data: Record<string, string> = {
@@ -83,7 +92,11 @@ export const POST: APIRoute = async ({ request }) => {
     if (body.cover) data.cover = body.cover;
     if (body.difficulty) data.difficulty = body.difficulty;
 
-    await store.setJSON(id, data);
+    if (DEV) {
+        writeEntry('seminars', id, data);
+    } else {
+        await getStore('seminars').setJSON(id, data);
+    }
 
     return Response.json({ id, ...data });
 };

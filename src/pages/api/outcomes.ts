@@ -1,9 +1,18 @@
 import { getStore } from '@netlify/blobs';
 
+import { deleteEntry, readCollection, writeEntry } from '@lib/content-fs';
 import { getOutcomes } from '@lib/store';
 import { verifyAuth } from '@lib/auth-server';
 
 import type { APIRoute } from 'astro';
+
+const DEV = import.meta.env.DEV;
+
+async function loadOutcomes(): Promise<Record<string, unknown>[]> {
+    if (DEV) return readCollection('outcomes');
+
+    return getOutcomes();
+}
 
 export const prerender = false;
 
@@ -24,15 +33,17 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Missing id' }, { status: 400 });
     }
 
-    const store = getStore('outcomes');
-
-    await store.delete(String(id));
+    if (DEV) {
+        deleteEntry('outcomes', id);
+    } else {
+        await getStore('outcomes').delete(String(id));
+    }
 
     return Response.json({ deleted: true });
 };
 
 export const GET: APIRoute = async () => {
-    const outcomes = await getOutcomes();
+    const outcomes = await loadOutcomes();
 
     return Response.json(outcomes, {
         headers: { 'Cache-Control': 'no-store' },
@@ -45,12 +56,11 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const store = getStore('outcomes');
 
     let id = body.id ? String(body.id) : null;
 
     if (!id) {
-        const outcomes = await getOutcomes();
+        const outcomes = await loadOutcomes();
         const maxId = outcomes.reduce((max, entry) => {
             const num = parseInt(String(entry.id), 10);
             return Number.isNaN(num) ? max : Math.max(max, num);
@@ -64,7 +74,11 @@ export const POST: APIRoute = async ({ request }) => {
         title: body.title || '',
     };
 
-    await store.setJSON(id, data);
+    if (DEV) {
+        writeEntry('outcomes', id, data);
+    } else {
+        await getStore('outcomes').setJSON(id, data);
+    }
 
     return Response.json({ id, ...data });
 };

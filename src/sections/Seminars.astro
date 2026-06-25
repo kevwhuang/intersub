@@ -55,7 +55,7 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
                         </div>
                     </div>
                 </div>
-                <p class="seminars__count" data-count data-i18n={`${seminars.length} ${seminars.length === 1 ? 'seminar' : 'seminars'}`}>
+                <p class="seminars__count" data-count>
                     {seminars.length} {seminars.length === 1 ? 'seminar' : 'seminars'}
                 </p>
             </div>
@@ -81,7 +81,7 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
                                     : <span class="seminars__card-initials">{initials}</span>}
                             </div>
                             <div class="seminars__card-body">
-                                <h2 class="seminars__card-title">{sem.title}</h2>
+                                <h2 class="seminars__card-title" data-i18n={sem.title}>{sem.title}</h2>
                                 {sem.difficulty && (
                                     <div class="seminars__card-badge">
                                         <span class={`tag tag--${sem.difficulty}`} data-i18n={meta.label}>{meta.label}</span>
@@ -299,6 +299,8 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
 </style>
 
 <script>
+    import { translate } from '@lib/i18n';
+
     function initSeminarFilters() {
         const root = document.querySelector<HTMLElement>('[data-seminars]');
         if (!root) return;
@@ -335,7 +337,8 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
             });
 
             if (countEl) {
-                countEl.textContent = `${visible} ${visible === 1 ? 'seminar' : 'seminars'}`;
+                const unit = translate(visible === 1 ? 'seminar' : 'seminars');
+                countEl.textContent = `${visible} ${unit}`;
             }
             if (gridEl) gridEl.style.display = visible ? '' : 'none';
             if (emptyEl) emptyEl.style.display = visible ? 'none' : '';
@@ -360,6 +363,8 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
             activeLocation = 'all';
             update();
         });
+
+        update();
     }
 
     document.addEventListener('astro:page-load', initSeminarFilters);
