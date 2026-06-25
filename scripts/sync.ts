@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 
 const BASE_URL = process.argv[2] || 'https://intersubstudio.com';
 const COLLECTIONS = ['outcomes', 'seminars', 'testimonials'] as const;

@@ -101,7 +101,7 @@
 }
 
 .dashboard-button--danger:focus-visible {
-    box-shadow: 0 0 0 3px #a4324a4d;
+    box-shadow: 0 0 0 3px var(--color-error-ink-30);
     outline: none;
 }
 
@@ -226,7 +226,6 @@
     outline: none;
 }
 
-
 .dashboard-link {
     text-decoration: none;
 }
@@ -305,7 +304,8 @@
     font-size: 22px;
     font-weight: 600;
     letter-spacing: -0.01em;
-    margin: 34px 0 14px;
+    margin: 0 0 14px;
+    padding-top: 34px;
 }
 
 .prose li {

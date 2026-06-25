@@ -19,6 +19,7 @@ interface TokenResponse {
 
 const AUTH_KEY = 'intersub_auth';
 const EXPIRY_BUFFER = 60_000;
+
 const IDENTITY_URL = typeof window !== 'undefined'
     ? `${window.location.origin}/.netlify/identity`
     : '';

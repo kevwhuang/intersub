@@ -1,6 +1,8 @@
 import { getCollection } from 'astro:content';
 import { getStore } from '@netlify/blobs';
 
+const DEV = import.meta.env.DEV;
+
 function merge(seed: Record<string, unknown>[], overrides: Record<string, unknown>[]): Record<string, unknown>[] {
     const map = new Map<string, Record<string, unknown>>();
 
@@ -23,8 +25,10 @@ export async function getOutcomes(): Promise<Record<string, unknown>[]> {
         ...entry.data,
     }));
 
+    if (DEV) return seed;
+
     try {
-        const store = getStore('outcomes');
+        const store = getStore({ consistency: 'strong', name: 'outcomes' });
         const { blobs } = await store.list();
 
         if (blobs.length > 0) {
@@ -52,8 +56,10 @@ export async function getTestimonials(): Promise<Record<string, unknown>[]> {
         ...entry.data,
     }));
 
+    if (DEV) return seed;
+
     try {
-        const store = getStore('testimonials');
+        const store = getStore({ consistency: 'strong', name: 'testimonials' });
         const { blobs } = await store.list();
 
         if (blobs.length > 0) {
@@ -83,8 +89,10 @@ export async function getSeminars(): Promise<Record<string, unknown>[]> {
             ...entry.data,
         }));
 
+    if (DEV) return seed;
+
     try {
-        const store = getStore('seminars');
+        const store = getStore({ consistency: 'strong', name: 'seminars' });
         const { blobs } = await store.list();
 
         if (blobs.length > 0) {

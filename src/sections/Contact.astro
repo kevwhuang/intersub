@@ -160,7 +160,7 @@
 
     .contact__submit {
         align-self: center;
-        margin-top: 6px;
+        padding-top: 6px;
     }
 
     .contact__success {
@@ -221,12 +221,12 @@
         const msgInput = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
         const errors = form.querySelectorAll<HTMLElement>('.contact__error');
 
-        function clearErrors() {
+        const clearErrors = () => {
             errors.forEach(e => e.hidden = true);
-            form!.querySelectorAll('.input--error, .textarea--error').forEach((el) => {
+            form.querySelectorAll('.input--error, .textarea--error').forEach((el) => {
                 el.classList.remove('input--error', 'textarea--error');
             });
-        }
+        };
 
         nameInput?.addEventListener('input', clearErrors);
         emailInput?.addEventListener('input', clearErrors);

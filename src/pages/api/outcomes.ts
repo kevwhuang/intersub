@@ -1,8 +1,8 @@
 import { getStore } from '@netlify/blobs';
 
-import { deleteEntry, readCollection, writeEntry } from '@lib/content-fs';
+import { deleteEntry, readCollection, writeEntry } from '@lib/local';
 import { getOutcomes } from '@lib/store';
-import { verifyAuth } from '@lib/auth-server';
+import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
 
@@ -36,7 +36,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     if (DEV) {
         deleteEntry('outcomes', id);
     } else {
-        await getStore('outcomes').delete(String(id));
+        await getStore({ consistency: 'strong', name: 'outcomes' }).delete(String(id));
     }
 
     return Response.json({ deleted: true });
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (DEV) {
         writeEntry('outcomes', id, data);
     } else {
-        await getStore('outcomes').setJSON(id, data);
+        await getStore({ consistency: 'strong', name: 'outcomes' }).setJSON(id, data);
     }
 
     return Response.json({ id, ...data });

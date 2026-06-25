@@ -21,7 +21,7 @@ import hero from '@images/hero.jpg';
     <div class="hero__overlay absolute" aria-hidden="true" />
     <div class="hero__content shell relative">
         <h1 class="hero__title" data-scroll><span data-i18n="Your">Your</span> <span class="hero__accent" data-i18n="authority">authority</span><span data-i18n=",">,</span> <span data-i18n="in">in</span> <span class="hero__accent" data-i18n="English">English</span><span data-i18n=".">.</span></h1>
-        <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused seminars for Chinese professionals who lead meetings, close deals, and write under pressure. In English.</p>
+        <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused seminars for Chinese professionals who lead meetings, close deals, and write under pressure.</p>
     </div>
 </section>
 
@@ -49,25 +49,25 @@ import hero from '@images/hero.jpg';
         padding-top: clamp(116px, 16vh, 176px);
     }
 
-    .hero__overlay {
-        background:
-            linear-gradient(to right, #090b11b8 0%, #090b1161 70%, #090b1147 100%),
-            #090b1138;
-        inset: 0;
-        z-index: -1;
-    }
-
     .hero__accent {
         color: var(--color-accent-bright);
     }
 
+    .hero__overlay {
+        background:
+            linear-gradient(to right, var(--color-dark-overlay-70) 0%, var(--color-dark-overlay-40) 70%, var(--color-dark-overlay-30) 100%),
+            var(--color-dark-overlay-20);
+        inset: 0;
+        z-index: -1;
+    }
+
     .hero__subtitle {
-        color: #ffffffe6;
+        color: var(--color-surface-90);
         font-size: clamp(17px, 1.5vw, 21px);
         line-height: 1.6;
         margin: 0;
         max-width: 640px;
-        text-shadow: 0 1px 24px #00000080;
+        text-shadow: 0 1px 24px var(--color-dark-50);
         text-wrap: pretty;
     }
 

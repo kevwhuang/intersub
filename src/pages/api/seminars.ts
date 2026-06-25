@@ -1,8 +1,8 @@
 import { getStore } from '@netlify/blobs';
 
-import { deleteEntry, readCollection, writeEntry } from '@lib/content-fs';
+import { deleteEntry, readCollection, writeEntry } from '@lib/local';
 import { getSeminars } from '@lib/store';
-import { verifyAuth } from '@lib/auth-server';
+import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
 
@@ -36,7 +36,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     if (DEV) {
         deleteEntry('seminars', id);
     } else {
-        await getStore('seminars').delete(String(id));
+        await getStore({ consistency: 'strong', name: 'seminars' }).delete(String(id));
     }
 
     return Response.json({ deleted: true });
@@ -64,6 +64,10 @@ export const POST: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Date is required' }, { status: 400 });
     }
 
+    if (body.cover && !/^https?:\/\/.+/.test(body.cover)) {
+        return Response.json({ error: 'Invalid cover URL' }, { status: 400 });
+    }
+
     const previousId = body.id ? String(body.id) : null;
     const id = date;
     const seminars = await loadSeminars();
@@ -76,7 +80,7 @@ export const POST: APIRoute = async ({ request }) => {
         if (DEV) {
             deleteEntry('seminars', previousId);
         } else {
-            await getStore('seminars').delete(previousId);
+            await getStore({ consistency: 'strong', name: 'seminars' }).delete(previousId);
         }
     } else if (!previousId && seminars.find(s => String(s.date) === date)) {
         return Response.json({ error: 'A seminar already exists on this date' }, { status: 409 });
@@ -95,7 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (DEV) {
         writeEntry('seminars', id, data);
     } else {
-        await getStore('seminars').setJSON(id, data);
+        await getStore({ consistency: 'strong', name: 'seminars' }).setJSON(id, data);
     }
 
     return Response.json({ id, ...data });

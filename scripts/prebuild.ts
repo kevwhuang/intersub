@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs';
-import { readdir, readFile } from 'node:fs/promises';
 import { join, parse } from 'node:path';
+import { readdir, readFile } from 'node:fs/promises';
 
 const CONTENT_DIR = join(import.meta.dir, '..', 'src', 'content');
 const SITE_ID = process.env.SITE_ID;

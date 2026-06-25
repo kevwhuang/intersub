@@ -1,13 +1,6 @@
-const ACCENT = '#2a52e0';
+import { ACCENT, STYLES } from '@lib/constants';
 
-const LABEL_BASE: React.CSSProperties = {
-    display: 'block',
-    fontSize: 13.5,
-    fontWeight: 600,
-    marginBottom: 7,
-};
-
-export function FormField({ children, errorMessage, label, labelSuffix, required }: {
+export default function FormField({ children, errorMessage, label, labelSuffix, required }: {
     children: React.ReactNode;
     errorMessage?: string;
     label: string;
@@ -16,10 +9,10 @@ export function FormField({ children, errorMessage, label, labelSuffix, required
 }) {
     return (
         <label style={{ display: 'block' }}>
-            <span style={LABEL_BASE}>
+            <span style={STYLES.labelBase}>
                 {label}
                 {labelSuffix && (
-                    <span style={{ color: '#6e7482', fontWeight: 500 }}>
+                    <span style={{ color: STYLES.colorGhost, fontWeight: 500 }}>
                         {' '}
                         {labelSuffix}
                     </span>
@@ -27,7 +20,7 @@ export function FormField({ children, errorMessage, label, labelSuffix, required
                 {required && <span style={{ color: ACCENT }}> *</span>}
             </span>
             {children}
-            {errorMessage && <p style={{ color: '#c0392b', fontSize: 12.5, margin: '6px 0 0' }}>{errorMessage}</p>}
+            {errorMessage && <p style={{ color: STYLES.colorError, fontSize: 12.5, margin: '6px 0 0' }}>{errorMessage}</p>}
         </label>
     );
 }
