@@ -1,9 +1,13 @@
 import { getStore } from '@netlify/blobs';
 
-import { getOutcomes } from '@lib/store';
+import { getTestimonials } from '@lib/store';
 import { verifyAuth } from '@lib/auth-server';
 
 import type { APIRoute } from 'astro';
+
+function slugify(value: string): string {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
 
 export const prerender = false;
 
@@ -24,7 +28,7 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Missing id' }, { status: 400 });
     }
 
-    const store = getStore('outcomes');
+    const store = getStore('testimonials');
 
     await store.delete(String(id));
 
@@ -32,9 +36,9 @@ export const DELETE: APIRoute = async ({ request }) => {
 };
 
 export const GET: APIRoute = async () => {
-    const outcomes = await getOutcomes();
+    const testimonials = await getTestimonials();
 
-    return Response.json(outcomes, {
+    return Response.json(testimonials, {
         headers: { 'Cache-Control': 'no-store' },
     });
 };
@@ -45,24 +49,27 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const store = getStore('outcomes');
+    const store = getStore('testimonials');
+
+    const name = body.name || '';
+    const role = body.role || '';
+
+    const data: Record<string, string> = {
+        industry: body.industry || '',
+        name,
+        quote: body.quote || '',
+        role,
+    };
 
     let id = body.id ? String(body.id) : null;
 
     if (!id) {
-        const outcomes = await getOutcomes();
-        const maxId = outcomes.reduce((max, entry) => {
-            const num = parseInt(String(entry.id), 10);
-            return Number.isNaN(num) ? max : Math.max(max, num);
-        }, 0);
-        id = String(maxId + 1);
-    }
+        if (!name || !role) {
+            return Response.json({ error: 'Name and role are required' }, { status: 400 });
+        }
 
-    const data: Record<string, string | string[]> = {
-        points: Array.isArray(body.points) ? body.points : [],
-        summary: body.summary || '',
-        title: body.title || '',
-    };
+        id = slugify(`${name}-${role}`);
+    }
 
     await store.setJSON(id, data);
 

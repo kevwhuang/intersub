@@ -55,9 +55,7 @@ const { description, title } = Astro.props;
         <ClientRouter />
     </head>
     <body class="flex flex-col min-h-screen font-sans bg-white text-ink antialiased">
-        <main class="flex flex-1 flex-col">
-            <slot />
-        </main>
+        <slot />
     </body>
 </html>
 

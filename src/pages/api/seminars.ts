@@ -1,12 +1,24 @@
-import type { APIRoute } from 'astro';
-
 import { getStore } from '@netlify/blobs';
+
 import { getSeminars } from '@lib/store';
+import { verifyAuth } from '@lib/auth-server';
+
+import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ request }) => {
-    const { id } = await request.json();
+    if (!await verifyAuth(request)) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let id: string;
+
+    try {
+        ({ id } = await request.json());
+    } catch {
+        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
     if (!id) {
         return Response.json({ error: 'Missing id' }, { status: 400 });
@@ -22,27 +34,48 @@ export const DELETE: APIRoute = async ({ request }) => {
 export const GET: APIRoute = async () => {
     const seminars = await getSeminars();
 
-    return Response.json(seminars);
+    return Response.json(seminars, {
+        headers: { 'Cache-Control': 'no-store' },
+    });
 };
 
 export const POST: APIRoute = async ({ request }) => {
+    if (!await verifyAuth(request)) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const store = getStore('seminars');
+    const date = body.date || '';
 
-    let id = body.id ? String(body.id) : null;
+    if (!date) {
+        return Response.json({ error: 'Date is required' }, { status: 400 });
+    }
 
-    if (!id) {
+    const previousId = body.id ? String(body.id) : null;
+    const id = date;
+
+    if (previousId && previousId !== id) {
         const seminars = await getSeminars();
-        const maxId = seminars.reduce((max, entry) => {
-            const num = parseInt(String(entry.id), 10);
-            return isNaN(num) ? max : Math.max(max, num);
-        }, 0);
-        id = String(maxId + 1);
+        const conflict = seminars.find(s => String(s.date) === date && String(s.id) !== previousId);
+
+        if (conflict) {
+            return Response.json({ error: 'A seminar already exists on this date' }, { status: 409 });
+        }
+
+        await store.delete(previousId);
+    } else if (!previousId) {
+        const seminars = await getSeminars();
+        const conflict = seminars.find(s => String(s.date) === date);
+
+        if (conflict) {
+            return Response.json({ error: 'A seminar already exists on this date' }, { status: 409 });
+        }
     }
 
     const data: Record<string, string> = {
         content: body.content || '',
-        date: body.date || '',
+        date,
         location: body.location || '',
         title: body.title || '',
     };

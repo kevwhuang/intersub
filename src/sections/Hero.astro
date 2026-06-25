@@ -1,24 +1,26 @@
 ---
-import hero from '@images/hero.jpg';
 import { Image } from 'astro:assets';
+
+import hero from '@images/hero.jpg';
 ---
 
 <section
-    class="hero relative isolate grid overflow-hidden"
+    class="hero grid isolate relative overflow-hidden"
     aria-label="InterSub, a business English communication studio. A laptop on a sunlit office windowsill shows a presentation titled The Power of Intersubjectivity in Business, framed by the Shanghai skyline beyond the glass."
 >
     <div class="hero__background absolute" aria-hidden="true">
         <Image
+            class="hero__background-image"
             alt=""
+            loading="eager"
+            sizes="100vw"
             src={hero}
             widths={[768, 1280, 1920]}
-            sizes="100vw"
-            loading="eager"
         />
     </div>
     <div class="hero__overlay absolute" aria-hidden="true" />
     <div class="hero__content shell relative">
-        <h1 class="hero__title" data-i18n="Your authority, in English." data-scroll>Your authority, in English.</h1>
+        <h1 class="hero__title" data-scroll><span data-i18n="Your">Your</span> <span class="hero__accent" data-i18n="authority">authority</span><span data-i18n=",">,</span> <span data-i18n="in">in</span> <span class="hero__accent" data-i18n="English">English</span><span data-i18n=".">.</span></h1>
         <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused seminars for Chinese professionals who lead meetings, close deals, and write under pressure. In English.</p>
     </div>
 </section>
@@ -35,7 +37,7 @@ import { Image } from 'astro:assets';
         z-index: -2;
     }
 
-    .hero__background img {
+    .hero__background-image {
         height: 100%;
         object-fit: cover;
         object-position: 65% 42%;
@@ -49,19 +51,23 @@ import { Image } from 'astro:assets';
 
     .hero__overlay {
         background:
-            linear-gradient(to right, rgba(9, 11, 17, 0.72) 0%, rgba(9, 11, 17, 0.38) 70%, rgba(9, 11, 17, 0.28) 100%),
-            rgba(9, 11, 17, 0.22);
+            linear-gradient(to right, #090b11b8 0%, #090b1161 70%, #090b1147 100%),
+            #090b1138;
         inset: 0;
         z-index: -1;
     }
 
+    .hero__accent {
+        color: var(--color-accent-bright);
+    }
+
     .hero__subtitle {
-        color: rgba(255, 255, 255, 0.9);
+        color: #ffffffe6;
         font-size: clamp(17px, 1.5vw, 21px);
         line-height: 1.6;
         margin: 0;
         max-width: 640px;
-        text-shadow: 0 1px 24px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 24px #00000080;
         text-wrap: pretty;
     }
 
@@ -73,7 +79,7 @@ import { Image } from 'astro:assets';
         line-height: 1.03;
         margin: 0 0 28px;
         max-width: 560px;
-        text-shadow: 0 2px 34px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 2px 34px #00000080;
         text-wrap: balance;
     }
 </style>

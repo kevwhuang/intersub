@@ -15,7 +15,7 @@ import { ROUTES, SOCIALS } from '@lib/utils';
             <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and seminars for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and seminars for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
         </div>
         <div class="site-footer__column">
-            <p class="site-footer__heading" data-i18n="Pages">Pages</p>
+            <p class="site-footer__heading" data-i18n="Directory">Directory</p>
             <div class="flex flex-col gap-3">
                 {ROUTES.map(route => (
                     <a
@@ -25,24 +25,17 @@ import { ROUTES, SOCIALS } from '@lib/utils';
                         <span data-i18n={route.label}>{route.label}</span>
                     </a>
                 ))}
+                {import.meta.env.DEV && (
+                    <a
+                        class="site-footer__link"
+                        href="/admin"
+                    >
+                        <span data-i18n="Admin">Admin</span>
+                    </a>
+                )}
             </div>
         </div>
-        <div class="site-footer__column">
-            <p class="site-footer__heading" data-i18n="Follow">Follow</p>
-            <div class="site-footer__socials flex flex-wrap">
-                {SOCIALS.map(soc => (
-                    <a
-                        class="site-footer__social flex items-center justify-center"
-                        aria-label={soc.label}
-                        href={soc.href}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                        title={soc.label}
-                    >
-                        {soc.mark}
-                    </a>
-                ))}
-            </div>
+        <div class="site-footer__column site-footer__connect">
             <div class="site-footer__qr-code">
                 <p class="site-footer__heading" data-i18n="Weixin">Weixin</p>
                 <Image
@@ -53,9 +46,26 @@ import { ROUTES, SOCIALS } from '@lib/utils';
                     width={80}
                 />
             </div>
+            <div>
+                <p class="site-footer__heading" data-i18n="Follow">Follow</p>
+                <div class="site-footer__socials flex flex-wrap">
+                    {SOCIALS.map(soc => (
+                        <a
+                            class="site-footer__social flex items-center justify-center"
+                            aria-label={soc.label}
+                            href={soc.href}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                            title={soc.label}
+                        >
+                            {soc.mark}
+                        </a>
+                    ))}
+                </div>
+            </div>
         </div>
     </div>
-    <div class="shell site-footer__bottom flex flex-col items-start gap-2 select-none">
+    <div class="shell site-footer__bottom select-none">
         <span data-i18n-html="footer-copyright">&copy; 2026 InterSub. All rights reserved.</span>
         <span data-i18n="Founded by Lydia Zhu">Founded by Lydia Zhu</span>
     </div>
@@ -68,10 +78,13 @@ import { ROUTES, SOCIALS } from '@lib/utils';
     }
 
     .site-footer__bottom {
+        align-items: center;
         border-top: 1px solid var(--color-dark-edge);
         color: var(--color-dark-muted);
+        display: flex;
         font-size: 13.5px;
         gap: 8px 24px;
+        justify-content: space-between;
         padding-block: 28px;
     }
 
@@ -96,6 +109,12 @@ import { ROUTES, SOCIALS } from '@lib/utils';
         padding-top: clamp(48px, 6vw, 72px);
     }
 
+    .site-footer__connect {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
     .site-footer__link {
         color: var(--color-dark-text);
         font-size: 15px;
@@ -117,7 +136,7 @@ import { ROUTES, SOCIALS } from '@lib/utils';
     }
 
     .site-footer__qr-code {
-        margin-top: 20px;
+        order: 1;
     }
 
     .site-footer__qr-code-image {
@@ -173,8 +192,17 @@ import { ROUTES, SOCIALS } from '@lib/utils';
     }
 
     @media (max-width: 768px) {
+        .site-footer__bottom {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
         .site-footer__inner {
             grid-template-columns: 1fr;
+        }
+
+        .site-footer__qr-code {
+            order: -1;
         }
     }
 </style>

@@ -44,6 +44,35 @@ export async function getOutcomes(): Promise<Record<string, unknown>[]> {
     return seed;
 }
 
+export async function getTestimonials(): Promise<Record<string, unknown>[]> {
+    const entries = await getCollection('testimonials');
+
+    const seed = entries.map(entry => ({
+        id: entry.id,
+        ...entry.data,
+    }));
+
+    try {
+        const store = getStore('testimonials');
+        const { blobs } = await store.list();
+
+        if (blobs.length > 0) {
+            const overrides = await Promise.all(
+                blobs.map(async (blob) => {
+                    const data = await store.get(blob.key, { type: 'json' });
+                    return { id: blob.key, ...data };
+                }),
+            );
+
+            return merge(seed, overrides);
+        }
+    } catch {
+        return seed;
+    }
+
+    return seed;
+}
+
 export async function getSeminars(): Promise<Record<string, unknown>[]> {
     const entries = await getCollection('seminars');
 
@@ -68,7 +97,7 @@ export async function getSeminars(): Promise<Record<string, unknown>[]> {
 
             const merged = merge(seed, overrides);
 
-            return merged.sort((a, b) => ((b as Record<string, string>).date || '').localeCompare((a as Record<string, string>).date || ''));
+            return merged.sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')));
         }
     } catch {
         return seed;
