@@ -1,25 +1,23 @@
 import { join } from 'node:path';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+
+import { slugify } from '../src/lib/utils';
 
 const BASE_URL = process.argv[2] || 'https://intersubstudio.com';
 const COLLECTIONS = ['outcomes', 'seminars', 'testimonials'] as const;
-const CONTENT_DIR = join(import.meta.dirname, '..', 'src', 'content');
-
-function slugify(value: string): string {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
+const CONTENT_DIR = join(import.meta.dir, '..', 'src', 'content');
 
 async function fetchCollection(endpoint: string): Promise<Record<string, unknown>[]> {
     const response = await fetch(`${BASE_URL}/api/${endpoint}`);
 
     if (!response.ok) {
-        throw new Error(`Failed to fetch ${endpoint}: ${response.status} ${response.statusText}`);
+        throw new Error(`${endpoint}: ${response.status} ${response.statusText}`);
     }
 
     const data: Record<string, unknown>[] = await response.json();
 
     if (!data.length) {
-        throw new Error(`Failed to fetch ${endpoint}: empty response, aborting to prevent data loss`);
+        throw new Error(`${endpoint}: empty response`);
     }
 
     return data;
@@ -28,10 +26,7 @@ async function fetchCollection(endpoint: string): Promise<Record<string, unknown
 function writeCollection(directory: string, items: Record<string, unknown>[]) {
     const outputDirectory = join(CONTENT_DIR, directory);
 
-    if (existsSync(outputDirectory)) {
-        rmSync(outputDirectory, { recursive: true });
-    }
-
+    rmSync(outputDirectory, { force: true, recursive: true });
     mkdirSync(outputDirectory, { recursive: true });
 
     for (let index = 0; index < items.length; index++) {

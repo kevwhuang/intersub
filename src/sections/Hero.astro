@@ -1,11 +1,11 @@
 ---
 import { Image } from 'astro:assets';
 
-import hero from '@images/hero.jpg';
+import hero from '@images/hero.webp';
 ---
 
 <section
-    class="hero grid isolate relative overflow-hidden"
+    class="hero grid isolate overflow-hidden relative"
     aria-label="InterSub, a business English communication studio. A laptop on a sunlit office windowsill shows a presentation titled The Power of Intersubjectivity in Business, framed by the Shanghai skyline beyond the glass."
 >
     <div class="hero__background absolute" aria-hidden="true">
@@ -21,15 +21,19 @@ import hero from '@images/hero.jpg';
     <div class="hero__overlay absolute" aria-hidden="true" />
     <div class="hero__content shell relative">
         <h1 class="hero__title" data-scroll><span data-i18n="Your">Your</span> <span class="hero__accent" data-i18n="authority">authority</span><span data-i18n=",">,</span> <span data-i18n="in">in</span> <span class="hero__accent" data-i18n="English">English</span><span data-i18n=".">.</span></h1>
-        <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused seminars for Chinese professionals who lead meetings, close deals, and write under pressure.</p>
+        <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused events for Chinese professionals who lead meetings, close deals, and write under pressure.</p>
     </div>
 </section>
 
 <style>
     .hero {
         align-items: center;
-        background: var(--color-dark-deep);
+        background: var(--color-navy);
         min-height: 100vh;
+    }
+
+    .hero__accent {
+        color: var(--color-cobalt-bright);
     }
 
     .hero__background {
@@ -49,37 +53,33 @@ import hero from '@images/hero.jpg';
         padding-top: clamp(116px, 16vh, 176px);
     }
 
-    .hero__accent {
-        color: var(--color-accent-bright);
-    }
-
     .hero__overlay {
         background:
-            linear-gradient(to right, var(--color-dark-overlay-70) 0%, var(--color-dark-overlay-40) 70%, var(--color-dark-overlay-30) 100%),
-            var(--color-dark-overlay-20);
+            linear-gradient(to right, var(--color-slate-overlay-70) 0%, var(--color-slate-overlay-40) 70%, var(--color-slate-overlay-30) 100%),
+            var(--color-slate-overlay-20);
         inset: 0;
         z-index: -1;
     }
 
     .hero__subtitle {
-        color: var(--color-surface-90);
-        font-size: clamp(17px, 1.5vw, 21px);
+        color: var(--color-white-90);
+        font-size: clamp(16px, 1.5vw, 20px);
         line-height: 1.6;
         margin: 0;
         max-width: 640px;
-        text-shadow: 0 1px 24px var(--color-dark-50);
+        text-shadow: 0 1px 24px var(--color-black-50);
         text-wrap: pretty;
     }
 
     .hero__title {
-        color: var(--color-surface);
+        color: var(--color-white);
         font-size: clamp(36px, 6vw, 72px);
         font-weight: 700;
         letter-spacing: -0.03em;
         line-height: 1.03;
         margin: 0 0 28px;
         max-width: 560px;
-        text-shadow: 0 2px 34px #00000080;
+        text-shadow: 0 2px 34px var(--color-black-50);
         text-wrap: balance;
     }
 </style>

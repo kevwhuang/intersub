@@ -6,9 +6,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     try {
         const response = await next();
 
-        if (response.status >= 500) {
-            return context.rewrite('/500');
-        }
+        if (response.status >= 500) return context.rewrite('/500');
 
         return response;
     } catch {

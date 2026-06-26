@@ -11,23 +11,23 @@ import { SOLUTIONS } from '@lib/constants';
             <h2 id="solutions-title" class="solutions__title" data-i18n="Solutions">Solutions</h2>
             <p class="solutions__intro" data-i18n-html="solutions-intro">Three formats, each built around your real situations: the meetings you run, the clients you email, the rooms you need to win.</p>
         </div>
-        <div class="solutions__list">
+        <div class="solutions__list flex flex-col gap-[22px]" data-scroll data-scroll-stagger="0.12">
             {SOLUTIONS.map(s => (
-                <article class="solutions__card" data-scroll>
-                    <div class="solutions__card-main">
+                <article class="solutions__card">
+                    <div class="solutions__card-main flex flex-col">
                         <div>
                             <h3 class="solutions__card-title" data-i18n={s.title}>{s.title}</h3>
                             <p class="solutions__card-description" data-i18n={s.desc}>{s.desc}</p>
                         </div>
                     </div>
-                    <ul class="solutions__details">
+                    <dl class="solutions__details">
                         {s.details.map(d => (
-                            <li class="solutions__detail">
-                                <span class="solutions__detail-key" data-i18n={d.k}>{d.k}</span>
-                                <span class="solutions__detail-value" data-i18n={d.v}>{d.v}</span>
-                            </li>
+                            <div class="solutions__detail">
+                                <dt class="solutions__detail-key" data-i18n={d.label}>{d.label}</dt>
+                                <dd class="solutions__detail-value" data-i18n={d.value}>{d.value}</dd>
+                            </div>
                         ))}
-                    </ul>
+                    </dl>
                 </article>
             ))}
         </div>
@@ -36,21 +36,21 @@ import { SOLUTIONS } from '@lib/constants';
 
 <style>
     .solutions {
-        background: var(--color-surface-raised);
-        border-bottom: 1px solid var(--color-border);
+        background: var(--color-snow);
+        border-bottom: 1px solid var(--color-silver);
         padding: clamp(64px, 9vw, 120px) 0;
     }
 
     .solutions__card {
         align-items: start;
-        background: var(--color-surface);
-        border: 1px solid var(--color-border-strong);
+        background: var(--color-white);
+        border: 1px solid var(--color-silver-strong);
         border-radius: 18px;
         display: grid;
         gap: clamp(24px, 4vw, 56px);
         grid-template-columns: 1.1fr 1fr;
         padding: clamp(28px, 3.5vw, 44px);
-        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
+        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
     .solutions__card:active {
@@ -59,31 +59,26 @@ import { SOLUTIONS } from '@lib/constants';
     }
 
     .solutions__card:focus-visible {
-        border-color: var(--color-accent);
-        box-shadow: 0 0 0 3px var(--color-accent-20);
+        border-color: var(--color-cobalt);
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
     .solutions__card:hover {
-        border-color: var(--color-border-hover);
-        box-shadow: 0 10px 30px var(--color-dark-05);
+        border-color: var(--color-silver-hover);
+        box-shadow: 0 10px 30px var(--color-slate-05);
         transform: translateY(-2px);
     }
 
     .solutions__card-description {
-        color: var(--color-ink-muted);
+        color: var(--color-slate-muted);
         font-size: 16px;
         line-height: 1.6;
         margin: 0;
     }
 
-    .solutions__card-main {
-        display: flex;
-        flex-direction: column;
-    }
-
     .solutions__card-title {
-        font-size: clamp(21px, 2.2vw, 27px);
+        font-size: clamp(20px, 2.2vw, 24px);
         font-weight: 600;
         letter-spacing: -0.01em;
         line-height: 1.2;
@@ -91,34 +86,34 @@ import { SOLUTIONS } from '@lib/constants';
     }
 
     .solutions__detail {
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         display: flex;
-        font-size: 14.5px;
+        font-size: 16px;
         gap: 16px;
         justify-content: space-between;
-        padding-bottom: 13px;
+        padding-bottom: 12px;
     }
 
     .solutions__detail-key {
-        color: var(--color-ink-ghost);
+        color: var(--color-slate-ghost);
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 10px;
         letter-spacing: 0.04em;
         padding-top: 2px;
         text-transform: uppercase;
     }
 
     .solutions__detail-value {
-        color: var(--color-ink);
+        color: var(--color-slate);
         font-weight: 600;
+        margin: 0;
         text-align: right;
     }
 
     .solutions__details {
         display: flex;
         flex-direction: column;
-        gap: 13px;
-        list-style: none;
+        gap: 12px;
         margin: 0;
         padding: 0;
     }
@@ -129,20 +124,14 @@ import { SOLUTIONS } from '@lib/constants';
     }
 
     .solutions__intro {
-        color: var(--color-ink-muted);
-        font-size: clamp(16px, 1.3vw, 18px);
+        color: var(--color-slate-muted);
+        font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
         margin: 0;
     }
 
-    .solutions__list {
-        display: flex;
-        flex-direction: column;
-        gap: 22px;
-    }
-
     .solutions__title {
-        font-size: clamp(28px, 4vw, 46px);
+        font-size: clamp(28px, 4vw, 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
         line-height: 1.08;

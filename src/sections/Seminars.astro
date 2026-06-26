@@ -1,26 +1,53 @@
 ---
-import { formatDate, getDifficultyMeta, getInitials } from '@lib/utils';
-import { getSeminars } from '@lib/store';
+import { formatDate, getLevelMeta, getInitials } from '@lib/utils';
+import { getEvents } from '@lib/store';
 
-const seminars = await getSeminars();
-const locations = [...new Set(seminars.map(seminar => String(seminar.location)))].sort();
-const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
+const events = await getEvents();
+
+const locations = [...new Set(events.map(entry => String(entry.location)))].sort();
+const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as const;
 ---
 
 <div class="seminars" data-seminars>
     <section class="seminars__hero" aria-labelledby="seminars-title">
         <div class="shell">
-            <h1 id="seminars-title" class="seminars__title" data-i18n="Seminars">Seminars</h1>
-            <p class="seminars__subtitle" data-i18n-html="seminars-subtitle">Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
+            <h1 id="seminars-title" class="seminars__title" data-i18n="Events" data-scroll>Events</h1>
+            <p class="seminars__subtitle" data-i18n-html="seminars-subtitle" data-scroll>Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
         </div>
     </section>
 
-    <section class="section" aria-label="Seminar catalog">
+    <section class="section" aria-label="Event catalog">
         <div class="shell">
             <div class="seminars__toolbar">
-                <div class="seminars__filters">
+                <div class="seminars__filters flex flex-col gap-5">
                     <div>
-                        <p class="seminars__filter-label" data-i18n="Location">Location</p>
+                        <p class="seminars__filter-label" data-i18n="When">When</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button
+                                class="chip chip--active"
+                                data-filter-timing="all"
+                                type="button"
+                            >
+                                <span data-i18n="All">All</span>
+                            </button>
+                            <button
+                                class="chip"
+                                data-filter-timing="upcoming"
+                                type="button"
+                            >
+                                <span data-i18n="Upcoming">Upcoming</span>
+                            </button>
+                            <button
+                                class="chip"
+                                data-filter-timing="past"
+                                type="button"
+                            >
+                                <span data-i18n="Past">Past</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="seminars__filter-label" data-i18n="Where">Where</p>
                         <div class="flex flex-wrap gap-2">
                             <button
                                 class="chip chip--active"
@@ -41,36 +68,37 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
                         </div>
                     </div>
                     <div>
-                        <p class="seminars__filter-label" data-i18n="Level">Level</p>
+                        <p class="seminars__filter-label" data-i18n="Who">Who</p>
                         <div class="flex flex-wrap gap-2">
-                            {DIFFICULTIES.map(d => (
+                            {LEVELS.map(d => (
                                 <button
                                     class:list={['chip', { 'chip--active': d === 'all' }]}
-                                    data-filter-difficulty={d}
+                                    data-filter-level={d}
                                     type="button"
                                 >
-                                    <span data-i18n={d === 'all' ? 'All levels' : d}>{d === 'all' ? 'All levels' : d}</span>
+                                    <span data-i18n={d === 'all' ? 'Everyone' : d}>{d === 'all' ? 'Everyone' : d}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
                 </div>
                 <p class="seminars__count" data-count>
-                    {seminars.length} {seminars.length === 1 ? 'seminar' : 'seminars'}
+                    {events.length} {events.length === 1 ? 'event' : 'events'}
                 </p>
             </div>
 
-            <div class="seminars__grid" data-grid>
-                {seminars.map((sem) => {
-                    const meta = getDifficultyMeta(sem.difficulty);
+            <div class="seminars__grid" data-grid data-scroll data-scroll-stagger="0.08">
+                {events.map((sem) => {
+                    const meta = getLevelMeta(sem.level);
                     const initials = getInitials(sem.title);
                     return (
                         <a
                             class="seminars__card"
                             data-card
-                            data-card-difficulty={sem.difficulty}
+                            data-card-date={sem.date}
+                            data-card-level={sem.level}
                             data-card-location={sem.location}
-                            href={`/seminars/${sem.date}`}
+                            href={`/events/${sem.date}`}
                         >
                             <div
                                 class="seminars__card-cover"
@@ -82,21 +110,23 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
                             </div>
                             <div class="seminars__card-body">
                                 <h2 class="seminars__card-title" data-i18n={sem.title}>{sem.title}</h2>
-                                {sem.difficulty && (
-                                    <div class="seminars__card-badge">
-                                        <span class={`tag tag--${sem.difficulty}`} data-i18n={meta.label}>{meta.label}</span>
+                                {sem.level && (
+                                    <div class="seminars__card-badge mb-[14px]">
+                                        <span class={`tag tag--${String(sem.level).toLowerCase()}`} data-i18n={meta.label}>{meta.label}</span>
                                     </div>
                                 )}
-                                <div class="seminars__card-details">
+                                <dl class="seminars__card-details">
                                     <div class="seminars__card-row">
-                                        <span class="seminars__card-key" data-i18n="Date">Date</span>
-                                        <span class="seminars__card-value" data-i18n-date={sem.date}>{formatDate(sem.date)}</span>
+                                        <dt class="seminars__card-key" data-i18n="Date">Date</dt>
+                                        <dd class="seminars__card-value">
+                                            <time data-i18n-date={sem.date} datetime={sem.date}>{formatDate(sem.date)}</time>
+                                        </dd>
                                     </div>
                                     <div class="seminars__card-row">
-                                        <span class="seminars__card-key" data-i18n="Location">Location</span>
-                                        <span class="seminars__card-value" data-i18n={sem.location}>{sem.location}</span>
+                                        <dt class="seminars__card-key" data-i18n="Location">Location</dt>
+                                        <dd class="seminars__card-value" data-i18n={sem.location}>{sem.location}</dd>
                                     </div>
-                                </div>
+                                </dl>
                             </div>
                         </a>
                     );
@@ -114,14 +144,14 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
 
 <style>
     .seminars__card {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border-strong);
+        background: var(--color-white);
+        border: 1px solid var(--color-silver-strong);
         border-radius: 16px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
         text-decoration: none;
-        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
+        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
     .seminars__card:active {
@@ -130,19 +160,15 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
     }
 
     .seminars__card:focus-visible {
-        border-color: var(--color-accent);
-        box-shadow: 0 0 0 3px var(--color-accent-20);
+        border-color: var(--color-cobalt);
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
     .seminars__card:hover {
-        border-color: var(--color-border-hover);
-        box-shadow: 0 12px 32px var(--color-dark-15);
+        border-color: var(--color-silver-hover);
+        box-shadow: 0 12px 32px var(--color-slate-15);
         transform: translateY(-3px);
-    }
-
-    .seminars__card-badge {
-        margin-bottom: 14px;
     }
 
     .seminars__card-body {
@@ -154,7 +180,7 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
 
     .seminars__card-cover {
         align-items: center;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         display: flex;
         height: 150px;
         justify-content: center;
@@ -162,10 +188,11 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
     }
 
     .seminars__card-details {
-        border-top: 1px solid var(--color-border);
+        border-top: 1px solid var(--color-silver);
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 8px;
+        margin: 0;
         padding-top: 14px;
     }
 
@@ -177,29 +204,28 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
 
     .seminars__card-initials {
         font-family: var(--font-heading);
-        font-size: 46px;
+        font-size: 48px;
         font-weight: 700;
         letter-spacing: -0.02em;
         opacity: 0.32;
     }
 
     .seminars__card-key {
-        color: var(--color-ink-ghost);
-        font-size: 13.5px;
+        color: var(--color-slate-ghost);
+        font-size: 12px;
     }
 
     .seminars__card-row {
         display: flex;
-        font-family: var(--font-sans);
-        font-size: 13.5px;
+        font-size: 12px;
         gap: 12px;
         justify-content: space-between;
     }
 
     .seminars__card-title {
-        color: var(--color-ink);
+        color: var(--color-slate);
         flex: 1;
-        font-size: 19px;
+        font-size: 20px;
         font-weight: 600;
         letter-spacing: -0.01em;
         line-height: 1.22;
@@ -207,54 +233,50 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
     }
 
     .seminars__card-value {
-        color: var(--color-ink);
+        color: var(--color-slate);
         font-weight: 600;
+        margin: 0;
         text-align: right;
     }
 
     .seminars__count {
-        color: var(--color-ink-ghost);
+        color: var(--color-slate-ghost);
         font-family: var(--font-mono);
-        font-size: 12.5px;
+        font-size: 12px;
         margin: 0;
         white-space: nowrap;
     }
 
     .seminars__empty {
-        background: var(--color-surface-raised);
-        border: 1px dashed var(--color-border-hover);
+        background: var(--color-snow);
+        border: 1px dashed var(--color-silver-hover);
         border-radius: 16px;
         padding: clamp(48px, 8vw, 88px) 32px;
         text-align: center;
     }
 
     .seminars__empty-text {
-        color: var(--color-ink-muted);
-        font-size: 15.5px;
+        color: var(--color-slate-muted);
+        font-size: 16px;
         line-height: 1.6;
         margin: 0 auto 24px;
     }
 
     .seminars__empty-title {
-        color: var(--color-ink);
-        font-size: 22px;
+        color: var(--color-slate);
+        font-size: 24px;
         font-weight: 600;
         margin: 0 0 10px;
     }
 
     .seminars__filter-label {
-        color: var(--color-ink-ghost);
+        color: var(--color-slate-ghost);
         font-family: var(--font-mono);
-        font-size: 11px;
+        font-size: 10px;
         letter-spacing: 0.1em;
-        margin: 0 0 11px;
+        margin: 0 0 12px;
         text-transform: uppercase;
-    }
-
-    .seminars__filters {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        user-select: none;
     }
 
     .seminars__grid {
@@ -264,31 +286,31 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
     }
 
     .seminars__hero {
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         padding-bottom: clamp(48px, 7vw, 84px);
         padding-top: calc(var(--header-height) + clamp(48px, 7vw, 84px));
     }
 
     .seminars__subtitle {
-        color: var(--color-ink-muted);
-        font-size: clamp(16px, 1.3vw, 18px);
+        color: var(--color-slate-muted);
+        font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
-        margin: 20px 0 0;
+        margin: 0;
     }
 
     .seminars__title {
-        color: var(--color-ink);
-        font-size: clamp(32px, 4.6vw, 54px);
+        color: var(--color-slate);
+        font-size: clamp(32px, 4.6vw, 56px);
         font-weight: 700;
         letter-spacing: -0.025em;
         line-height: 1.06;
-        margin: 0;
+        margin: 0 0 20px;
         text-wrap: balance;
     }
 
     .seminars__toolbar {
         align-items: flex-end;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         display: flex;
         flex-wrap: wrap;
         gap: 24px 40px;
@@ -303,73 +325,99 @@ const DIFFICULTIES = ['all', 'Advanced', 'Beginner', 'Intermediate'] as const;
 
     const DEFAULT_FILTER = 'all';
 
-    function initSeminarFilters() {
+    let controller: AbortController;
+
+    function initEventFilters() {
+        if (controller) controller.abort();
+        controller = new AbortController();
+
         const root = document.querySelector<HTMLElement>('[data-seminars]');
         if (!root) return;
 
-        let activeDifficulty = DEFAULT_FILTER;
+        let activeLevel = DEFAULT_FILTER;
         let activeLocation = DEFAULT_FILTER;
+        let activeTiming = DEFAULT_FILTER;
 
         const cards = root.querySelectorAll<HTMLElement>('[data-card]');
-        const countEl = root.querySelector<HTMLElement>('[data-count]');
-        const emptyEl = root.querySelector<HTMLElement>('[data-empty]');
-        const gridEl = root.querySelector<HTMLElement>('[data-grid]');
-        const difficultyButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-difficulty]');
+        const countElement = root.querySelector<HTMLElement>('[data-count]');
+        const emptyElement = root.querySelector<HTMLElement>('[data-empty]');
+        const gridElement = root.querySelector<HTMLElement>('[data-grid]');
+        const levelButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-level]');
         const locationButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-location]');
+        const timingButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-timing]');
+
+        const today = new Date().toISOString().split('T')[0];
 
         function update() {
             let visible = 0;
 
             cards.forEach((card) => {
-                const d = card.dataset.cardDifficulty;
-                const l = card.dataset.cardLocation;
-                const show =
-                    (activeDifficulty === DEFAULT_FILTER || d === activeDifficulty) &&
-                    (activeLocation === DEFAULT_FILTER || l === activeLocation);
+                const date = card.dataset.cardDate || '';
+                const level = card.dataset.cardLevel;
+                const location = card.dataset.cardLocation;
+
+                const matchesTiming = activeTiming === DEFAULT_FILTER
+                    || (activeTiming === 'upcoming' && date >= today)
+                    || (activeTiming === 'past' && date < today);
+
+                const show = matchesTiming
+                    && (activeLevel === DEFAULT_FILTER || level === activeLevel)
+                    && (activeLocation === DEFAULT_FILTER || location === activeLocation);
 
                 card.style.display = show ? '' : 'none';
                 if (show) visible++;
             });
 
-            difficultyButtons.forEach((button) => {
-                button.classList.toggle('chip--active', button.dataset.filterDifficulty === activeDifficulty);
+            levelButtons.forEach((button) => {
+                button.classList.toggle('chip--active', button.dataset.filterLevel === activeLevel);
             });
             locationButtons.forEach((button) => {
                 button.classList.toggle('chip--active', button.dataset.filterLocation === activeLocation);
             });
+            timingButtons.forEach((button) => {
+                button.classList.toggle('chip--active', button.dataset.filterTiming === activeTiming);
+            });
 
-            if (countEl) {
-                const unit = translate(visible === 1 ? 'seminar' : 'seminars');
-                countEl.textContent = `${visible} ${unit}`;
+            if (countElement) {
+                const unit = translate(visible === 1 ? 'event' : 'events');
+                countElement.textContent = `${visible} ${unit}`;
             }
-            if (gridEl) gridEl.style.display = visible ? '' : 'none';
-            if (emptyEl) emptyEl.style.display = visible ? 'none' : '';
+            if (gridElement) gridElement.style.display = visible ? '' : 'none';
+            if (emptyElement) emptyElement.style.display = visible ? 'none' : '';
         }
 
-        difficultyButtons.forEach((button) => {
+        levelButtons.forEach((button) => {
             button.addEventListener('click', () => {
-                activeDifficulty = button.dataset.filterDifficulty || DEFAULT_FILTER;
+                activeLevel = button.dataset.filterLevel || DEFAULT_FILTER;
                 update();
-            });
+            }, { signal: controller.signal });
         });
 
         locationButtons.forEach((button) => {
             button.addEventListener('click', () => {
                 activeLocation = button.dataset.filterLocation || DEFAULT_FILTER;
                 update();
-            });
+            }, { signal: controller.signal });
+        });
+
+        timingButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                activeTiming = button.dataset.filterTiming || DEFAULT_FILTER;
+                update();
+            }, { signal: controller.signal });
         });
 
         root.querySelector('[data-clear-filters]')?.addEventListener('click', () => {
-            activeDifficulty = DEFAULT_FILTER;
+            activeLevel = DEFAULT_FILTER;
             activeLocation = DEFAULT_FILTER;
+            activeTiming = DEFAULT_FILTER;
             update();
-        });
+        }, { signal: controller.signal });
 
         update();
 
-        window.addEventListener('lang:change', update);
+        window.addEventListener('lang:change', update, { signal: controller.signal });
     }
 
-    document.addEventListener('astro:page-load', initSeminarFilters);
+    document.addEventListener('astro:page-load', initEventFilters);
 </script>

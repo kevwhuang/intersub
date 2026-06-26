@@ -17,9 +17,7 @@ async function loadOutcomes(): Promise<Record<string, unknown>[]> {
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     let id: string;
 
@@ -29,9 +27,7 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    if (!id) {
-        return Response.json({ error: 'Missing id' }, { status: 400 });
-    }
+    if (!id) return Response.json({ error: 'Missing id' }, { status: 400 });
 
     if (DEV) {
         deleteEntry('outcomes', id);
@@ -51,27 +47,31 @@ export const GET: APIRoute = async () => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const body = await request.json();
+    let body: Record<string, unknown>;
+
+    try {
+        body = await request.json();
+    } catch {
+        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
     let id = body.id ? String(body.id) : null;
 
     if (!id) {
         const outcomes = await loadOutcomes();
         const maxId = outcomes.reduce((max, entry) => {
-            const num = parseInt(String(entry.id), 10);
-            return Number.isNaN(num) ? max : Math.max(max, num);
+            const parsedId = parseInt(String(entry.id), 10);
+            return Number.isNaN(parsedId) ? max : Math.max(max, parsedId);
         }, 0);
         id = String(maxId + 1);
     }
 
     const data: Record<string, string | string[]> = {
-        points: Array.isArray(body.points) ? body.points : [],
-        summary: body.summary || '',
-        title: body.title || '',
+        points: Array.isArray(body.points) ? body.points.map(String) : [],
+        summary: String(body.summary || ''),
+        title: String(body.title || ''),
     };
 
     if (DEV) {

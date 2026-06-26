@@ -54,7 +54,7 @@ const { description, title } = Astro.props;
         />
         <ClientRouter />
     </head>
-    <body class="flex flex-col min-h-screen font-sans bg-white text-ink antialiased">
+    <body class="flex flex-col min-h-screen antialiased font-sans bg-white text-slate">
         <slot />
     </body>
 </html>
@@ -63,8 +63,6 @@ const { description, title } = Astro.props;
     import { applyLanguage } from '@lib/i18n';
     import { initMotion } from '@lib/motion';
 
-    document.addEventListener('astro:page-load', () => {
-        applyLanguage();
-        initMotion();
-    });
+    document.addEventListener('astro:page-load', applyLanguage);
+    document.addEventListener('astro:page-load', initMotion);
 </script>

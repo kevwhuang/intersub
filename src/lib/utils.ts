@@ -1,36 +1,34 @@
-export function formatDate(iso: string): string {
-    if (!iso) return '';
+export function formatDate(dateString: string): string {
+    if (!dateString) return '';
 
-    const date = new Date(iso + 'T00:00:00');
+    const date = new Date(dateString + 'T00:00:00');
 
     return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export function getDifficultyMeta(difficulty: string) {
-    const map: Record<string, { bg: string; cover: string; fg: string; ink: string; label: string }> = {
-        Advanced: { bg: 'var(--color-error-bg)', cover: '#f4ecef', fg: 'var(--color-error-ink)', ink: '#a4324a', label: 'Advanced' },
-        Beginner: { bg: 'var(--color-success-bg)', cover: '#eef4f1', fg: 'var(--color-success)', ink: '#0d7a5f', label: 'Beginner' },
-        Intermediate: { bg: 'var(--color-warn-bg)', cover: '#f6f0e6', fg: 'var(--color-warn)', ink: '#9a5b00', label: 'Intermediate' },
+interface LevelMeta {
+    bg: string;
+    cover: string;
+    fg: string;
+    ink: string;
+    label: string;
+}
+
+export function getLevelMeta(level: string) {
+    const map: Record<string, LevelMeta> = {
+        Advanced: { bg: 'var(--color-rose)', cover: 'var(--color-rose-cover)', fg: 'var(--color-crimson)', ink: 'var(--color-crimson)', label: 'Advanced' },
+        Beginner: { bg: 'var(--color-mint)', cover: 'var(--color-mint-cover)', fg: 'var(--color-teal)', ink: 'var(--color-teal)', label: 'Beginner' },
+        Intermediate: { bg: 'var(--color-cream)', cover: 'var(--color-cream-cover)', fg: 'var(--color-amber)', ink: 'var(--color-amber)', label: 'Intermediate' },
+        Cohort: { bg: 'var(--color-cobalt-10)', cover: 'var(--color-cobalt-10)', fg: 'var(--color-cobalt)', ink: 'var(--color-cobalt)', label: 'Cohort' },
     };
 
-    return map[difficulty] ?? { bg: '#eceef2', cover: '#f0f1f4', fg: '#4a515e', ink: '#4a515e', label: difficulty };
+    return map[level] ?? { bg: 'var(--color-silver)', cover: 'var(--color-pearl)', fg: 'var(--color-slate-muted)', ink: 'var(--color-slate-muted)', label: level };
 }
 
 export function getInitials(title: string): string {
     return title.split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase();
 }
 
-export function parseSeminarContent(md: string): Array<{ content: string; type: 'h' | 'li' | 'p' }> {
-    const blocks: Array<{ content: string; type: 'h' | 'li' | 'p' }> = [];
-
-    for (const line of (md || '').split('\n')) {
-        const trimmed = line.trim();
-
-        if (!trimmed) continue;
-        if (trimmed.startsWith('## ')) blocks.push({ content: trimmed.slice(3), type: 'h' });
-        else if (trimmed.startsWith('- ')) blocks.push({ content: trimmed.slice(2), type: 'li' });
-        else blocks.push({ content: trimmed, type: 'p' });
-    }
-
-    return blocks;
+export function slugify(text: string): string {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }

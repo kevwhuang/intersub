@@ -1,18 +1,18 @@
 import { FONT_MONO, STYLES } from '@lib/constants';
 
-export default function TableHeader({ onSort, sortDir, sortKey }: {
+export default function TableHeader({ onSort, sortDirection, sortKey }: {
     onSort: (field: string) => void;
-    sortDir: string;
+    sortDirection: string;
     sortKey: string;
 }) {
     function sortArrow(field: string) {
-        return sortKey === field ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+        return sortKey === field ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : '';
     }
 
-    const headerStyle: React.CSSProperties = { alignItems: 'center', color: STYLES.colorGhost, display: 'flex', fontFamily: FONT_MONO, fontSize: 11, fontWeight: 500, gap: 5, justifyContent: 'flex-start', letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' };
+    const headerStyle: React.CSSProperties = { alignItems: 'center', color: STYLES.colorGhost, display: 'flex', fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, gap: 5, justifyContent: 'flex-start', letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' };
 
     return (
-        <div style={{ alignItems: 'center', background: '#fafbfc', borderBottom: '1px solid #eceef2', display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: 'clamp(10px, 2vw, 13px) clamp(14px, 2.5vw, 22px)' }}>
+        <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: '12px clamp(14px, 2.5vw, 22px)' }}>
             <button className="dashboard-button--ghost" onClick={() => onSort('title')} style={headerStyle}>
                 Title
                 {sortArrow('title')}

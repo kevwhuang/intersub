@@ -1,7 +1,7 @@
 import htmlTranslations from '@content/translations/html.json';
 import outcomesTranslations from '@content/translations/outcomes.json';
 import placeholderTranslations from '@content/translations/placeholders.json';
-import seminarsTranslations from '@content/translations/seminars.json';
+import eventsTranslations from '@content/translations/seminars.json';
 import testimonialsTranslations from '@content/translations/testimonials.json';
 import titleTranslations from '@content/translations/titles.json';
 import uiTranslations from '@content/translations/ui.json';
@@ -13,7 +13,7 @@ const TITLE_TRANSLATIONS: Record<string, string> = titleTranslations;
 const TRANSLATIONS: Record<string, string> = {
     ...uiTranslations,
     ...outcomesTranslations,
-    ...seminarsTranslations,
+    ...eventsTranslations,
     ...testimonialsTranslations,
 };
 
@@ -23,12 +23,6 @@ function formatDateChinese(english: string): string {
     if (Number.isNaN(date.getTime())) return english;
 
     return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日`;
-}
-
-export function translate(key: string): string {
-    const isChinese = localStorage.getItem('lang') === 'zh';
-
-    return isChinese && TRANSLATIONS[key] ? TRANSLATIONS[key] : key;
 }
 
 export function applyLanguage() {
@@ -54,13 +48,13 @@ export function applyLanguage() {
     });
 
     document.querySelectorAll<HTMLElement>('[data-i18n-date]').forEach((element) => {
-        const iso = element.dataset.i18nDate || '';
+        const dateString = element.dataset.i18nDate || '';
 
         if (!element.dataset.i18nDateOriginal) {
             element.dataset.i18nDateOriginal = element.textContent || '';
         }
 
-        element.textContent = isChinese ? formatDateChinese(iso) : element.dataset.i18nDateOriginal;
+        element.textContent = isChinese ? formatDateChinese(dateString) : element.dataset.i18nDateOriginal;
     });
 
     document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-i18n-placeholder]').forEach((element) => {
@@ -88,6 +82,12 @@ export function applyLanguage() {
     if (toggle) toggle.textContent = isChinese ? 'EN' : '中文';
 
     window.dispatchEvent(new CustomEvent('lang:change'));
+}
+
+export function translate(key: string): string {
+    const isChinese = localStorage.getItem('lang') === 'zh';
+
+    return isChinese && TRANSLATIONS[key] ? TRANSLATIONS[key] : key;
 }
 
 export function toggleLanguage() {

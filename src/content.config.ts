@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const CONTENT_PATH = 'src/content';
-const DIFFICULTIES = ['Advanced', 'Beginner', 'Intermediate'] as const;
+const LEVELS = ['Advanced', 'Beginner', 'Intermediate', 'Cohort'] as const;
 
 const outcomes = defineCollection({
     loader: glob({ base: `./${CONTENT_PATH}/outcomes`, pattern: '**/*.json' }),
@@ -20,7 +20,7 @@ const seminars = defineCollection({
         content: z.string(),
         cover: z.string().optional(),
         date: z.string(),
-        difficulty: z.enum(DIFFICULTIES).optional(),
+        level: z.enum(LEVELS).optional(),
         location: z.string(),
         title: z.string(),
     }),

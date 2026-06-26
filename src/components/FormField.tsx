@@ -1,7 +1,8 @@
-import { ACCENT, STYLES } from '@lib/constants';
+import { COBALT, STYLES } from '@lib/constants';
 
-export default function FormField({ children, errorMessage, label, labelSuffix, required }: {
+export default function FormField({ children, errorId, errorMessage, label, labelSuffix, required }: {
     children: React.ReactNode;
+    errorId?: string;
     errorMessage?: string;
     label: string;
     labelSuffix?: string;
@@ -17,10 +18,10 @@ export default function FormField({ children, errorMessage, label, labelSuffix, 
                         {labelSuffix}
                     </span>
                 )}
-                {required && <span style={{ color: ACCENT }}> *</span>}
+                {required && <span style={{ color: COBALT }}> *</span>}
             </span>
             {children}
-            {errorMessage && <p style={{ color: STYLES.colorError, fontSize: 12.5, margin: '6px 0 0' }}>{errorMessage}</p>}
+            {errorMessage && <p id={errorId} style={{ color: STYLES.colorError, fontSize: 12, margin: '6px 0 0' }}>{errorMessage}</p>}
         </label>
     );
 }

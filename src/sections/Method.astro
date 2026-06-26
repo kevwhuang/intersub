@@ -14,7 +14,7 @@ import { METHOD_BLOCKS } from '@lib/constants';
         {METHOD_BLOCKS.map((b, i) => (
             <div class:list={['method__block', { 'method__block--indent': i % 2 === 1 }]} data-scroll>
                 <div class="method__label">
-                    <span class="method__number">{b.num}</span>
+                    <span class="method__number">{b.step}</span>
                     <p class="method__tag" data-i18n={b.label}>{b.label}</p>
                 </div>
                 <div class="method__text">
@@ -28,7 +28,7 @@ import { METHOD_BLOCKS } from '@lib/constants';
 
 <style>
     .method {
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         overflow: hidden;
         position: relative;
     }
@@ -55,20 +55,20 @@ import { METHOD_BLOCKS } from '@lib/constants';
     }
 
     .method__curve-dot {
-        fill: color-mix(in srgb, var(--color-accent) 40%, var(--color-border-hover));
+        fill: color-mix(in srgb, var(--color-cobalt) 40%, var(--color-silver-hover));
     }
 
     .method__curve-path {
         fill: none;
         opacity: 0.7;
-        stroke: color-mix(in srgb, var(--color-accent) 25%, var(--color-border-hover));
+        stroke: color-mix(in srgb, var(--color-cobalt) 25%, var(--color-silver-hover));
         stroke-linecap: round;
         stroke-width: 1.5;
     }
 
     .method__detail {
-        color: var(--color-ink-muted);
-        font-size: clamp(16px, 1.3vw, 18px);
+        color: var(--color-slate-muted);
+        font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.65;
         margin: 0;
         text-wrap: pretty;
@@ -78,8 +78,7 @@ import { METHOD_BLOCKS } from '@lib/constants';
         display: flex;
         flex-direction: column;
         gap: clamp(44px, 7vw, 88px);
-        padding-bottom: clamp(64px, 9vw, 120px);
-        padding-top: clamp(64px, 9vw, 120px);
+        padding: clamp(64px, 9vw, 120px) 0;
         position: relative;
     }
 
@@ -89,17 +88,19 @@ import { METHOD_BLOCKS } from '@lib/constants';
     }
 
     .method__number {
-        color: color-mix(in srgb, var(--color-accent) 40%, var(--color-surface));
+        color: color-mix(in srgb, var(--color-cobalt) 40%, var(--color-white));
         display: block;
         font-family: var(--font-heading);
-        font-size: clamp(46px, 7vw, 90px);
+        font-size: clamp(48px, 7vw, 88px);
         font-weight: 700;
         letter-spacing: -0.04em;
         line-height: 0.85;
+        margin-bottom: 16px;
+        user-select: none;
     }
 
     .method__statement {
-        font-size: clamp(21px, 2.6vw, 32px);
+        font-size: clamp(20px, 2.6vw, 32px);
         font-weight: 600;
         letter-spacing: -0.015em;
         line-height: 1.2;
@@ -108,13 +109,13 @@ import { METHOD_BLOCKS } from '@lib/constants';
     }
 
     .method__tag {
-        color: var(--color-ink-ghost);
+        color: var(--color-slate-ghost);
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 10px;
         font-weight: 500;
         letter-spacing: 0.12em;
-        margin: 16px 0 0;
         text-transform: uppercase;
+        user-select: none;
     }
 
     @media (max-width: 768px) {
@@ -140,15 +141,15 @@ import { METHOD_BLOCKS } from '@lib/constants';
         .method__number {
             font-size: clamp(40px, 12vw, 56px);
             line-height: 1;
+            margin-bottom: 0;
         }
 
         .method__statement {
-            font-size: clamp(22px, 5.5vw, 28px);
+            font-size: clamp(20px, 5.5vw, 24px);
         }
 
         .method__tag {
-            font-size: clamp(13px, 3.5vw, 15px);
-            margin: 0;
+            font-size: clamp(10px, 3.5vw, 16px);
         }
 
         .method__text {

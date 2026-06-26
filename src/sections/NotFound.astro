@@ -4,13 +4,13 @@
 
 <section
     class="not-found"
-    aria-label="Page not found"
+    aria-labelledby="not-found-title"
 >
-    <div class="shell not-found__inner">
+    <div class="shell not-found__inner max-w-[620px] text-center">
         <p class="not-found__code" aria-hidden="true">404</p>
-        <h1 class="not-found__title" data-i18n="This page doesn't exist">This page doesn't exist</h1>
+        <h1 id="not-found-title" class="not-found__title" data-i18n="This page doesn't exist">This page doesn't exist</h1>
         <p class="not-found__text" data-i18n="The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.">The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.</p>
-        <div class="not-found__actions">
+        <div class="not-found__actions flex justify-center">
             <a class="button" href="/"><span data-i18n="Go home">Go home</span></a>
         </div>
     </div>
@@ -26,35 +26,26 @@
         padding-top: calc(var(--header-height) + clamp(48px, 8vw, 100px));
     }
 
-    .not-found__actions {
-        display: flex;
-        justify-content: center;
-    }
-
     .not-found__code {
-        color: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+        color: color-mix(in srgb, var(--color-cobalt) 18%, var(--color-white));
         font-family: var(--font-heading);
         font-size: clamp(120px, 20vw, 240px);
         font-weight: 700;
         letter-spacing: -0.05em;
         line-height: 0.8;
         margin: 0 0 clamp(24px, 4vw, 40px);
-    }
-
-    .not-found__inner {
-        max-width: 600px;
-        text-align: center;
+        user-select: none;
     }
 
     .not-found__text {
-        color: var(--color-ink-muted);
-        font-size: clamp(16px, 1.3vw, 18px);
+        color: var(--color-slate-muted);
+        font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
         margin: 0 0 32px;
     }
 
     .not-found__title {
-        font-size: clamp(24px, 3.5vw, 38px);
+        font-size: clamp(24px, 3.5vw, 40px);
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 0 0 12px;

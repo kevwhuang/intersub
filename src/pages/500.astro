@@ -11,13 +11,13 @@ export const prerender = false;
     title="Server Error &mdash; InterSub"
 >
     <Navbar />
-    <main class="flex flex-1 flex-col">
-        <section class="server-error" aria-label="Server error">
-            <div class="shell server-error__inner">
+    <main class="flex flex-col flex-1">
+        <section class="server-error" aria-labelledby="server-error-title">
+            <div class="shell server-error__inner max-w-[620px] text-center">
                 <p class="server-error__code" aria-hidden="true">500</p>
-                <h1 class="server-error__title" data-i18n="Something went wrong">Something went wrong</h1>
+                <h1 id="server-error-title" class="server-error__title" data-i18n="Something went wrong">Something went wrong</h1>
                 <p class="server-error__text" data-i18n="An unexpected error occurred. Try refreshing the page or returning home.">An unexpected error occurred. Try refreshing the page or returning home.</p>
-                <div class="server-error__actions">
+                <div class="server-error__actions flex justify-center">
                     <a class="button" href="/"><span data-i18n="Go home">Go home</span></a>
                 </div>
             </div>
@@ -36,35 +36,26 @@ export const prerender = false;
         padding-top: calc(var(--header-height) + clamp(48px, 8vw, 100px));
     }
 
-    .server-error__actions {
-        display: flex;
-        justify-content: center;
-    }
-
     .server-error__code {
-        color: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
+        color: color-mix(in srgb, var(--color-cobalt) 18%, var(--color-white));
         font-family: var(--font-heading);
         font-size: clamp(120px, 20vw, 240px);
         font-weight: 700;
         letter-spacing: -0.05em;
         line-height: 0.8;
         margin: 0 0 clamp(24px, 4vw, 40px);
-    }
-
-    .server-error__inner {
-        max-width: 600px;
-        text-align: center;
+        user-select: none;
     }
 
     .server-error__text {
-        color: var(--color-ink-muted);
-        font-size: clamp(16px, 1.3vw, 18px);
+        color: var(--color-slate-muted);
+        font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
         margin: 0 0 32px;
     }
 
     .server-error__title {
-        font-size: clamp(24px, 3.5vw, 38px);
+        font-size: clamp(24px, 3.5vw, 40px);
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 0 0 12px;
