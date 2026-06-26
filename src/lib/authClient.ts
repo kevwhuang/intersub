@@ -23,7 +23,6 @@ const EXPIRY_BUFFER = 60_000;
 const IDENTITY_URL = typeof window !== 'undefined'
     ? `${window.location.origin}/.netlify/identity`
     : '';
-
 const IS_LOCAL = typeof window !== 'undefined'
     && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
 
@@ -58,13 +57,13 @@ function clearSession() {
     localStorage.removeItem(AUTH_KEY);
 }
 
-async function goTrue(path: string, options: RequestInit): Promise<Response> {
+async function fetchIdentity(path: string, options: RequestInit) {
     return fetch(`${IDENTITY_URL}${path}`, options);
 }
 
 async function refreshToken(token: string): Promise<TokenResponse | null> {
     try {
-        const response = await goTrue('/token', {
+        const response = await fetchIdentity('/token', {
             body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(token)}`,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             method: 'POST',
@@ -83,9 +82,7 @@ async function resolveSession(): Promise<{ email: string; token: string } | null
 
     if (!stored) return null;
 
-    if (stored.expiresAt > Date.now() + EXPIRY_BUFFER) {
-        return { email: stored.email, token: stored.accessToken };
-    }
+    if (stored.expiresAt > Date.now() + EXPIRY_BUFFER) return { email: stored.email, token: stored.accessToken };
 
     const refreshed = await refreshToken(stored.refreshToken);
 
@@ -103,9 +100,9 @@ async function resolveSession(): Promise<{ email: string; token: string } | null
 async function processHashToken(): Promise<AuthUser | null> {
     const hash = window.location.hash;
 
-    const recoveryMatch = hash.match(/recovery_token=([^&]+)/);
-    const inviteMatch = hash.match(/invite_token=([^&]+)/);
     const confirmMatch = hash.match(/confirmation_token=([^&]+)/);
+    const inviteMatch = hash.match(/invite_token=([^&]+)/);
+    const recoveryMatch = hash.match(/recovery_token=([^&]+)/);
 
     const token = recoveryMatch?.[1] ?? inviteMatch?.[1] ?? confirmMatch?.[1];
     const type = recoveryMatch ? 'recovery' : inviteMatch ? 'invite' : confirmMatch ? 'signup' : null;
@@ -113,7 +110,7 @@ async function processHashToken(): Promise<AuthUser | null> {
     if (!token || !type) return null;
 
     try {
-        const response = await goTrue('/verify', {
+        const response = await fetchIdentity('/verify', {
             body: JSON.stringify({ token, type }),
             headers: { 'Content-Type': 'application/json' },
             method: 'POST',
@@ -143,35 +140,6 @@ export function useAuth() {
     const [recovery, setRecovery] = useState(false);
     const [user, setUser] = useState<AuthUser | null>(IS_LOCAL ? { email: 'dev@localhost' } : null);
 
-    useEffect(() => {
-        if (IS_LOCAL) return;
-
-        (async () => {
-            try {
-                const hash = window.location.hash;
-                const isRecovery = hash.includes('recovery_token') || hash.includes('invite_token');
-
-                const hashUser = await processHashToken();
-
-                if (hashUser) {
-                    if (isRecovery) setRecovery(true);
-
-                    setUser(hashUser);
-
-                    return;
-                }
-
-                const session = await resolveSession();
-
-                if (session) setUser({ email: session.email });
-            } catch {
-                clearSession();
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
-
     async function getToken(): Promise<string | null> {
         if (IS_LOCAL) return 'dev-token';
 
@@ -194,7 +162,7 @@ export function useAuth() {
         }
 
         try {
-            const response = await goTrue('/token', {
+            const response = await fetchIdentity('/token', {
                 body: `grant_type=password&username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 method: 'POST',
@@ -231,7 +199,7 @@ export function useAuth() {
         }
 
         try {
-            const response = await goTrue('/user', {
+            const response = await fetchIdentity('/user', {
                 body: JSON.stringify({ password }),
                 headers: {
                     'Authorization': `Bearer ${session.token}`,
@@ -256,6 +224,38 @@ export function useAuth() {
         clearSession();
         setUser(null);
     }
+
+    async function initAuth() {
+        if (IS_LOCAL) return;
+
+        try {
+            const hash = window.location.hash;
+
+            const isRecovery = hash.includes('recovery_token') || hash.includes('invite_token');
+
+            const hashUser = await processHashToken();
+
+            if (hashUser) {
+                if (isRecovery) setRecovery(true);
+
+                setUser(hashUser);
+
+                return;
+            }
+
+            const session = await resolveSession();
+
+            if (session) setUser({ email: session.email });
+        } catch {
+            clearSession();
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        initAuth();
+    }, []);
 
     return { error, getToken, handleLogin, handleLogout, handleSetPassword, loading, recovery, user };
 }

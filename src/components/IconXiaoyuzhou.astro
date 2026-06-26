@@ -1,0 +1,46 @@
+---
+interface Props {
+    size?: number;
+}
+
+const { size = 18 } = Astro.props;
+---
+
+<svg
+    aria-hidden="true"
+    height={size}
+    viewBox="0 0 24 24"
+    width={size}
+>
+    <defs>
+        <clipPath id="xyz-outside">
+            <path clip-rule="evenodd" d="M0 0h24v24H0zM5 12a7 7 0 0014 0 7 7 0 00-14 0z" />
+        </clipPath>
+        <clipPath id="xyz-inside">
+            <circle cx="12" cy="12" r="7" />
+        </clipPath>
+    </defs>
+    <ellipse
+        clip-path="url(#xyz-outside)"
+        cx="12"
+        cy="12"
+        fill="none"
+        rx="11"
+        ry="3"
+        stroke="currentColor"
+        stroke-width="1.8"
+        transform="rotate(-45 12 12)"
+    />
+    <circle cx="12" cy="12" fill="currentColor" r="7" />
+    <ellipse
+        clip-path="url(#xyz-inside)"
+        cx="12"
+        cy="12"
+        fill="none"
+        rx="11"
+        ry="3"
+        stroke="currentColor"
+        stroke-width="1.8"
+        transform="rotate(-45 12 12)"
+    />
+</svg>

@@ -7,8 +7,8 @@ const SITE_ID = process.env.SITE_ID;
 const STORES = ['outcomes', 'seminars', 'testimonials'] as const;
 const TOKEN = process.env.NETLIFY_AUTH_TOKEN;
 
-async function uploadFile(store: ReturnType<typeof getStore>, path: string, key: string) {
-    const data = JSON.parse(await readFile(path, 'utf-8'));
+async function uploadFile(store: ReturnType<typeof getStore>, filePath: string, key: string) {
+    const data = JSON.parse(await readFile(filePath, 'utf-8'));
 
     await store.setJSON(key, data);
 }
@@ -19,12 +19,12 @@ if (SITE_ID && TOKEN) {
 
         await store.deleteAll();
 
-        const dir = join(CONTENT_DIR, name);
+        const directory = join(CONTENT_DIR, name);
 
-        const files = await readdir(dir);
+        const files = await readdir(directory);
 
         await Promise.all(
-            files.filter(f => f.endsWith('.json')).map(f => uploadFile(store, join(dir, f), parse(f).name)),
+            files.filter(file => file.endsWith('.json')).map(file => uploadFile(store, join(directory, file), parse(file).name)),
         );
     }
 }

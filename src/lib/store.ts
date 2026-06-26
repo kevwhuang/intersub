@@ -17,10 +17,10 @@ function merge(seed: Record<string, unknown>[], overrides: Record<string, unknow
     return [...map.values()];
 }
 
-export async function getOutcomes(): Promise<Record<string, unknown>[]> {
-    const entries = await getCollection('outcomes');
+async function loadCollection(name: 'outcomes' | 'seminars' | 'testimonials'): Promise<Record<string, unknown>[]> {
+    const entries = await getCollection(name as 'outcomes');
 
-    const seed = entries.map(entry => ({
+    const seed = entries.map((entry: { data: Record<string, unknown>; id: string }) => ({
         id: entry.id,
         ...entry.data,
     }));
@@ -28,7 +28,7 @@ export async function getOutcomes(): Promise<Record<string, unknown>[]> {
     if (DEV) return seed;
 
     try {
-        const store = getStore({ consistency: 'strong', name: 'outcomes' });
+        const store = getStore({ consistency: 'strong', name });
         const { blobs } = await store.list();
 
         if (blobs.length > 0) {
@@ -46,70 +46,18 @@ export async function getOutcomes(): Promise<Record<string, unknown>[]> {
     }
 
     return seed;
+}
+
+export async function getOutcomes(): Promise<Record<string, unknown>[]> {
+    return loadCollection('outcomes');
+}
+
+export async function getEvents(): Promise<Record<string, unknown>[]> {
+    const events = await loadCollection('seminars');
+
+    return events.sort((entryA, entryB) => String(entryB.date ?? '').localeCompare(String(entryA.date ?? '')));
 }
 
 export async function getTestimonials(): Promise<Record<string, unknown>[]> {
-    const entries = await getCollection('testimonials');
-
-    const seed = entries.map(entry => ({
-        id: entry.id,
-        ...entry.data,
-    }));
-
-    if (DEV) return seed;
-
-    try {
-        const store = getStore({ consistency: 'strong', name: 'testimonials' });
-        const { blobs } = await store.list();
-
-        if (blobs.length > 0) {
-            const overrides = await Promise.all(
-                blobs.map(async (blob) => {
-                    const data = await store.get(blob.key, { type: 'json' });
-                    return { id: blob.key, ...data };
-                }),
-            );
-
-            return merge(seed, overrides);
-        }
-    } catch {
-        return seed;
-    }
-
-    return seed;
-}
-
-export async function getSeminars(): Promise<Record<string, unknown>[]> {
-    const entries = await getCollection('seminars');
-
-    const seed = entries
-        .sort((a, b) => b.data.date.localeCompare(a.data.date))
-        .map(entry => ({
-            id: entry.id,
-            ...entry.data,
-        }));
-
-    if (DEV) return seed;
-
-    try {
-        const store = getStore({ consistency: 'strong', name: 'seminars' });
-        const { blobs } = await store.list();
-
-        if (blobs.length > 0) {
-            const overrides = await Promise.all(
-                blobs.map(async (blob) => {
-                    const data = await store.get(blob.key, { type: 'json' });
-                    return { id: blob.key, ...data };
-                }),
-            );
-
-            const merged = merge(seed, overrides);
-
-            return merged.sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')));
-        }
-    } catch {
-        return seed;
-    }
-
-    return seed;
+    return loadCollection('testimonials');
 }

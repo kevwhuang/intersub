@@ -13,9 +13,9 @@ const outcomes = await getOutcomes();
             <h2 id="outcomes-title" class="outcomes__title" data-i18n="Outcomes">Outcomes</h2>
             <p class="outcomes__intro" data-i18n="Real case studies from teams we have coached. Measurable shifts in confidence, speed, and clarity within weeks of engagement.">Real case studies from teams we have coached. Measurable shifts in confidence, speed, and clarity within weeks of engagement.</p>
         </div>
-        <div class="outcomes__grid">
+        <div class="outcomes__grid" data-scroll data-scroll-stagger="0.1">
             {outcomes.map(outcome => (
-                <article class="outcomes__card" data-scroll>
+                <article class="outcomes__card">
                     <h3 class="outcomes__card-title" data-i18n={outcome.title}>{outcome.title}</h3>
                     <p class="outcomes__card-summary" data-i18n={outcome.summary}>{outcome.summary}</p>
                     <ul class="outcomes__points">
@@ -31,27 +31,19 @@ const outcomes = await getOutcomes();
 
 <style>
     .outcomes {
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         padding: clamp(64px, 9vw, 120px) 0;
     }
 
     .outcomes__card {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border-strong);
+        background: var(--color-white);
+        border: 1px solid var(--color-silver-strong);
         border-radius: 14px;
-        border-top: 3px solid var(--color-accent);
+        border-top: 3px solid var(--color-cobalt);
         display: flex;
         flex-direction: column;
         padding: 28px;
-        transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
-    }
-
-    .outcomes__card:nth-child(3n+2) {
-        border-top-color: var(--color-success);
-    }
-
-    .outcomes__card:nth-child(3n+3) {
-        border-top-color: var(--color-warn);
+        transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
     .outcomes__card:active {
@@ -60,27 +52,35 @@ const outcomes = await getOutcomes();
     }
 
     .outcomes__card:focus-visible {
-        border-color: var(--color-accent);
-        box-shadow: 0 0 0 3px var(--color-accent-20);
+        border-color: var(--color-cobalt);
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
     .outcomes__card:hover {
-        background: var(--color-surface-raised);
-        border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border-hover));
-        box-shadow: 0 14px 36px var(--color-dark-10);
+        background: var(--color-snow);
+        border-color: color-mix(in srgb, var(--color-cobalt) 40%, var(--color-silver-hover));
+        box-shadow: 0 14px 36px var(--color-slate-10);
         transform: translateY(-4px);
     }
 
+    .outcomes__card:nth-child(3n+2) {
+        border-top-color: var(--color-teal);
+    }
+
+    .outcomes__card:nth-child(3n+3) {
+        border-top-color: var(--color-amber);
+    }
+
     .outcomes__card-summary {
-        color: var(--color-ink-muted);
-        font-size: 14.5px;
+        color: var(--color-slate-muted);
+        font-size: 16px;
         line-height: 1.55;
         margin: 0 0 18px;
     }
 
     .outcomes__card-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
         letter-spacing: -0.01em;
         line-height: 1.2;
@@ -99,29 +99,29 @@ const outcomes = await getOutcomes();
     }
 
     .outcomes__intro {
-        color: var(--color-ink-muted);
-        font-size: clamp(16px, 1.3vw, 18px);
+        color: var(--color-slate-muted);
+        font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
         margin: 0;
     }
 
     .outcomes__point {
-        color: var(--color-ink-faint);
+        color: var(--color-slate-faint);
         display: flex;
-        font-size: 13.5px;
-        gap: 9px;
+        font-size: 12px;
+        gap: 8px;
         line-height: 1.45;
     }
 
     .outcomes__point::before {
-        color: var(--color-accent);
+        color: var(--color-cobalt);
         content: '·';
         flex: none;
         font-weight: 700;
     }
 
     .outcomes__points {
-        border-top: 1px solid var(--color-border);
+        border-top: 1px solid var(--color-silver);
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -131,7 +131,7 @@ const outcomes = await getOutcomes();
     }
 
     .outcomes__title {
-        font-size: clamp(28px, 4vw, 46px);
+        font-size: clamp(28px, 4vw, 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
         line-height: 1.08;

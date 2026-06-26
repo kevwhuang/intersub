@@ -51,7 +51,7 @@ function initScrollAnimations() {
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function initMotion(): void {
+export function initMotion() {
     ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     initScrollAnimations();
 }

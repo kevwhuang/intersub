@@ -26,7 +26,7 @@ const testimonials = await getTestimonials();
                 </figure>
             ))}
         </div>
-        <div class="testimonials__dots">
+        <div class="testimonials__dots flex gap-2 justify-center">
             {testimonials.map((_, i) => (
                 <button
                     class:list={['testimonials__dot', { 'testimonials__dot--active': i === 0 }]}
@@ -41,7 +41,7 @@ const testimonials = await getTestimonials();
 
 <style>
     .testimonials {
-        background: var(--color-dark);
+        background: var(--color-slate);
     }
 
     .testimonials__carousel {
@@ -53,13 +53,13 @@ const testimonials = await getTestimonials();
     }
 
     .testimonials__company {
-        color: var(--color-ink-pale);
+        color: var(--color-slate-pale);
         display: block;
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .testimonials__dot {
-        background: var(--color-dark-surface);
+        background: var(--color-slate-surface);
         border: none;
         border-radius: 99px;
         height: 10px;
@@ -69,48 +69,43 @@ const testimonials = await getTestimonials();
         width: 10px;
     }
 
-    .testimonials__dot::after {
-        content: '';
-        inset: -8px -4px;
-        position: absolute;
-    }
-
     .testimonials__dot:active {
         opacity: 0.7;
     }
 
     .testimonials__dot:focus-visible {
-        box-shadow: 0 0 0 3px var(--color-accent-20);
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
     .testimonials__dot:hover {
-        background: var(--color-dark-dim);
+        background: var(--color-slate-dim);
+    }
+
+    .testimonials__dot::after {
+        content: '';
+        inset: -19px;
+        position: absolute;
     }
 
     .testimonials__dot--active {
-        background: var(--color-accent);
+        background: var(--color-cobalt);
         width: 32px;
     }
 
     .testimonials__dot--active:hover {
-        background: var(--color-accent);
-    }
-
-    .testimonials__dots {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
+        background: var(--color-cobalt);
     }
 
     .testimonials__eyebrow {
-        color: color-mix(in srgb, var(--color-accent) 70%, var(--color-surface));
+        color: color-mix(in srgb, var(--color-cobalt) 70%, var(--color-white));
         font-family: var(--font-mono);
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
         letter-spacing: 0.14em;
         margin: 0 0 44px;
         text-transform: uppercase;
+        user-select: none;
     }
 
     .testimonials__inner {
@@ -119,7 +114,7 @@ const testimonials = await getTestimonials();
     }
 
     .testimonials__name {
-        color: var(--color-surface);
+        color: var(--color-white);
         display: block;
         font-size: 16px;
         font-weight: 700;
@@ -127,9 +122,9 @@ const testimonials = await getTestimonials();
     }
 
     .testimonials__quote {
-        color: var(--color-dark-text);
+        color: var(--color-slate-text);
         font-family: var(--font-heading);
-        font-size: clamp(22px, 3.2vw, 34px);
+        font-size: clamp(24px, 3vw, 32px);
         font-weight: 500;
         letter-spacing: -0.015em;
         line-height: 1.32;
@@ -138,9 +133,9 @@ const testimonials = await getTestimonials();
     }
 
     .testimonials__role {
-        color: var(--color-ink-pale);
+        color: var(--color-slate-pale);
         display: block;
-        font-size: 14px;
+        font-size: 16px;
     }
 
     .testimonials__slide {
@@ -154,10 +149,15 @@ const testimonials = await getTestimonials();
 </style>
 
 <script>
+    const ROTATE_INTERVAL = 5_200;
+
+    let controller: AbortController;
     let testimonialInterval: ReturnType<typeof setInterval> | undefined;
 
     function initTestimonials() {
+        if (controller) controller.abort();
         if (testimonialInterval) clearInterval(testimonialInterval);
+        controller = new AbortController();
 
         const slides = document.querySelectorAll<HTMLElement>('[data-slide]');
         const dots = document.querySelectorAll<HTMLElement>('[data-dot]');
@@ -167,29 +167,29 @@ const testimonials = await getTestimonials();
         let current = 0;
 
         function show(index: number) {
-            slides.forEach((s, i) => {
-                s.style.opacity = i === index ? '1' : '0';
+            slides.forEach((slide, slideIndex) => {
+                slide.style.opacity = slideIndex === index ? '1' : '0';
             });
-            dots.forEach((d, i) => {
-                d.classList.toggle('testimonials__dot--active', i === index);
+            dots.forEach((dot, dotIndex) => {
+                dot.classList.toggle('testimonials__dot--active', dotIndex === index);
             });
             current = index;
         }
-
-        dots.forEach((dot) => {
-            dot.addEventListener('click', () => {
-                const idx = Number(dot.dataset.dot);
-                show(idx);
-                resetInterval();
-            });
-        });
 
         function resetInterval() {
             if (testimonialInterval) clearInterval(testimonialInterval);
             testimonialInterval = setInterval(() => {
                 show((current + 1) % slides.length);
-            }, 5_200);
+            }, ROTATE_INTERVAL);
         }
+
+        dots.forEach((dot) => {
+            dot.addEventListener('click', () => {
+                const index = Number(dot.dataset.dot);
+                show(index);
+                resetInterval();
+            }, { signal: controller.signal });
+        });
 
         resetInterval();
     }

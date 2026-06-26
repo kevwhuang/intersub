@@ -1,19 +1,19 @@
 import { FONT_MONO, STYLES } from '@lib/constants';
-import { getDifficultyMeta } from '@lib/utils';
+import { getLevelMeta } from '@lib/utils';
 
-export default function FilterChips({ activeFilters, activeLocation, locations, onFilterToggle, onLocationChange, onNewSeminar }: {
+export default function FilterChips({ activeFilters, activeLocation, locations, onFilterToggle, onLocationChange, onNewEvent }: {
     activeFilters: string[];
     activeLocation: string;
     locations: string[];
     onFilterToggle: (value: string) => void;
     onLocationChange: (value: string) => void;
-    onNewSeminar: () => void;
+    onNewEvent: () => void;
 }) {
     function chipClassName(active: boolean) {
         return active ? 'dashboard-chip dashboard-chip--active' : 'dashboard-chip';
     }
 
-    const groupLabelStyle: React.CSSProperties = { color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 11, letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' };
+    const groupLabelStyle: React.CSSProperties = { color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' };
 
     return (
         <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', marginBottom: 24 }}>
@@ -32,18 +32,18 @@ export default function FilterChips({ activeFilters, activeLocation, locations, 
                     <p style={groupLabelStyle}>Level</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                         <button className={chipClassName(activeFilters.length === 0)} onClick={() => onFilterToggle('all')}>
-                            All levels
+                            Everyone
                         </button>
-                        {['Beginner', 'Intermediate', 'Advanced'].map(difficulty => (
-                            <button className={chipClassName(activeFilters.includes(difficulty))} key={difficulty} onClick={() => onFilterToggle(difficulty)}>
-                                {getDifficultyMeta(difficulty).label}
+                        {['Beginner', 'Intermediate', 'Advanced', 'Cohort'].map(level => (
+                            <button className={chipClassName(activeFilters.includes(level))} key={level} onClick={() => onFilterToggle(level)}>
+                                {getLevelMeta(level).label}
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
-            <button className="dashboard-button--primary" onClick={onNewSeminar} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 14, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
-                +&ensp;New seminar
+            <button className="dashboard-button--primary" onClick={onNewEvent} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 16, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                +&ensp;New event
             </button>
         </div>
     );

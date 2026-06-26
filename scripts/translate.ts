@@ -32,7 +32,7 @@ function scaffoldCollection(collection: string, fields: FieldConfig[]) {
     const translationPath = join(TRANSLATIONS_DIR, `${collection}.json`);
 
     const entries: Record<string, Record<string, string | string[]>> = JSON.parse(readFileSync(translationPath, 'utf-8'));
-    const files = readdirSync(contentDirectory).filter(f => f.endsWith('.json'));
+    const files = readdirSync(contentDirectory).filter(file => file.endsWith('.json'));
 
     for (const file of files) {
         const content: Record<string, unknown> = JSON.parse(readFileSync(join(contentDirectory, file), 'utf-8'));
@@ -53,7 +53,7 @@ function scaffoldCollection(collection: string, fields: FieldConfig[]) {
         if (!files.includes(`${id}.json`)) delete entries[id];
     }
 
-    const sorted = Object.fromEntries(Object.entries(entries).sort(([a], [b]) => a.localeCompare(b)));
+    const sorted = Object.fromEntries(Object.entries(entries).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)));
 
     writeFileSync(translationPath, JSON.stringify(sorted, null, 4));
 }

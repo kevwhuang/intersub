@@ -17,8 +17,8 @@ import { FONT_HEADING, FONT_MONO, STYLES } from '@lib/constants';
 import { useAuth } from '@lib/authClient';
 
 type DashboardAction
-    = | { payload: Partial<DashboardState>; type: 'SET' }
-        | { payload: (state: DashboardState) => Partial<DashboardState>; type: 'FN' };
+    = | { payload: (state: DashboardState) => Partial<DashboardState>; type: 'FN' }
+        | { payload: Partial<DashboardState>; type: 'SET' };
 
 function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
     if (action.type === 'SET') return { ...state, ...action.payload };
@@ -27,14 +27,16 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
     return state;
 }
 
+const TOAST_DURATION = 3_000;
+
 function useDashboardState(getToken: () => Promise<string | null>) {
     const [state, dispatch] = useReducer(dashboardReducer, {
-        activePanel: 'seminars',
+        activePanel: 'events',
         adminFilters: [],
         adminLocation: 'all',
         adminSearch: '',
         confirmDelete: null,
-        confirmDeleteType: 'seminar',
+        confirmDeleteType: 'event',
         drawerOpen: typeof window !== 'undefined' && window.innerWidth > 1024,
         editing: null,
         editingOutcome: null,
@@ -46,15 +48,14 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         outcomeFormErrors: {},
         outcomes: [],
         saving: false,
-        seminars: [],
-        sidebarCollapsed: false,
+        events: [],
+        sortDirection: 'asc',
+        sortKey: 'name',
         testimonialForm: null,
         testimonialFormErrors: {},
         testimonials: [],
         toast: null,
         toastError: false,
-        sortDir: 'asc',
-        sortKey: 'name',
     } satisfies DashboardState);
 
     const set = useCallback(
@@ -81,7 +82,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
     async function fetchData() {
         try {
-            const [outcomesResponse, seminarsResponse, testimonialsResponse] = await Promise.all([
+            const [outcomesResponse, eventsResponse, testimonialsResponse] = await Promise.all([
                 fetch('/api/outcomes'),
                 fetch('/api/seminars'),
                 fetch('/api/testimonials'),
@@ -90,7 +91,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
             set({
                 loading: false,
                 outcomes: await outcomesResponse.json(),
-                seminars: await seminarsResponse.json(),
+                events: await eventsResponse.json(),
                 testimonials: await testimonialsResponse.json(),
             });
         } catch {
@@ -98,29 +99,10 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         }
     }
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 1024px)');
-        setIsMobile(mediaQuery.matches);
-        const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
-        mediaQuery.addEventListener('change', onChange);
-
-        return () => mediaQuery.removeEventListener('change', onChange);
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            clearTimeout(toastTimer.current);
-        };
-    }, []);
-
     function showToast(message: string, error = false) {
         clearTimeout(toastTimer.current);
         set({ toast: message, toastError: error });
-        toastTimer.current = setTimeout(() => set({ toast: null, toastError: false }), 3_000);
+        toastTimer.current = setTimeout(() => set({ toast: null, toastError: false }), TOAST_DURATION);
     }
 
     function handleCancelEdit() {
@@ -133,6 +115,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
     async function handleSaveForm() {
         if (!state.form) return;
+
         const errors: Record<string, boolean> = {};
         if (!state.form.title.trim()) errors.title = true;
         if (!state.form.date) errors.date = true;
@@ -161,7 +144,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
             if (response.status === 409) {
                 set({ saving: false });
-                showToast('A seminar already exists on this date', true);
+                showToast('An event already exists on this date', true);
 
                 return;
             }
@@ -175,7 +158,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
             set({ editing: null, form: null, formErrors: {}, saving: false });
             fetchData();
-            showToast(isNew ? 'Seminar created' : 'Changes saved');
+            showToast(isNew ? 'Event created' : 'Changes saved');
         } catch {
             set({ saving: false });
             showToast('Failed to save', true);
@@ -183,19 +166,19 @@ function useDashboardState(getToken: () => Promise<string | null>) {
     }
 
     function handleStartEdit(id: string) {
-        const seminar = state.seminars.find(item => item.id === id);
+        const entry = state.events.find(item => item.id === id);
 
-        if (seminar) {
+        if (entry) {
             set({
-                editing: seminar.date || id,
-                form: { content: seminar.content, cover: seminar.cover || '', date: seminar.date, difficulty: seminar.difficulty || '', location: seminar.location, title: seminar.title },
+                editing: entry.date || id,
+                form: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, title: entry.title },
                 formErrors: {},
             });
         }
     }
 
     function handleStartNew() {
-        set({ editing: 'new', form: { content: '', cover: '', date: '', difficulty: '', location: '', title: '' }, formErrors: {} });
+        set({ editing: 'new', form: { content: '', cover: '', date: '', level: '', location: '', title: '' }, formErrors: {} });
     }
 
     function handleToggleNav() {
@@ -208,6 +191,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
     async function handleSaveOutcome() {
         if (!state.outcomeForm) return;
+
         const errors: Record<string, boolean> = {};
         if (!state.outcomeForm.title.trim()) errors.title = true;
         if (!state.outcomeForm.summary.trim()) errors.summary = true;
@@ -266,6 +250,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
     async function handleSaveTestimonial() {
         if (!state.testimonialForm) return;
+
         const errors: Record<string, boolean> = {};
         if (!state.testimonialForm.industry.trim()) errors.industry = true;
         if (!state.testimonialForm.name.trim()) errors.name = true;
@@ -318,7 +303,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         });
     }
 
-    function handleUpdateForm(fields: Partial<SeminarFormData>) {
+    function handleUpdateForm(fields: Partial<EventFormData>) {
         update((previous) => {
             if (!previous.form) return {};
 
@@ -328,6 +313,28 @@ function useDashboardState(getToken: () => Promise<string | null>) {
             };
         });
     }
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(max-width: 1024px)');
+
+        setIsMobile(mediaQuery.matches);
+
+        const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+
+        mediaQuery.addEventListener('change', onChange);
+
+        return () => mediaQuery.removeEventListener('change', onChange);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            clearTimeout(toastTimer.current);
+        };
+    }, []);
 
     return {
         authFetch,
@@ -387,32 +394,59 @@ function DashboardInner() {
 
     if (auth.loading) {
         return (
-            <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', fontFamily: '\'Hanken Grotesk\', sans-serif', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
+            <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
                 <Spinner size={48} />
-                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Loading&hellip;</p>
+                <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Loading&hellip;</p>
             </div>
         );
     }
 
-    if (!auth.user) {
-        return <LoginScreen auth={auth} />;
+    if (!auth.user) return <LoginScreen auth={auth} />;
+
+    if (auth.recovery) return <SetPasswordScreen auth={auth} />;
+
+    function handleFilterToggle(value: string) {
+        if (value === 'all') {
+            set({ adminFilters: [] });
+        } else {
+            set({
+                adminFilters: state.adminFilters.includes(value)
+                    ? state.adminFilters.filter(filter => filter !== value)
+                    : [...state.adminFilters, value],
+            });
+        }
     }
 
-    if (auth.recovery) {
-        return <SetPasswordScreen auth={auth} />;
+    async function handleConfirmDelete() {
+        const id = state.confirmDelete;
+        const endpoints: Record<string, string> = { outcome: '/api/outcomes', event: '/api/seminars', testimonial: '/api/testimonials' };
+        const labels: Record<string, string> = { outcome: 'Outcome', event: 'Event', testimonial: 'Testimonial' };
+
+        const endpoint = endpoints[state.confirmDeleteType];
+        const label = labels[state.confirmDeleteType];
+
+        set({ confirmDelete: null, editing: null, editingOutcome: null, editingTestimonial: null, form: null, outcomeForm: null, testimonialForm: null });
+
+        try {
+            await authFetch(endpoint, { body: JSON.stringify({ id }), headers: { 'Content-Type': 'application/json' }, method: 'DELETE' });
+            fetchData();
+            showToast(`${label} deleted`);
+        } catch {
+            showToast('Failed to delete', true);
+        }
     }
 
     if (state.loading) {
         return (
-            <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', fontFamily: '\'Hanken Grotesk\', sans-serif', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
+            <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
                 <Spinner size={48} />
-                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Loading&hellip;</p>
+                <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Loading&hellip;</p>
             </div>
         );
     }
 
     const query = state.adminSearch.trim().toLowerCase();
-    const direction = state.sortDir === 'asc' ? 1 : -1;
+    const direction = state.sortDirection === 'asc' ? 1 : -1;
 
     const filteredOutcomes = query
         ? state.outcomes.filter(outcome => outcome.title.toLowerCase().includes(query) || outcome.summary.toLowerCase().includes(query))
@@ -429,11 +463,11 @@ function DashboardInner() {
         return valueA < valueB ? -direction : valueA > valueB ? direction : 0;
     });
 
-    const filteredRows = state.seminars
-        .filter(seminar =>
-            (state.adminFilters.length === 0 || state.adminFilters.includes(seminar.difficulty || ''))
-            && (state.adminLocation === 'all' || seminar.location === state.adminLocation)
-            && (!query || seminar.title.toLowerCase().includes(query) || seminar.location.toLowerCase().includes(query)),
+    const filteredRows = state.events
+        .filter(entry =>
+            (state.adminFilters.length === 0 || state.adminFilters.includes(entry.level || ''))
+            && (state.adminLocation === 'all' || entry.location === state.adminLocation)
+            && (!query || entry.title.toLowerCase().includes(query) || entry.location.toLowerCase().includes(query)),
         )
         .slice()
         .sort((a, b) => {
@@ -445,8 +479,8 @@ function DashboardInner() {
                     valueB = b.date;
                     break;
                 case 'level':
-                    valueA = a.difficulty || '';
-                    valueB = b.difficulty || '';
+                    valueA = a.level || '';
+                    valueB = b.level || '';
                     break;
                 case 'location':
                     valueA = a.location.toLowerCase();
@@ -465,22 +499,23 @@ function DashboardInner() {
                 ? state.outcomes.find(outcome => outcome.id === state.confirmDelete)
                 : state.confirmDeleteType === 'testimonial'
                     ? state.testimonials.find(testimonial => testimonial.id === state.confirmDelete)
-                    : state.seminars.find(seminar => seminar.id === state.confirmDelete))
+                    : state.events.find(entry => entry.id === state.confirmDelete))
         : null;
 
     function handleToggleSort(field: string) {
-        set({ sortDir: state.sortKey === field && state.sortDir === 'asc' ? 'desc' : 'asc', sortKey: field });
+        set({ sortDirection: state.sortKey === field && state.sortDirection === 'asc' ? 'desc' : 'asc', sortKey: field });
     }
 
     return (
-        <div style={{ background: '#f7f8fa', display: 'flex', flexDirection: 'column', fontFamily: '\'Hanken Grotesk\', sans-serif', minHeight: '100vh' }}>
+        <div style={{ background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <AdminTopBar
+                drawerOpen={state.drawerOpen}
                 onSearchChange={value => set({ adminSearch: value })}
                 onToggleNav={handleToggleNav}
                 searchValue={state.adminSearch}
             />
             <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
-                {isMobile && state.drawerOpen && <div aria-hidden="true" onClick={() => set({ drawerOpen: false })} style={{ background: 'rgba(20,22,28,.35)', inset: '60px 0 0 0', position: 'fixed', zIndex: 30 }} />}
+                {isMobile && state.drawerOpen && <div aria-hidden="true" onClick={() => set({ drawerOpen: false })} onKeyDown={event => event.key === 'Escape' && set({ drawerOpen: false })} role="button" tabIndex={-1} style={{ background: STYLES.overlayLight, inset: '60px 0 0 0', position: 'fixed', zIndex: 30 }} />}
                 <AdminSidebar
                     activePanel={state.activePanel}
                     drawerOpen={state.drawerOpen}
@@ -507,7 +542,7 @@ function DashboardInner() {
                                     onUpdate={handleUpdateTestimonialForm}
                                     saving={state.saving}
                                     set={set}
-                                    sortDir={state.sortDir}
+                                    sortDirection={state.sortDirection}
                                     sortKey={state.sortKey}
                                     testimonialForm={state.testimonialForm}
                                     testimonialFormErrors={state.testimonialFormErrors}
@@ -535,34 +570,34 @@ function DashboardInner() {
                                 ? (
                                         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
                                             <div style={{ marginBottom: 24 }}>
-                                                <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Seminars</h1>
+                                                <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Events</h1>
                                                 <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em' }}>
                                                     <span>
-                                                        {state.seminars.length}
+                                                        {state.events.length}
                                                         {' '}
-                                                        {state.seminars.length === 1 ? 'seminar' : 'seminars'}
+                                                        {state.events.length === 1 ? 'event' : 'events'}
                                                     </span>
                                                     <span aria-hidden="true">&middot;</span>
                                                     <span>
-                                                        {[...new Set(state.seminars.map(seminar => seminar.location))].length}
+                                                        {[...new Set(state.events.map(entry => entry.location))].length}
                                                         {' '}
-                                                        {[...new Set(state.seminars.map(seminar => seminar.location))].length === 1 ? 'location' : 'locations'}
+                                                        {[...new Set(state.events.map(entry => entry.location))].length === 1 ? 'location' : 'locations'}
                                                     </span>
                                                     <span aria-hidden="true">&middot;</span>
                                                     <span>
-                                                        {state.seminars.filter(seminar => seminar.difficulty === 'Beginner').length}
+                                                        {state.events.filter(entry => entry.level === 'Beginner').length}
                                                         {' '}
                                                         Beginner
                                                     </span>
                                                     <span aria-hidden="true">&middot;</span>
                                                     <span>
-                                                        {state.seminars.filter(seminar => seminar.difficulty === 'Intermediate').length}
+                                                        {state.events.filter(entry => entry.level === 'Intermediate').length}
                                                         {' '}
                                                         Intermediate
                                                     </span>
                                                     <span aria-hidden="true">&middot;</span>
                                                     <span>
-                                                        {state.seminars.filter(seminar => seminar.difficulty === 'Advanced').length}
+                                                        {state.events.filter(entry => entry.level === 'Advanced').length}
                                                         {' '}
                                                         Advanced
                                                     </span>
@@ -571,43 +606,33 @@ function DashboardInner() {
                                             <FilterChips
                                                 activeFilters={state.adminFilters}
                                                 activeLocation={state.adminLocation}
-                                                locations={[...new Set(state.seminars.map(seminar => seminar.location))].sort()}
-                                                onFilterToggle={(value) => {
-                                                    if (value === 'all') {
-                                                        set({ adminFilters: [] });
-                                                    } else {
-                                                        set({
-                                                            adminFilters: state.adminFilters.includes(value)
-                                                                ? state.adminFilters.filter(filter => filter !== value)
-                                                                : [...state.adminFilters, value],
-                                                        });
-                                                    }
-                                                }}
+                                                locations={[...new Set(state.events.map(entry => entry.location))].sort()}
+                                                onFilterToggle={handleFilterToggle}
                                                 onLocationChange={value => set({ adminLocation: value })}
-                                                onNewSeminar={handleStartNew}
+                                                onNewEvent={handleStartNew}
                                             />
-                                            <div style={{ background: '#ffffff', border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+                                            <div style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
                                                 {!isMobile && (
                                                     <TableHeader
                                                         onSort={handleToggleSort}
-                                                        sortDir={state.sortDir}
+                                                        sortDirection={state.sortDirection}
                                                         sortKey={state.sortKey}
                                                     />
                                                 )}
                                                 {filteredRows.length > 0
-                                                    ? filteredRows.map(seminar => (
+                                                    ? filteredRows.map(entry => (
                                                             <SeminarRow
                                                                 isMobile={isMobile}
-                                                                key={seminar.id}
-                                                                onDelete={() => set({ confirmDelete: seminar.id, confirmDeleteType: 'seminar' })}
-                                                                onEdit={() => handleStartEdit(seminar.id)}
-                                                                seminar={seminar}
+                                                                key={entry.id}
+                                                                onDelete={() => set({ confirmDelete: entry.id, confirmDeleteType: 'event' })}
+                                                                onEdit={() => handleStartEdit(entry.id)}
+                                                                entry={entry}
                                                             />
                                                         ))
                                                     : (
                                                             <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-                                                                <p style={{ fontFamily: FONT_HEADING, fontSize: 18, fontWeight: 600, margin: '0 0 6px' }}>No seminars found</p>
-                                                                <p style={{ color: STYLES.colorGhost, fontSize: 14, margin: 0 }}>Try a different search or filter, or add a new seminar.</p>
+                                                                <p style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 6px' }}>No events found</p>
+                                                                <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Try a different search or filter, or add a new event.</p>
                                                             </div>
                                                         )}
                                             </div>
@@ -621,7 +646,7 @@ function DashboardInner() {
                                                 formErrors={state.formErrors}
                                                 isMobile={isMobile}
                                                 onCancel={handleCancelEdit}
-                                                onDelete={() => set({ confirmDelete: state.editing, confirmDeleteType: 'seminar' })}
+                                                onDelete={() => set({ confirmDelete: state.editing, confirmDeleteType: 'event' })}
                                                 onSave={handleSaveForm}
                                                 onUpdate={handleUpdateForm}
                                                 saving={state.saving}
@@ -633,27 +658,12 @@ function DashboardInner() {
             {state.confirmDelete && confirmItem && (
                 <DeleteModal
                     onCancel={() => set({ confirmDelete: null })}
-                    onConfirm={async () => {
-                        const id = state.confirmDelete;
-                        const endpoints: Record<string, string> = { outcome: '/api/outcomes', seminar: '/api/seminars', testimonial: '/api/testimonials' };
-                        const labels: Record<string, string> = { outcome: 'Outcome', seminar: 'Seminar', testimonial: 'Testimonial' };
-                        const endpoint = endpoints[state.confirmDeleteType];
-                        const label = labels[state.confirmDeleteType];
-                        set({ confirmDelete: null, editing: null, editingOutcome: null, editingTestimonial: null, form: null, outcomeForm: null, testimonialForm: null });
-
-                        try {
-                            await authFetch(endpoint, { body: JSON.stringify({ id }), headers: { 'Content-Type': 'application/json' }, method: 'DELETE' });
-                            fetchData();
-                            showToast(`${label} deleted`);
-                        } catch {
-                            showToast('Failed to delete', true);
-                        }
-                    }}
+                    onConfirm={handleConfirmDelete}
                     title={'title' in confirmItem ? confirmItem.title : confirmItem.name}
                 />
             )}
             {state.toast && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.toastError ? '#fdecea' : '#e7f4ef', border: `1px solid ${state.toastError ? '#c0392b' : '#0d7a5f'}`, borderRadius: 12, bottom: 36, boxShadow: '0 8px 24px rgba(20,22,28,.16)', color: state.toastError ? '#c0392b' : '#0d7a5f', display: 'flex', fontFamily: '\'Hanken Grotesk\', sans-serif', fontSize: 15, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: 'clamp(12px, 2vw, 14px) clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
+                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.toastError ? STYLES.colorErrorBg : STYLES.colorSuccessBg, border: `1px solid ${state.toastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.toastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
                     {state.toast}
                 </div>
             )}

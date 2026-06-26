@@ -15,20 +15,22 @@
     <div class="shell contact__inner">
         <div data-scroll>
             <h2 id="contact-title" class="contact__title" data-i18n="Get in Touch">Get in Touch</h2>
-            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or attending a seminar? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.">Interested in coaching, a workshop, or attending a seminar? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.</p>
+            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or attending an event? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.">Interested in coaching, a workshop, or attending an event? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.</p>
         </div>
         <div class="contact__success" hidden>
             <h3 class="contact__success-title" data-i18n-html="contact-success-title">Thank you, message sent.</h3>
-            <p class="contact__success-text" data-i18n-html="contact-success-text">We've received your note and will be in touch at the email you provided. A copy was routed to lydia@intersubstudio.com.</p>
+            <p class="contact__success-text" data-i18n-html="contact-success-text">We've received your note and will be in touch at the email you provided. A copy was routed to intersjt@outlook.com.</p>
             <button class="button button--outline contact__reset" data-i18n="Send another" type="button">Send another</button>
         </div>
-        <form class="contact__form" novalidate>
+        <form class="contact__form flex flex-col gap-5 text-left" novalidate>
             <label class="label">
                 <span data-i18n="Name">Name</span> <span class="label__required">*</span>
                 <input
                     class="input"
                     aria-describedby="error-name"
+                    autocomplete="name"
                     data-i18n-placeholder="Your full name"
+                    maxlength="100"
                     name="name"
                     placeholder="Your full name"
                     required
@@ -37,25 +39,27 @@
                 <p class="contact__error" id="error-name" data-i18n="Please enter your name." hidden>Please enter your name.</p>
             </label>
             <label class="label">
-                <span data-i18n="Email">Email</span> <span class="label__required">*</span>
+                <span data-i18n="Weixin">Weixin</span> <span class="label__required">*</span>
                 <input
                     class="input"
-                    aria-describedby="error-email"
-                    name="email"
-                    placeholder="you@company.com"
+                    aria-describedby="error-weixin"
+                    data-i18n-placeholder="Your Weixin ID or number"
+                    name="weixin"
+                    placeholder="Your Weixin ID or number"
                     required
-                    type="email"
+                    type="text"
                 />
-                <p class="contact__error" id="error-email" data-i18n="Please enter a valid email address." hidden>Please enter a valid email address.</p>
+                <p class="contact__error" id="error-weixin" data-i18n="Please enter your Weixin ID." hidden>Please enter your Weixin ID.</p>
             </label>
             <label class="label">
-                <span data-i18n="Weixin">Weixin</span>
+                <span data-i18n="Email">Email</span>
                 <input
                     class="input"
-                    name="weixin"
-                    data-i18n-placeholder="Your Weixin ID or number"
-                    placeholder="Your Weixin ID or number"
-                    type="text"
+                    autocomplete="email"
+                    data-i18n-placeholder="you@company.com"
+                    name="email"
+                    placeholder="you@company.com"
+                    type="email"
                 />
             </label>
             <label class="label">
@@ -64,6 +68,7 @@
                     class="textarea"
                     aria-describedby="error-message"
                     data-i18n-placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
+                    maxlength="2000"
                     name="message"
                     placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
                     required
@@ -71,29 +76,23 @@
                 />
                 <p class="contact__error" id="error-message" data-i18n="Please add a short message." hidden>Please add a short message.</p>
             </label>
-            <button class="button contact__submit" data-i18n="Send message" type="submit">Send message</button>
+            <button class="button contact__submit self-center" data-i18n="Send message" type="submit">Send message</button>
+            <p class="contact__error contact__network-error" hidden>Something went wrong. Please try again.</p>
         </form>
     </div>
 </section>
 
 <style>
     .contact {
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-silver);
         overflow: hidden;
         position: relative;
     }
 
     .contact__error {
-        color: var(--color-error);
-        font-size: 13px;
-        margin: 7px 0 0;
-    }
-
-    .contact__form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        text-align: left;
+        color: var(--color-red);
+        font-size: 12px;
+        margin: 8px 0 0;
     }
 
     .contact__inner {
@@ -104,19 +103,19 @@
     }
 
     .contact__intro {
-        color: var(--color-ink-muted);
-        font-size: 17px;
+        color: var(--color-slate-muted);
+        font-size: 16px;
         line-height: 1.6;
-        margin: 0 0 44px;
+        margin: 0 0 clamp(40px, 5vw, 64px);
     }
 
     .contact__reset {
-        font-size: 14px;
+        font-size: 16px;
         padding: 10px 18px;
     }
 
     .contact__ring {
-        border: 1.5px solid var(--color-border-muted);
+        border: 1.5px solid var(--color-silver-muted);
         border-radius: 50%;
         pointer-events: none;
         position: absolute;
@@ -158,44 +157,34 @@
         width: clamp(160px, 18vw, 220px);
     }
 
-    .contact__submit {
-        align-self: center;
-        padding-top: 6px;
-    }
-
     .contact__success {
-        background: var(--color-accent-10);
-        border: 1px solid var(--color-accent-20);
+        background: var(--color-cobalt-10);
+        border: 1px solid var(--color-cobalt-20);
         border-radius: 14px;
         padding: 40px;
         text-align: center;
     }
 
     .contact__success-text {
-        color: var(--color-ink-muted);
-        font-size: 15.5px;
+        color: var(--color-slate-muted);
+        font-size: 16px;
         line-height: 1.6;
         margin: 0 0 20px;
     }
 
     .contact__success-title {
-        color: var(--color-ink);
-        font-size: 22px;
+        color: var(--color-slate);
+        font-size: 24px;
         font-weight: 600;
         margin: 0 0 10px;
     }
 
     .contact__title {
-        color: var(--color-ink);
-        font-size: clamp(28px, 4vw, 44px);
+        color: var(--color-slate);
+        font-size: clamp(28px, 4vw, 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 0 0 16px;
-    }
-
-    .input--error,
-    .textarea--error {
-        border-color: var(--color-error-soft);
     }
 
     @media (max-width: 1024px) {
@@ -206,34 +195,44 @@
 </style>
 
 <script>
+    let controller: AbortController;
+
     function initContact() {
+        if (controller) controller.abort();
+        controller = new AbortController();
+
         const section = document.querySelector('.contact');
         if (!section) return;
 
         const form = section.querySelector<HTMLFormElement>('.contact__form');
+        const submitButton = form?.querySelector<HTMLButtonElement>('.contact__submit');
         const success = section.querySelector<HTMLElement>('.contact__success');
         const reset = section.querySelector<HTMLElement>('.contact__reset');
 
-        if (!form || !success || !reset) return;
+        if (!form || !submitButton || !success || !reset) return;
 
         const nameInput = form.querySelector<HTMLInputElement>('input[name="name"]');
+        const weixinInput = form.querySelector<HTMLInputElement>('input[name="weixin"]');
         const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]');
-        const msgInput = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
+        const messageInput = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
         const errors = form.querySelectorAll<HTMLElement>('.contact__error');
+        const networkError = form.querySelector<HTMLElement>('.contact__network-error');
 
-        const clearErrors = () => {
-            errors.forEach(e => e.hidden = true);
-            form.querySelectorAll('.input--error, .textarea--error').forEach((el) => {
-                el.classList.remove('input--error', 'textarea--error');
+        function clearErrors() {
+            errors.forEach(error => error.hidden = true);
+            if (networkError) networkError.hidden = true;
+            form.querySelectorAll('.input--error, .textarea--error').forEach((element) => {
+                element.classList.remove('input--error', 'textarea--error');
             });
-        };
+        }
 
-        nameInput?.addEventListener('input', clearErrors);
-        emailInput?.addEventListener('input', clearErrors);
-        msgInput?.addEventListener('input', clearErrors);
+        nameInput?.addEventListener('input', clearErrors, { signal: controller.signal });
+        weixinInput?.addEventListener('input', clearErrors, { signal: controller.signal });
+        emailInput?.addEventListener('input', clearErrors, { signal: controller.signal });
+        messageInput?.addEventListener('input', clearErrors, { signal: controller.signal });
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
             clearErrors();
 
             let valid = true;
@@ -244,27 +243,35 @@
                 valid = false;
             }
 
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput?.value.trim() ?? '')) {
+            if (!weixinInput?.value.trim() || /\s/.test(weixinInput.value.trim())) {
                 errors[1].hidden = false;
+                weixinInput?.classList.add('input--error');
+                valid = false;
+            }
+
+            if (emailInput?.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+                errors[2].hidden = false;
                 emailInput?.classList.add('input--error');
                 valid = false;
             }
 
-            if ((msgInput?.value.trim() ?? '').length < 10) {
-                errors[2].hidden = false;
-                msgInput?.classList.add('textarea--error');
+            if (!messageInput?.value.trim()) {
+                errors[3].hidden = false;
+                messageInput?.classList.add('textarea--error');
                 valid = false;
             }
 
             if (!valid) return;
 
+            submitButton.disabled = true;
+
             try {
                 const response = await fetch('/api/contact', {
                     body: JSON.stringify({
                         email: emailInput?.value.trim(),
-                        message: msgInput?.value.trim(),
+                        message: messageInput?.value.trim(),
                         name: nameInput?.value.trim(),
-                        weixin: form.querySelector<HTMLInputElement>('input[name="weixin"]')?.value.trim(),
+                        weixin: weixinInput?.value.trim(),
                     }),
                     headers: { 'Content-Type': 'application/json' },
                     method: 'POST',
@@ -275,16 +282,18 @@
                 form.hidden = true;
                 success.hidden = false;
             } catch {
-                return;
+                if (networkError) networkError.hidden = false;
+            } finally {
+                submitButton.disabled = false;
             }
-        });
+        }, { signal: controller.signal });
 
         reset.addEventListener('click', () => {
             form.reset();
             clearErrors();
             success.hidden = true;
             form.hidden = false;
-        });
+        }, { signal: controller.signal });
     }
 
     document.addEventListener('astro:page-load', initContact);

@@ -1,8 +1,17 @@
 ---
-import { Image } from 'astro:assets';
-
-import qrCode from '@images/qr.png';
+import IconApplePodcasts from '@components/IconApplePodcasts.astro';
+import IconDouyin from '@components/IconDouyin.astro';
+import IconRedNote from '@components/IconRedNote.astro';
+import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
+import QrCode from '@components/QrCode.astro';
 import { ROUTES, SOCIALS } from '@lib/constants';
+
+const ICONS: Record<string, typeof IconApplePodcasts> = {
+    'Apple Podcasts': IconApplePodcasts,
+    'Douyin (抖音)': IconDouyin,
+    'Xiaohongshu (RedNote)': IconRedNote,
+    'Xiaoyuzhou (小宇宙)': IconXiaoyuzhou,
+};
 ---
 
 <footer
@@ -12,9 +21,9 @@ import { ROUTES, SOCIALS } from '@lib/constants';
     <div class="shell site-footer__inner grid items-start">
         <div>
             <h2 class="site-footer__wordmark">InterSub</h2>
-            <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and seminars for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and seminars for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
+            <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
         </div>
-        <div class="site-footer__column">
+        <div class="site-footer__column flex flex-col">
             <p class="site-footer__heading" data-i18n="Directory">Directory</p>
             <div class="flex flex-col gap-3">
                 {ROUTES.map(route => (
@@ -35,32 +44,37 @@ import { ROUTES, SOCIALS } from '@lib/constants';
                 )}
             </div>
         </div>
-        <div class="site-footer__column site-footer__connect">
+        <div class="site-footer__column site-footer__connect flex flex-col gap-5">
             <div class="site-footer__qr-code">
                 <p class="site-footer__heading" data-i18n="Weixin">Weixin</p>
-                <Image
-                    class="site-footer__qr-code-image"
-                    alt="Weixin QR code"
-                    height={80}
-                    src={qrCode}
-                    width={80}
-                />
+                <QrCode size={100} />
             </div>
             <div>
                 <p class="site-footer__heading" data-i18n="Follow">Follow</p>
-                <div class="site-footer__socials flex flex-wrap">
-                    {SOCIALS.map(soc => (
-                        <a
-                            class="site-footer__social flex items-center justify-center"
-                            aria-label={soc.label}
-                            href={soc.href}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            title={soc.label}
-                        >
-                            {soc.mark}
-                        </a>
-                    ))}
+                <div class="site-footer__socials flex flex-wrap gap-2">
+                    {SOCIALS.map((soc) => {
+                        const Icon = ICONS[soc.label];
+                        return 'href' in soc
+                            ? (
+                                    <a
+                                        class="site-footer__social site-footer__social--link flex items-center justify-center"
+                                        aria-label={soc.label}
+                                        href={soc.href}
+                                        target="_blank"
+                                        title={soc.label}
+                                    >
+                                        {Icon && <Icon size={22} />}
+                                    </a>
+                                )
+                            : (
+                                    <span
+                                        class="site-footer__social flex items-center justify-center"
+                                        title={soc.label}
+                                    >
+                                        {Icon && <Icon size={22} />}
+                                    </span>
+                                );
+                    })}
                 </div>
             </div>
         </div>
@@ -73,30 +87,25 @@ import { ROUTES, SOCIALS } from '@lib/constants';
 
 <style>
     .site-footer {
-        background: var(--color-dark);
-        color: var(--color-ink-pale);
+        background: var(--color-slate);
+        color: var(--color-slate-pale);
     }
 
     .site-footer__bottom {
         align-items: center;
-        border-top: 1px solid var(--color-dark-edge);
-        color: var(--color-dark-muted);
+        border-top: 1px solid var(--color-slate-edge);
+        color: var(--color-slate-light);
         display: flex;
-        font-size: 13.5px;
+        font-size: 12px;
         gap: 8px 24px;
         justify-content: space-between;
         padding-block: 28px;
     }
 
-    .site-footer__column {
-        display: flex;
-        flex-direction: column;
-    }
-
     .site-footer__heading {
-        color: var(--color-dark-muted);
+        color: var(--color-slate-light);
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 10px;
         letter-spacing: 0.1em;
         margin: 0 0 16px;
         text-transform: uppercase;
@@ -109,15 +118,9 @@ import { ROUTES, SOCIALS } from '@lib/constants';
         padding-top: clamp(48px, 6vw, 72px);
     }
 
-    .site-footer__connect {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
     .site-footer__link {
-        color: var(--color-dark-text);
-        font-size: 15px;
+        color: var(--color-slate-text);
+        font-size: 16px;
         text-decoration: none;
         transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
     }
@@ -127,12 +130,12 @@ import { ROUTES, SOCIALS } from '@lib/constants';
     }
 
     .site-footer__link:focus-visible {
-        box-shadow: 0 0 0 3px var(--color-accent-20);
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
     .site-footer__link:hover {
-        color: var(--color-surface);
+        color: var(--color-white);
     }
 
     .site-footer__qr-code {
@@ -145,46 +148,46 @@ import { ROUTES, SOCIALS } from '@lib/constants';
     }
 
     .site-footer__social {
-        background: var(--color-dark-mid);
-        border: 1px solid var(--color-dark-edge);
+        background: var(--color-slate-mid);
+        border: 1px solid var(--color-slate-edge);
         border-radius: 10px;
-        color: var(--color-dark-text);
+        color: var(--color-slate-text);
         font-family: var(--font-heading);
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
         height: 40px;
-        text-decoration: none;
-        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+        user-select: none;
         width: 40px;
     }
 
-    .site-footer__social:active {
+    .site-footer__social--link {
+        text-decoration: none;
+        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+    }
+
+    .site-footer__social--link:active {
         opacity: 0.8;
     }
 
-    .site-footer__social:focus-visible {
-        box-shadow: 0 0 0 3px var(--color-accent-20);
+    .site-footer__social--link:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
-    .site-footer__social:hover {
-        border-color: var(--color-accent);
-        color: var(--color-surface);
-    }
-
-    .site-footer__socials {
-        gap: 9px;
+    .site-footer__social--link:hover {
+        border-color: var(--color-cobalt);
+        color: var(--color-white);
     }
 
     .site-footer__tag {
-        color: var(--color-ink-pale);
-        font-size: 14.5px;
+        color: var(--color-slate-pale);
+        font-size: 16px;
         line-height: 1.6;
         margin: 0;
     }
 
     .site-footer__wordmark {
-        color: var(--color-surface);
+        color: var(--color-white);
         font-size: clamp(24px, 3vw, 32px);
         font-weight: 700;
         letter-spacing: -0.02em;
