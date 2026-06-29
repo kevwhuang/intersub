@@ -6,7 +6,8 @@ import hero from '@images/hero.webp';
 
 <section
     class="hero grid isolate overflow-hidden relative"
-    aria-label="InterSub, a business English communication studio. A laptop on a sunlit office windowsill shows a presentation titled The Power of Intersubjectivity in Business, framed by the Shanghai skyline beyond the glass."
+    aria-label="InterSub, a business English communication studio."
+    data-i18n-aria="InterSub, a business English communication studio."
 >
     <div class="hero__background absolute" aria-hidden="true">
         <Image
@@ -20,7 +21,10 @@ import hero from '@images/hero.webp';
     </div>
     <div class="hero__overlay absolute" aria-hidden="true" />
     <div class="hero__content shell relative">
-        <h1 class="hero__title" data-scroll><span data-i18n="Your">Your</span> <span class="hero__accent" data-i18n="authority">authority</span><span data-i18n=",">,</span> <span data-i18n="in">in</span> <span class="hero__accent" data-i18n="English">English</span><span data-i18n=".">.</span></h1>
+        <h1 class="hero__title" data-scroll>
+            <span class="hero__title-line"><span data-i18n="Your">Your</span> <span class="hero__accent" data-i18n="authority">authority</span></span>
+            <span class="hero__title-line"><span data-i18n="in">in</span> <span class="hero__accent" data-i18n="English">English</span></span>
+        </h1>
         <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>Private coaching, team workshops, and focused events for Chinese professionals who lead meetings, close deals, and write under pressure.</p>
     </div>
 </section>
@@ -78,8 +82,10 @@ import hero from '@images/hero.webp';
         letter-spacing: -0.03em;
         line-height: 1.03;
         margin: 0 0 28px;
-        max-width: 560px;
         text-shadow: 0 2px 34px var(--color-black-50);
-        text-wrap: balance;
+    }
+
+    .hero__title-line {
+        display: block;
     }
 </style>

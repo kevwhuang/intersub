@@ -1,7 +1,7 @@
 import htmlTranslations from '@content/translations/html.json';
 import outcomesTranslations from '@content/translations/outcomes.json';
 import placeholderTranslations from '@content/translations/placeholders.json';
-import eventsTranslations from '@content/translations/seminars.json';
+import eventTranslations from '@content/translations/seminars.json';
 import testimonialsTranslations from '@content/translations/testimonials.json';
 import titleTranslations from '@content/translations/titles.json';
 import uiTranslations from '@content/translations/ui.json';
@@ -13,7 +13,7 @@ const TITLE_TRANSLATIONS: Record<string, string> = titleTranslations;
 const TRANSLATIONS: Record<string, string> = {
     ...uiTranslations,
     ...outcomesTranslations,
-    ...eventsTranslations,
+    ...eventTranslations,
     ...testimonialsTranslations,
 };
 
@@ -57,6 +57,11 @@ export function applyLanguage() {
         element.textContent = isChinese ? formatDateChinese(dateString) : element.dataset.i18nDateOriginal;
     });
 
+    document.querySelectorAll<HTMLElement>('[data-i18n-aria]').forEach((element) => {
+        const key = element.dataset.i18nAria || '';
+        element.setAttribute('aria-label', isChinese && TRANSLATIONS[key] ? TRANSLATIONS[key] : key);
+    });
+
     document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-i18n-placeholder]').forEach((element) => {
         const key = element.dataset.i18nPlaceholder || '';
         element.placeholder = isChinese && PLACEHOLDER_TRANSLATIONS[key] ? PLACEHOLDER_TRANSLATIONS[key] : key;
@@ -76,6 +81,11 @@ export function applyLanguage() {
     } else {
         document.title = originalTitle;
     }
+
+    document.querySelectorAll<HTMLElement>('[data-lang-logo]').forEach((element) => {
+        const lang = element.dataset.langLogo;
+        element.hidden = isChinese ? lang !== 'zh' : lang !== 'en';
+    });
 
     const toggle = document.querySelector<HTMLButtonElement>('[data-lang-toggle]');
 

@@ -4,6 +4,8 @@ import IconDouyin from '@components/IconDouyin.astro';
 import IconRedNote from '@components/IconRedNote.astro';
 import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
 import QrCode from '@components/QrCode.astro';
+import logoEn from '@images/logo_en.webp';
+import logoZh from '@images/logo_zh.webp';
 import { ROUTES, SOCIALS } from '@lib/constants';
 
 const ICONS: Record<string, typeof IconApplePodcasts> = {
@@ -17,10 +19,12 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
 <footer
     class="site-footer"
     aria-label="Site footer"
+    data-i18n-aria="Site footer"
 >
     <div class="shell site-footer__inner grid items-start">
         <div>
-            <h2 class="site-footer__wordmark">InterSub</h2>
+            <img class="site-footer__wordmark" alt="InterSub" data-lang-logo="en" height="32" src={logoEn.src} />
+            <img class="site-footer__wordmark" alt="言际阁" data-lang-logo="zh" height="32" hidden src={logoZh.src} />
             <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
         </div>
         <div class="site-footer__column flex flex-col">
@@ -142,11 +146,6 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
         order: 1;
     }
 
-    .site-footer__qr-code-image {
-        border-radius: 8px;
-        display: block;
-    }
-
     .site-footer__social {
         background: var(--color-slate-mid);
         border: 1px solid var(--color-slate-edge);
@@ -187,11 +186,14 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
     }
 
     .site-footer__wordmark {
-        color: var(--color-white);
-        font-size: clamp(24px, 3vw, 32px);
-        font-weight: 700;
-        letter-spacing: -0.02em;
+        display: block;
+        height: 32px;
         margin: 0 0 14px;
+        width: auto;
+    }
+
+    .site-footer__wordmark[hidden] {
+        display: none;
     }
 
     @media (max-width: 768px) {
