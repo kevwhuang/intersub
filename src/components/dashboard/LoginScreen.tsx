@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { COBALT, FONT_HEADING, STYLES } from '@lib/constants';
+import { FONT_HEADING, STYLES } from '@lib/constants';
 import { useAuth } from '@lib/authClient';
 
 export default function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
@@ -11,8 +11,7 @@ export default function LoginScreen({ auth }: { auth: ReturnType<typeof useAuth>
         <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, display: 'flex', justifyContent: 'center', minHeight: '100vh', padding: 'clamp(24px, 5vw, 48px)' }}>
             <div style={{ maxWidth: 420, width: '100%' }}>
                 <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 'clamp(32px, 5vw, 48px)' }}>
-                    <span style={{ background: COBALT, borderRadius: 12, display: 'inline-block', height: 44, width: 44 }} />
-                    <span style={{ fontFamily: FONT_HEADING, fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em' }}>InterSub</span>
+                    <img alt="InterSub" height="44" src="/favicon.png" style={{ borderRadius: 12 }} width="44" />
                 </div>
                 <div style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 18, boxShadow: STYLES.shadowCard, padding: 'clamp(28px, 5vw, 40px) clamp(24px, 4vw, 36px)' }}>
                     <h1 style={{ fontFamily: FONT_HEADING, fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', margin: '0 0 6px', textAlign: 'center' }}>Sign in</h1>

@@ -1,20 +1,24 @@
 ---
+import logoEn from '@images/logo_en.webp';
+import logoZh from '@images/logo_zh.webp';
 import { ROUTES } from '@lib/constants';
 ---
 
 <header class="site-header fixed">
     <div class="site-header__inner flex items-center justify-between">
         <a
-            class="site-header__brand flex items-center gap-[9px] no-underline select-none"
+            class="site-header__brand flex items-center no-underline select-none"
             aria-label="InterSub Home"
+            data-i18n-aria="InterSub Home"
             href="/"
         >
-            <span class="site-header__mark" aria-hidden="true" />
-            <span class="site-header__wordmark">InterSub</span>
+            <img class="site-header__wordmark" alt="InterSub" data-lang-logo="en" height="24" src={logoEn.src} />
+            <img class="site-header__wordmark" alt="言际阁" data-lang-logo="zh" height="24" hidden src={logoZh.src} />
         </a>
         <nav
             class="site-nav flex items-center"
             aria-label="Primary"
+            data-i18n-aria="Primary"
         >
             {ROUTES.map(route => (
                 <a
@@ -27,6 +31,7 @@ import { ROUTES } from '@lib/constants';
             <button
                 class="site-nav__language"
                 aria-label="Switch language"
+                data-i18n-aria="Switch language"
                 data-lang-toggle
                 type="button"
             >
@@ -55,20 +60,14 @@ import { ROUTES } from '@lib/constants';
         padding: 0 var(--shell-pad);
     }
 
-    .site-header__mark {
-        background: var(--color-cobalt);
-        border-radius: 6px;
-        display: inline-block;
-        height: 22px;
-        width: 22px;
+    .site-header__wordmark {
+        display: block;
+        height: 24px;
+        width: auto;
     }
 
-    .site-header__wordmark {
-        color: var(--color-slate);
-        font-family: var(--font-heading);
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+    .site-header__wordmark[hidden] {
+        display: none;
     }
 
     .site-nav {
@@ -134,7 +133,7 @@ import { ROUTES } from '@lib/constants';
 
     @media (max-width: 768px) {
         .site-header__wordmark {
-            display: none;
+            height: 20px;
         }
     }
 </style>
