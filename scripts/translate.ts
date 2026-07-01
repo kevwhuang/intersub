@@ -12,7 +12,7 @@ const COLLECTIONS: Record<string, FieldConfig[]> = {
         { array: false, name: 'summary' },
         { array: false, name: 'title' },
     ],
-    seminars: [
+    events: [
         { array: false, name: 'title' },
     ],
     testimonials: [

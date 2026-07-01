@@ -4,7 +4,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { slugify } from '../src/lib/utils';
 
 const BASE_URL = process.argv[2] || 'https://intersubstudio.com';
-const COLLECTIONS = ['outcomes', 'seminars', 'testimonials'] as const;
+const COLLECTIONS = ['outcomes', 'events', 'testimonials'] as const;
 const CONTENT_DIR = join(import.meta.dir, '..', 'src', 'content');
 
 async function fetchCollection(endpoint: string): Promise<Record<string, unknown>[]> {
@@ -36,7 +36,7 @@ function writeCollection(directory: string, items: Record<string, unknown>[]) {
 
         let filename = `${index + 1}.json`;
 
-        if (directory === 'seminars' && entry.date) {
+        if (directory === 'events' && entry.date) {
             filename = `${entry.date}.json`;
         } else if (directory === 'testimonials' && entry.name && entry.role) {
             filename = `${slugify(String(entry.name))}-${slugify(String(entry.role))}.json`;

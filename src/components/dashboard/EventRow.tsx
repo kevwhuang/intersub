@@ -1,7 +1,7 @@
 import { FONT_MONO, STYLES } from '@lib/constants';
 import { formatDate, getLevelMeta } from '@lib/utils';
 
-export default function SeminarRow({ entry, isMobile, onDelete, onEdit }: {
+export default function EventRow({ entry, isMobile, onDelete, onEdit }: {
     isMobile: boolean;
     onDelete: () => void;
     onEdit: () => void;

@@ -8,20 +8,20 @@ const locations = [...new Set(events.map(entry => String(entry.location)))].sort
 const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as const;
 ---
 
-<div class="seminars" data-seminars>
-    <section class="seminars__hero" aria-labelledby="seminars-title">
+<div class="events" data-events>
+    <section class="events__hero" aria-labelledby="events-title">
         <div class="shell">
-            <h1 id="seminars-title" class="seminars__title" data-i18n="Events" data-scroll>Events</h1>
-            <p class="seminars__subtitle" data-i18n-html="seminars-subtitle" data-scroll>Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
+            <h1 id="events-title" class="events__title" data-i18n="Events" data-scroll>Events</h1>
+            <p class="events__subtitle" data-i18n-html="events-subtitle" data-scroll>Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
         </div>
     </section>
 
     <section class="section" aria-label="Event catalog" data-i18n-aria="Event catalog">
         <div class="shell">
-            <div class="seminars__toolbar">
-                <div class="seminars__filters flex flex-col gap-5">
+            <div class="events__toolbar">
+                <div class="events__filters flex flex-col gap-5">
                     <div>
-                        <p class="seminars__filter-label" data-i18n="When">When</p>
+                        <p class="events__filter-label" data-i18n="When">When</p>
                         <div class="flex flex-wrap gap-2">
                             <button
                                 class="chip chip--active"
@@ -47,7 +47,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
                         </div>
                     </div>
                     <div>
-                        <p class="seminars__filter-label" data-i18n="Where">Where</p>
+                        <p class="events__filter-label" data-i18n="Where">Where</p>
                         <div class="flex flex-wrap gap-2">
                             <button
                                 class="chip chip--active"
@@ -68,7 +68,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
                         </div>
                     </div>
                     <div>
-                        <p class="seminars__filter-label" data-i18n="Who">Who</p>
+                        <p class="events__filter-label" data-i18n="Who">Who</p>
                         <div class="flex flex-wrap gap-2">
                             {LEVELS.map(d => (
                                 <button
@@ -82,18 +82,18 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
                         </div>
                     </div>
                 </div>
-                <p class="seminars__count" data-count>
+                <p class="events__count" data-count>
                     {events.length} {events.length === 1 ? 'event' : 'events'}
                 </p>
             </div>
 
-            <div class="seminars__grid" data-grid data-scroll data-scroll-stagger="0.08">
+            <div class="events__grid" data-grid data-scroll data-scroll-stagger="0.08">
                 {events.map((sem) => {
                     const meta = getLevelMeta(sem.level);
                     const initials = getInitials(sem.title);
                     return (
                         <a
-                            class="seminars__card"
+                            class="events__card"
                             data-card
                             data-card-date={sem.date}
                             data-card-level={sem.level}
@@ -101,30 +101,30 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
                             href={`/events/${sem.date}`}
                         >
                             <div
-                                class="seminars__card-cover"
+                                class="events__card-cover"
                                 style={`background:${meta.cover};color:${meta.ink}`}
                             >
                                 {sem.cover
-                                    ? <img class="seminars__card-image" alt="" src={sem.cover} />
-                                    : <span class="seminars__card-initials">{initials}</span>}
+                                    ? <img class="events__card-image" alt="" src={sem.cover} />
+                                    : <span class="events__card-initials">{initials}</span>}
                             </div>
-                            <div class="seminars__card-body">
-                                <h2 class="seminars__card-title" data-i18n={sem.title}>{sem.title}</h2>
+                            <div class="events__card-body">
+                                <h2 class="events__card-title" data-i18n={sem.title}>{sem.title}</h2>
                                 {sem.level && (
-                                    <div class="seminars__card-badge mb-[14px]">
+                                    <div class="events__card-badge mb-[14px]">
                                         <span class={`tag tag--${String(sem.level).toLowerCase()}`} data-i18n={meta.label}>{meta.label}</span>
                                     </div>
                                 )}
-                                <dl class="seminars__card-details">
-                                    <div class="seminars__card-row">
-                                        <dt class="seminars__card-key" data-i18n="Date">Date</dt>
-                                        <dd class="seminars__card-value">
+                                <dl class="events__card-details">
+                                    <div class="events__card-row">
+                                        <dt class="events__card-key" data-i18n="Date">Date</dt>
+                                        <dd class="events__card-value">
                                             <time data-i18n-date={sem.date} datetime={sem.date}>{formatDate(sem.date)}</time>
                                         </dd>
                                     </div>
-                                    <div class="seminars__card-row">
-                                        <dt class="seminars__card-key" data-i18n="Location">Location</dt>
-                                        <dd class="seminars__card-value" data-i18n={sem.location}>{sem.location}</dd>
+                                    <div class="events__card-row">
+                                        <dt class="events__card-key" data-i18n="Location">Location</dt>
+                                        <dd class="events__card-value" data-i18n={sem.location}>{sem.location}</dd>
                                     </div>
                                 </dl>
                             </div>
@@ -133,9 +133,9 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
                 })}
             </div>
 
-            <div class="seminars__empty" data-empty style="display:none">
-                <h2 class="seminars__empty-title" data-i18n="No seminars match those filters">No seminars match those filters</h2>
-                <p class="seminars__empty-text" data-i18n="Try widening your selection. New sessions are added throughout the season.">Try widening your selection. New sessions are added throughout the season.</p>
+            <div class="events__empty" data-empty style="display:none">
+                <h2 class="events__empty-title" data-i18n="No events match those filters">No events match those filters</h2>
+                <p class="events__empty-text" data-i18n="Try widening your selection. New sessions are added throughout the season.">Try widening your selection. New sessions are added throughout the season.</p>
                 <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
             </div>
         </div>
@@ -143,7 +143,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
 </div>
 
 <style>
-    .seminars__card {
+    .events__card {
         background: var(--color-white);
         border: 1px solid var(--color-silver-strong);
         border-radius: 16px;
@@ -154,40 +154,40 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
-    .seminars__card:active {
+    .events__card:active {
         opacity: 0.95;
         transform: translateY(0);
     }
 
-    .seminars__card:focus-visible {
+    .events__card:focus-visible {
         border-color: var(--color-cobalt);
         box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
-    .seminars__card:hover {
+    .events__card:hover {
         border-color: var(--color-silver-hover);
         box-shadow: 0 12px 32px var(--color-slate-15);
         transform: translateY(-3px);
     }
 
-    .seminars__card-body {
+    .events__card-body {
         display: flex;
         flex: 1;
         flex-direction: column;
         padding: 22px 22px 24px;
     }
 
-    .seminars__card-cover {
+    .events__card-cover {
         align-items: center;
         border-bottom: 1px solid var(--color-silver);
         display: flex;
-        height: 150px;
+        aspect-ratio: 2.5;
         justify-content: center;
         overflow: hidden;
     }
 
-    .seminars__card-details {
+    .events__card-details {
         border-top: 1px solid var(--color-silver);
         display: flex;
         flex-direction: column;
@@ -196,13 +196,13 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         padding-top: 14px;
     }
 
-    .seminars__card-image {
+    .events__card-image {
         height: 100%;
         object-fit: cover;
         width: 100%;
     }
 
-    .seminars__card-initials {
+    .events__card-initials {
         font-family: var(--font-heading);
         font-size: 48px;
         font-weight: 700;
@@ -210,19 +210,19 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         opacity: 0.32;
     }
 
-    .seminars__card-key {
+    .events__card-key {
         color: var(--color-slate-ghost);
         font-size: 12px;
     }
 
-    .seminars__card-row {
+    .events__card-row {
         display: flex;
         font-size: 12px;
         gap: 12px;
         justify-content: space-between;
     }
 
-    .seminars__card-title {
+    .events__card-title {
         color: var(--color-slate);
         flex: 1;
         font-size: 20px;
@@ -232,14 +232,14 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         margin: 0 0 16px;
     }
 
-    .seminars__card-value {
+    .events__card-value {
         color: var(--color-slate);
         font-weight: 600;
         margin: 0;
         text-align: right;
     }
 
-    .seminars__count {
+    .events__count {
         color: var(--color-slate-ghost);
         font-family: var(--font-mono);
         font-size: 12px;
@@ -247,7 +247,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         white-space: nowrap;
     }
 
-    .seminars__empty {
+    .events__empty {
         background: var(--color-snow);
         border: 1px dashed var(--color-silver-hover);
         border-radius: 16px;
@@ -255,21 +255,21 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         text-align: center;
     }
 
-    .seminars__empty-text {
+    .events__empty-text {
         color: var(--color-slate-muted);
         font-size: 16px;
         line-height: 1.6;
         margin: 0 auto 24px;
     }
 
-    .seminars__empty-title {
+    .events__empty-title {
         color: var(--color-slate);
         font-size: 24px;
         font-weight: 600;
         margin: 0 0 10px;
     }
 
-    .seminars__filter-label {
+    .events__filter-label {
         color: var(--color-slate-ghost);
         font-family: var(--font-mono);
         font-size: 10px;
@@ -279,26 +279,26 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         user-select: none;
     }
 
-    .seminars__grid {
+    .events__grid {
         display: grid;
-        gap: 22px;
+        gap: 28px;
         grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
     }
 
-    .seminars__hero {
+    .events__hero {
         border-bottom: 1px solid var(--color-silver);
         padding-bottom: clamp(48px, 7vw, 84px);
         padding-top: calc(var(--header-height) + clamp(48px, 7vw, 84px));
     }
 
-    .seminars__subtitle {
+    .events__subtitle {
         color: var(--color-slate-muted);
         font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
         margin: 0;
     }
 
-    .seminars__title {
+    .events__title {
         color: var(--color-slate);
         font-size: clamp(32px, 4.6vw, 56px);
         font-weight: 700;
@@ -308,7 +308,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         text-wrap: balance;
     }
 
-    .seminars__toolbar {
+    .events__toolbar {
         align-items: flex-end;
         border-bottom: 1px solid var(--color-silver);
         display: flex;
@@ -331,7 +331,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         if (controller) controller.abort();
         controller = new AbortController();
 
-        const root = document.querySelector<HTMLElement>('[data-seminars]');
+        const root = document.querySelector<HTMLElement>('[data-events]');
         if (!root) return;
 
         let activeLevel = DEFAULT_FILTER;
