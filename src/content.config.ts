@@ -14,8 +14,8 @@ const outcomes = defineCollection({
     }),
 });
 
-const seminars = defineCollection({
-    loader: glob({ base: `./${CONTENT_PATH}/seminars`, pattern: '**/*.json' }),
+const events = defineCollection({
+    loader: glob({ base: `./${CONTENT_PATH}/events`, pattern: '**/*.json' }),
     schema: z.object({
         content: z.string(),
         cover: z.string().optional(),
@@ -36,4 +36,4 @@ const testimonials = defineCollection({
     }),
 });
 
-export const collections = { outcomes, seminars, testimonials };
+export const collections = { outcomes, events, testimonials };

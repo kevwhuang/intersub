@@ -9,7 +9,7 @@ import AdminTopBar from '@components/dashboard/AdminTopBar';
 import FilterChips from '@components/dashboard/FilterChips';
 import LoginScreen from '@components/dashboard/LoginScreen';
 import OutcomesPanel from '@components/dashboard/OutcomesPanel';
-import SeminarRow from '@components/dashboard/SeminarRow';
+import EventRow from '@components/dashboard/EventRow';
 import SetPasswordScreen from '@components/dashboard/SetPasswordScreen';
 import TableHeader from '@components/dashboard/TableHeader';
 import TestimonialsPanel from '@components/dashboard/TestimonialsPanel';
@@ -84,7 +84,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         try {
             const [outcomesResponse, eventsResponse, testimonialsResponse] = await Promise.all([
                 fetch('/api/outcomes'),
-                fetch('/api/seminars'),
+                fetch('/api/events'),
                 fetch('/api/testimonials'),
             ]);
 
@@ -136,7 +136,7 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         set({ saving: true });
 
         try {
-            const response = await authFetch('/api/seminars', {
+            const response = await authFetch('/api/events', {
                 body: JSON.stringify(body),
                 headers: { 'Content-Type': 'application/json' },
                 method: 'POST',
@@ -419,7 +419,7 @@ function DashboardInner() {
 
     async function handleConfirmDelete() {
         const id = state.confirmDelete;
-        const endpoints: Record<string, string> = { outcome: '/api/outcomes', event: '/api/seminars', testimonial: '/api/testimonials' };
+        const endpoints: Record<string, string> = { outcome: '/api/outcomes', event: '/api/events', testimonial: '/api/testimonials' };
         const labels: Record<string, string> = { outcome: 'Outcome', event: 'Event', testimonial: 'Testimonial' };
 
         const endpoint = endpoints[state.confirmDeleteType];
@@ -621,7 +621,7 @@ function DashboardInner() {
                                                 )}
                                                 {filteredRows.length > 0
                                                     ? filteredRows.map(entry => (
-                                                            <SeminarRow
+                                                            <EventRow
                                                                 isMobile={isMobile}
                                                                 key={entry.id}
                                                                 onDelete={() => set({ confirmDelete: entry.id, confirmDeleteType: 'event' })}

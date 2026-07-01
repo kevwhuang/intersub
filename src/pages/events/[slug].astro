@@ -56,49 +56,49 @@ for (const block of rawBlocks) {
 >
     <Navbar />
     <main class="flex flex-col flex-1">
-        <article class="seminar-detail">
+        <article class="event-detail">
             <div class="shell">
-                <a class="seminar-detail__back" href="/events">
+                <a class="event-detail__back" href="/events">
                     <span>&larr;</span>
                     <span data-i18n="All events">All events</span>
                 </a>
-                <h1 class="seminar-detail__title" data-i18n={title} data-scroll>{title}</h1>
-                <dl class="seminar-detail__meta" data-scroll>
+                <h1 class="event-detail__title" data-i18n={title} data-scroll>{title}</h1>
+                <dl class="event-detail__meta" data-scroll>
                     <div>
-                        <dt class="seminar-detail__meta-label" data-i18n="Date">Date</dt>
-                        <dd class="seminar-detail__meta-value">
+                        <dt class="event-detail__meta-label" data-i18n="Date">Date</dt>
+                        <dd class="event-detail__meta-value">
                             <time data-i18n-date={date} datetime={date}>{formatDate(date)}</time>
                         </dd>
                     </div>
                     <div>
-                        <dt class="seminar-detail__meta-label" data-i18n="Location">Location</dt>
-                        <dd class="seminar-detail__meta-value" data-i18n={location}>{location}</dd>
+                        <dt class="event-detail__meta-label" data-i18n="Location">Location</dt>
+                        <dd class="event-detail__meta-value" data-i18n={location}>{location}</dd>
                     </div>
                     {level && (
                         <div>
-                            <dt class="seminar-detail__meta-label" data-i18n="Who">Who</dt>
-                            <dd class="seminar-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
+                            <dt class="event-detail__meta-label" data-i18n="Who">Who</dt>
+                            <dd class="event-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
                         </div>
                     )}
                 </dl>
                 <div
-                    class="seminar-detail__cover"
+                    class="event-detail__cover"
                     data-scroll
                     style={`background:${meta.cover};color:${meta.ink}`}
                 >
                     {cover
-                        ? <img class="seminar-detail__cover-image" alt="" src={cover} />
-                        : <span class="seminar-detail__cover-initials">{initials}</span>}
+                        ? <img class="event-detail__cover-image" alt="" src={cover} />
+                        : <span class="event-detail__cover-initials">{initials}</span>}
                 </div>
-                <div class="prose seminar-detail__content" data-scroll>
+                <div class="prose event-detail__content" data-scroll>
                     {grouped.map((group) => {
                         if (group.type === 'h') return <h2>{group.items[0]}</h2>;
                         if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
                         return <p>{group.items[0]}</p>;
                     })}
                 </div>
-                <div class="seminar-detail__actions">
-                    <a class="button" href="/#contact"><span data-i18n="Register for this event">Register for this event</span></a>
+                <div class="event-detail__actions">
+                    <a class="button" href="/#contact"><span data-i18n="Register">Register</span></a>
                     <a class="button button--outline" href="/events"><span data-i18n="Back to all">Back to all</span></a>
                 </div>
             </div>
@@ -108,12 +108,12 @@ for (const block of rawBlocks) {
 </Layout>
 
 <style>
-    .seminar-detail {
+    .event-detail {
         padding-bottom: clamp(64px, 9vw, 120px);
         padding-top: calc(var(--header-height) + clamp(28px, 4vw, 44px));
     }
 
-    .seminar-detail__actions {
+    .event-detail__actions {
         align-items: center;
         border-top: 1px solid var(--color-silver);
         display: flex;
@@ -122,7 +122,7 @@ for (const block of rawBlocks) {
         padding-top: 36px;
     }
 
-    .seminar-detail__back {
+    .event-detail__back {
         align-items: center;
         color: var(--color-slate-faint);
         display: inline-flex;
@@ -134,41 +134,41 @@ for (const block of rawBlocks) {
         transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
     }
 
-    .seminar-detail__back:active {
+    .event-detail__back:active {
         opacity: 0.7;
     }
 
-    .seminar-detail__back:focus-visible {
+    .event-detail__back:focus-visible {
         box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
-    .seminar-detail__back:hover {
+    .event-detail__back:hover {
         color: var(--color-cobalt);
     }
 
-    .seminar-detail__content {
+    .event-detail__content {
         margin-bottom: 48px;
     }
 
-    .seminar-detail__cover {
+    .event-detail__cover {
         align-items: center;
         border: 1px solid var(--color-silver);
         border-radius: 16px;
         display: flex;
-        height: clamp(200px, 32vw, 320px);
+        aspect-ratio: 2.5;
         justify-content: center;
         margin-bottom: 44px;
         overflow: hidden;
     }
 
-    .seminar-detail__cover-image {
+    .event-detail__cover-image {
         height: 100%;
         object-fit: cover;
         width: 100%;
     }
 
-    .seminar-detail__cover-initials {
+    .event-detail__cover-initials {
         font-family: var(--font-heading);
         font-size: clamp(60px, 12vw, 120px);
         font-weight: 700;
@@ -176,7 +176,7 @@ for (const block of rawBlocks) {
         opacity: 0.26;
     }
 
-    .seminar-detail__meta {
+    .event-detail__meta {
         border-bottom: 1px solid var(--color-silver);
         border-top: 1px solid var(--color-silver);
         display: flex;
@@ -186,7 +186,7 @@ for (const block of rawBlocks) {
         padding: 22px 0;
     }
 
-    .seminar-detail__meta-label {
+    .event-detail__meta-label {
         color: var(--color-slate-ghost);
         font-family: var(--font-mono);
         font-size: 10px;
@@ -195,14 +195,14 @@ for (const block of rawBlocks) {
         text-transform: uppercase;
     }
 
-    .seminar-detail__meta-value {
+    .event-detail__meta-value {
         color: var(--color-slate);
         font-size: 16px;
         font-weight: 600;
         margin: 0;
     }
 
-    .seminar-detail__title {
+    .event-detail__title {
         color: var(--color-slate);
         font-size: clamp(32px, 4.4vw, 48px);
         font-weight: 700;

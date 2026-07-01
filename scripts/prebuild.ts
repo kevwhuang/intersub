@@ -4,7 +4,7 @@ import { readdir, readFile } from 'node:fs/promises';
 
 const CONTENT_DIR = join(import.meta.dir, '..', 'src', 'content');
 const SITE_ID = process.env.SITE_ID;
-const STORES = ['outcomes', 'seminars', 'testimonials'] as const;
+const STORES = ['outcomes', 'events', 'testimonials'] as const;
 const TOKEN = process.env.NETLIFY_AUTH_TOKEN;
 
 async function uploadFile(store: ReturnType<typeof getStore>, filePath: string, key: string) {

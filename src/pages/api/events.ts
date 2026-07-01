@@ -9,7 +9,7 @@ import type { APIRoute } from 'astro';
 const DEV = import.meta.env.DEV;
 
 async function loadEvents(): Promise<Record<string, unknown>[]> {
-    if (DEV) return readCollection('seminars');
+    if (DEV) return readCollection('events');
 
     return getEvents();
 }
@@ -30,9 +30,9 @@ export const DELETE: APIRoute = async ({ request }) => {
     if (!id) return Response.json({ error: 'Missing id' }, { status: 400 });
 
     if (DEV) {
-        deleteEntry('seminars', id);
+        deleteEntry('events', id);
     } else {
-        await getStore({ consistency: 'strong', name: 'seminars' }).delete(String(id));
+        await getStore({ consistency: 'strong', name: 'events' }).delete(String(id));
     }
 
     return Response.json({ deleted: true });
@@ -76,9 +76,9 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         if (DEV) {
-            deleteEntry('seminars', previousId);
+            deleteEntry('events', previousId);
         } else {
-            await getStore({ consistency: 'strong', name: 'seminars' }).delete(previousId);
+            await getStore({ consistency: 'strong', name: 'events' }).delete(previousId);
         }
     } else if (!previousId && events.find(entry => String(entry.date) === date)) {
         return Response.json({ error: 'An event already exists on this date' }, { status: 409 });
@@ -95,9 +95,9 @@ export const POST: APIRoute = async ({ request }) => {
     if (body.level) data.level = String(body.level);
 
     if (DEV) {
-        writeEntry('seminars', id, data);
+        writeEntry('events', id, data);
     } else {
-        await getStore({ consistency: 'strong', name: 'seminars' }).setJSON(id, data);
+        await getStore({ consistency: 'strong', name: 'events' }).setJSON(id, data);
     }
 
     return Response.json({ id, ...data });

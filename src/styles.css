@@ -426,14 +426,14 @@
     color: var(--color-teal);
 }
 
-.tag--intermediate {
-    background: var(--color-cream);
-    color: var(--color-amber);
-}
-
 .tag--cohort {
     background: var(--color-cobalt-10);
     color: var(--color-cobalt);
+}
+
+.tag--intermediate {
+    background: var(--color-cream);
+    color: var(--color-amber);
 }
 
 .textarea {

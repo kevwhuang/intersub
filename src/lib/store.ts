@@ -17,7 +17,7 @@ function merge(seed: Record<string, unknown>[], overrides: Record<string, unknow
     return [...map.values()];
 }
 
-async function loadCollection(name: 'outcomes' | 'seminars' | 'testimonials'): Promise<Record<string, unknown>[]> {
+async function loadCollection(name: 'outcomes' | 'events' | 'testimonials'): Promise<Record<string, unknown>[]> {
     const entries = await getCollection(name as 'outcomes');
 
     const seed = entries.map((entry: { data: Record<string, unknown>; id: string }) => ({
@@ -53,7 +53,7 @@ export async function getOutcomes(): Promise<Record<string, unknown>[]> {
 }
 
 export async function getEvents(): Promise<Record<string, unknown>[]> {
-    const events = await loadCollection('seminars');
+    const events = await loadCollection('events');
 
     return events.sort((entryA, entryB) => String(entryB.date ?? '').localeCompare(String(entryA.date ?? '')));
 }
