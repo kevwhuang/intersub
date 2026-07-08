@@ -1,11 +1,13 @@
 import { getStore } from '@netlify/blobs';
 import { join, parse } from 'node:path';
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 
-const CONTENT_DIR = join(import.meta.dir, '..', 'src', 'content');
+import { COLLECTIONS, CONTENT_DIR } from '../src/lib/constants';
+
 const SITE_ID = process.env.SITE_ID;
-const STORES = ['outcomes', 'events', 'testimonials'] as const;
 const TOKEN = process.env.NETLIFY_AUTH_TOKEN;
+
+const contentRoot = join(import.meta.dir, '..', CONTENT_DIR);
 
 async function uploadFile(store: ReturnType<typeof getStore>, filePath: string, key: string) {
     const data = JSON.parse(await readFile(filePath, 'utf-8'));
@@ -13,13 +15,15 @@ async function uploadFile(store: ReturnType<typeof getStore>, filePath: string, 
     await store.setJSON(key, data);
 }
 
+if (!process.env.NETLIFY) process.exit(0);
+
 if (SITE_ID && TOKEN) {
-    for (const name of STORES) {
+    for (const name of COLLECTIONS) {
         const store = getStore({ name, siteID: SITE_ID, token: TOKEN });
 
         await store.deleteAll();
 
-        const directory = join(CONTENT_DIR, name);
+        const directory = join(contentRoot, name);
 
         const files = await readdir(directory);
 

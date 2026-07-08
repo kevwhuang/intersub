@@ -2,14 +2,14 @@ import { FONT_MONO, STYLES } from '@lib/constants';
 import { formatDate, getLevelMeta } from '@lib/utils';
 
 export default function EventRow({ entry, isMobile, onDelete, onEdit }: {
+    entry: AdminEvent;
     isMobile: boolean;
     onDelete: () => void;
     onEdit: () => void;
-    entry: AdminEvent;
 }) {
     const meta = entry.level ? getLevelMeta(entry.level) : null;
 
-    const actionStyle: React.CSSProperties = { borderRadius: 8, fontSize: 12, padding: '7px 12px' };
+    const levelTagStyle: React.CSSProperties | undefined = meta ? { background: meta.background, borderRadius: 6, color: meta.foreground, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.04em', padding: '4px 9px', textTransform: 'uppercase', whiteSpace: 'nowrap' } : undefined;
 
     if (isMobile) {
         return (
@@ -22,28 +22,26 @@ export default function EventRow({ entry, isMobile, onDelete, onEdit }: {
                         <span>{entry.location}</span>
                     </div>
                 </div>
-                {meta && <span style={{ alignSelf: 'flex-start', background: meta.bg, borderRadius: 6, color: meta.fg, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.04em', padding: '4px 9px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{meta.label}</span>}
+                {meta && levelTagStyle && <span style={{ ...levelTagStyle, alignSelf: 'flex-start' }}>{meta.label}</span>}
                 <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="dashboard-button--outline" onClick={onEdit} style={{ ...actionStyle, flex: 1 }}>Edit</button>
-                    <button className="dashboard-button--danger" onClick={onDelete} style={{ ...actionStyle, flex: 1 }}>Delete</button>
+                    <button className="dashboard-button dashboard-button--outline" onClick={onEdit} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Edit</button>
+                    <button className="dashboard-button dashboard-button--danger" onClick={onDelete} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Delete</button>
                 </div>
             </div>
         );
     }
 
-    const levelTagStyle: React.CSSProperties | undefined = meta ? { background: meta.bg, borderRadius: 6, color: meta.fg, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.04em', padding: '4px 9px', textTransform: 'uppercase', whiteSpace: 'nowrap' } : undefined;
-
     return (
-        <div style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 130px 130px', padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
-            <div style={{ minWidth: 0 }}>
+        <div role="row" style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: STYLES.gridEvents, padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
+            <div role="cell" style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{entry.title}</p>
             </div>
-            <span style={{ color: STYLES.colorMuted, fontSize: 16, whiteSpace: 'nowrap' }}>{formatDate(entry.date)}</span>
-            <span style={{ color: STYLES.colorMuted, fontSize: 16 }}>{entry.location}</span>
-            <span>{meta && levelTagStyle && <span style={levelTagStyle}>{meta.label}</span>}</span>
-            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                <button className="dashboard-button--outline" onClick={onEdit} style={actionStyle}>Edit</button>
-                <button className="dashboard-button--danger" onClick={onDelete} style={actionStyle}>Delete</button>
+            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, whiteSpace: 'nowrap' }}>{formatDate(entry.date)}</span>
+            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16 }}>{entry.location}</span>
+            <span role="cell">{meta && levelTagStyle && <span style={levelTagStyle}>{meta.label}</span>}</span>
+            <div role="cell" style={{ display: 'flex', gap: 6 }}>
+                <button className="dashboard-button dashboard-button--outline" onClick={onEdit} style={STYLES.actionBase}>Edit</button>
+                <button className="dashboard-button dashboard-button--danger" onClick={onDelete} style={STYLES.actionBase}>Delete</button>
             </div>
         </div>
     );

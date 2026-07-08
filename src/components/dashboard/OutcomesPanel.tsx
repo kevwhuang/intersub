@@ -1,11 +1,20 @@
-import FormField from '@components/FormField';
-import Spinner from '@components/Spinner';
+import EditForm from '@components/dashboard/EditForm';
 import { FONT_HEADING, FONT_MONO, STYLES } from '@lib/constants';
 
-export default function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, onSave, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes, saving, set }: {
-    editingOutcome: string | null;
+const GRID_TEMPLATE = '1fr 2fr 80px 114px';
+
+const OUTCOME_FORM_ROWS: EditFormField<OutcomeFormData>[][] = [
+    [{ errorMessage: 'Title is required.', key: 'title', kind: 'input', label: 'Title', placeholder: 'e.g. Regional bank \u00B7 client calls', required: true }],
+    [{ errorMessage: 'Summary is required.', key: 'summary', kind: 'textarea', label: 'Summary', placeholder: 'Brief description of the challenge', required: true, rows: 3 }],
+    [{ errorMessage: 'At least one outcome is required.', key: 'points', kind: 'textarea', label: 'Outcomes', labelSuffix: '\u00B7 one per line', mono: true, placeholder: 'Now lead calls end-to-end in English\nFollow-up emails dropped by half', required: true, rows: 5 }],
+];
+
+export default function OutcomesPanel({ editingOutcomeId, isMobile, isSaving, onCancelEdit, onRequestDelete, onSave, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes }: {
+    editingOutcomeId: string | null;
     isMobile: boolean;
+    isSaving: boolean;
     onCancelEdit: () => void;
+    onRequestDelete: (id: string) => void;
     onSave: () => Promise<void>;
     onStartEdit: (id: string) => void;
     onStartNew: () => void;
@@ -13,57 +22,24 @@ export default function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, 
     outcomeForm: OutcomeFormData | null;
     outcomeFormErrors: Record<string, boolean>;
     outcomes: AdminOutcome[];
-    saving: boolean;
-    set: (payload: Partial<DashboardState>) => void;
 }) {
-    if (editingOutcome !== null && outcomeForm) {
-        function errorBorder(field: string) {
-            return outcomeFormErrors[field] ? STYLES.colorErrorSoft : STYLES.colorBorder;
-        }
-
+    if (editingOutcomeId !== null && outcomeForm) {
         return (
-            <div style={{ margin: '0 auto', maxWidth: 760 }}>
-                <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 28px' }}>
-                    {editingOutcome === 'new' ? 'New outcome' : 'Edit outcome'}
-                </h1>
-                <form
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        onSave();
-                    }}
-                    style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: STYLES.borderRadiusLg, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, 3.5vw, 40px)' }}
-                >
-                    <FormField errorId="error-outcome-title" errorMessage={outcomeFormErrors.title ? 'Title is required.' : undefined} label="Title" required>
-                        <input className="dashboard-input" aria-describedby={outcomeFormErrors.title ? 'error-outcome-title' : undefined} value={outcomeForm.title} onChange={event => onUpdate({ title: event.target.value })} placeholder="e.g. Regional bank · client calls" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('title')}` }} />
-                    </FormField>
-                    <FormField errorId="error-outcome-summary" errorMessage={outcomeFormErrors.summary ? 'Summary is required.' : undefined} label="Summary" required>
-                        <textarea className="dashboard-input" aria-describedby={outcomeFormErrors.summary ? 'error-outcome-summary' : undefined} value={outcomeForm.summary} onChange={event => onUpdate({ summary: event.target.value })} rows={3} placeholder="Brief description of the challenge" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('summary')}`, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
-                    </FormField>
-                    <FormField errorId="error-outcome-points" errorMessage={outcomeFormErrors.points ? 'At least one outcome is required.' : undefined} label="Outcomes" labelSuffix="· one per line" required>
-                        <textarea className="dashboard-input" aria-describedby={outcomeFormErrors.points ? 'error-outcome-points' : undefined} value={outcomeForm.points} onChange={event => onUpdate({ points: event.target.value })} rows={5} placeholder={'Now lead calls end-to-end in English\nFollow-up emails dropped by half'} style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('points')}`, fontFamily: FONT_MONO, fontSize: 12, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
-                    </FormField>
-                    <div style={{ borderTop: `1px solid ${STYLES.colorBorder}`, display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                        <button className="dashboard-button--primary" disabled={saving} type="submit" style={{ alignItems: 'center', display: 'inline-flex', justifyContent: 'center', minHeight: 44, minWidth: isMobile ? undefined : 150 }}>
-                            {saving ? <Spinner /> : editingOutcome === 'new' ? 'Create outcome' : 'Save changes'}
-                        </button>
-                        <button className="dashboard-button--outline" disabled={saving} type="button" onClick={onCancelEdit}>
-                            Cancel
-                        </button>
-                        {editingOutcome !== 'new' && (
-                            <>
-                                {!isMobile && <div style={{ flex: 1 }} />}
-                                <button className="dashboard-button--danger" disabled={saving} type="button" onClick={() => set({ confirmDelete: editingOutcome, confirmDeleteType: 'outcome' })}>
-                                    Delete outcome
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </form>
-            </div>
+            <EditForm
+                editingId={editingOutcomeId}
+                entity="outcome"
+                fieldRows={OUTCOME_FORM_ROWS}
+                form={outcomeForm}
+                formErrors={outcomeFormErrors}
+                isMobile={isMobile}
+                isSaving={isSaving}
+                onCancel={onCancelEdit}
+                onDelete={() => onRequestDelete(editingOutcomeId)}
+                onSave={onSave}
+                onUpdate={onUpdate}
+            />
         );
     }
-
-    const actionStyle: React.CSSProperties = { borderRadius: 8, fontSize: 12, padding: '7px 12px' };
 
     return (
         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
@@ -76,17 +52,17 @@ export default function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, 
                         {outcomes.length === 1 ? 'outcome' : 'outcomes'}
                     </span>
                 </div>
-                <button className="dashboard-button--primary" onClick={onStartNew} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 16, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                <button className="dashboard-button dashboard-button--primary" onClick={onStartNew} style={{ alignItems: 'center', display: 'inline-flex', gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
                     +&ensp;New outcome
                 </button>
             </div>
-            <div style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+            <div aria-label={isMobile ? undefined : 'Outcomes'} role={isMobile ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
                 {!isMobile && (
-                    <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: '1fr 2fr 80px 130px', padding: '12px clamp(14px, 2.5vw, 22px)' }}>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Title</span>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Summary</span>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Outcomes</span>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.08em', textAlign: 'right', textTransform: 'uppercase', width: '100%' }}>Actions</span>
+                    <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '12px clamp(14px, 2.5vw, 22px)' }}>
+                        <span role="columnheader" style={STYLES.headerBase}>Title</span>
+                        <span role="columnheader" style={STYLES.headerBase}>Summary</span>
+                        <span role="columnheader" style={STYLES.headerBase}>Outcomes</span>
+                        <span role="columnheader" style={STYLES.headerBase}>Actions</span>
                     </div>
                 )}
                 {outcomes.length > 0
@@ -104,19 +80,19 @@ export default function OutcomesPanel({ editingOutcome, isMobile, onCancelEdit, 
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', gap: 6 }}>
-                                                <button className="dashboard-button--outline" onClick={() => onStartEdit(outcome.id)} style={{ ...actionStyle, flex: 1 }}>Edit</button>
-                                                <button className="dashboard-button--danger" onClick={() => set({ confirmDelete: outcome.id, confirmDeleteType: 'outcome' })} style={{ ...actionStyle, flex: 1 }}>Delete</button>
+                                                <button className="dashboard-button dashboard-button--outline" onClick={() => onStartEdit(outcome.id)} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Edit</button>
+                                                <button className="dashboard-button dashboard-button--danger" onClick={() => onRequestDelete(outcome.id)} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Delete</button>
                                             </div>
                                         </div>
                                     )
                                 : (
-                                        <div key={outcome.id} style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 2fr 80px 130px', padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
-                                            <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
-                                            <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
-                                            <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12 }}>{outcome.points.length}</span>
-                                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                                                <button className="dashboard-button--outline" onClick={() => onStartEdit(outcome.id)} style={actionStyle}>Edit</button>
-                                                <button className="dashboard-button--danger" onClick={() => set({ confirmDelete: outcome.id, confirmDeleteType: 'outcome' })} style={actionStyle}>Delete</button>
+                                        <div key={outcome.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
+                                            <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
+                                            <p role="cell" style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
+                                            <span role="cell" style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12 }}>{outcome.points.length}</span>
+                                            <div role="cell" style={{ display: 'flex', gap: 6 }}>
+                                                <button className="dashboard-button dashboard-button--outline" onClick={() => onStartEdit(outcome.id)} style={STYLES.actionBase}>Edit</button>
+                                                <button className="dashboard-button dashboard-button--danger" onClick={() => onRequestDelete(outcome.id)} style={STYLES.actionBase}>Delete</button>
                                             </div>
                                         </div>
                                     )

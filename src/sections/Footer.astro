@@ -1,19 +1,22 @@
 ---
 import IconApplePodcasts from '@components/IconApplePodcasts.astro';
-import IconDouyin from '@components/IconDouyin.astro';
-import IconRedNote from '@components/IconRedNote.astro';
 import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
 import QrCode from '@components/QrCode.astro';
 import logoEn from '@images/logo_en.webp';
 import logoZh from '@images/logo_zh.webp';
-import { ROUTES, SOCIALS } from '@lib/constants';
+import { ROUTES } from '@lib/constants';
 
-const ICONS: Record<string, typeof IconApplePodcasts> = {
-    'Apple Podcasts': IconApplePodcasts,
-    'Douyin (抖音)': IconDouyin,
-    'Xiaohongshu (RedNote)': IconRedNote,
-    'Xiaoyuzhou (小宇宙)': IconXiaoyuzhou,
+const ICONS: Record<(typeof SOCIALS)[number]['slug'], typeof IconApplePodcasts> = {
+    'apple-podcasts': IconApplePodcasts,
+    'xiaoyuzhou': IconXiaoyuzhou,
 };
+
+const SOCIALS = [
+    { href: 'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411', label: 'Xiaoyuzhou (小宇宙)', slug: 'xiaoyuzhou' },
+    { href: 'https://podcasts.apple.com/cn/podcast/id1856157603', label: 'Apple Podcasts', slug: 'apple-podcasts' },
+] as const;
+
+const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
 ---
 
 <footer
@@ -23,8 +26,10 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
 >
     <div class="shell site-footer__inner grid items-start">
         <div>
-            <img class="site-footer__wordmark" alt="InterSub" data-lang-logo="en" height="32" src={logoEn.src} />
-            <img class="site-footer__wordmark" alt="言际阁" data-lang-logo="zh" height="32" hidden src={logoZh.src} />
+            <div class="site-footer__brand flex items-center">
+                <img class="site-footer__wordmark" alt="InterSub" height="32" src={logoEn.src} />
+                <img class="site-footer__wordmark" alt="言际阁" height="32" src={logoZh.src} />
+            </div>
             <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
         </div>
         <div class="site-footer__column flex flex-col">
@@ -43,43 +48,37 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
                         class="site-footer__link"
                         href="/admin"
                     >
-                        <span data-i18n="Admin">Admin</span>
+                        Admin
                     </a>
                 )}
             </div>
         </div>
         <div class="site-footer__column site-footer__connect flex flex-col gap-5">
-            <div class="site-footer__qr-code">
-                <p class="site-footer__heading" data-i18n="Weixin">Weixin</p>
-                <QrCode size={100} />
-            </div>
             <div>
                 <p class="site-footer__heading" data-i18n="Follow">Follow</p>
                 <div class="site-footer__socials flex flex-wrap gap-2">
-                    {SOCIALS.map((soc) => {
-                        const Icon = ICONS[soc.label];
-                        return 'href' in soc
-                            ? (
-                                    <a
-                                        class="site-footer__social site-footer__social--link flex items-center justify-center"
-                                        aria-label={soc.label}
-                                        href={soc.href}
-                                        target="_blank"
-                                        title={soc.label}
-                                    >
-                                        {Icon && <Icon size={22} />}
-                                    </a>
-                                )
-                            : (
-                                    <span
-                                        class="site-footer__social flex items-center justify-center"
-                                        title={soc.label}
-                                    >
-                                        {Icon && <Icon size={22} />}
-                                    </span>
-                                );
+                    {SOCIALS.map((social) => {
+                        const Icon = ICONS[social.slug];
+
+                        return (
+                            <a
+                                class="site-footer__social site-footer__social--link flex items-center justify-center"
+                                aria-label={social.label}
+                                href={social.href}
+                                target="_blank"
+                                title={social.label}
+                            >
+                                <Icon size={22} />
+                            </a>
+                        );
                     })}
                 </div>
+            </div>
+            <div>
+                <p class="site-footer__heading" data-i18n="WeChat">WeChat</p>
+                <a class="site-footer__qr-link" href={WECHAT_URL} target="_blank">
+                    <QrCode size={128} />
+                </a>
             </div>
         </div>
     </div>
@@ -104,6 +103,11 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
         gap: 8px 24px;
         justify-content: space-between;
         padding-block: 28px;
+    }
+
+    .site-footer__brand {
+        gap: 14px;
+        margin-bottom: 14px;
     }
 
     .site-footer__heading {
@@ -142,8 +146,27 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
         color: var(--color-white);
     }
 
-    .site-footer__qr-code {
-        order: 1;
+    .site-footer__qr-link {
+        background: var(--color-white);
+        border-radius: 10px;
+        color: var(--color-slate);
+        display: inline-block;
+        line-height: 0;
+        padding: 16px;
+        transition: opacity var(--duration-fast) ease;
+    }
+
+    .site-footer__qr-link:active {
+        opacity: 0.7;
+    }
+
+    .site-footer__qr-link:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
+        outline: none;
+    }
+
+    .site-footer__qr-link:hover {
+        opacity: 0.85;
     }
 
     .site-footer__social {
@@ -161,7 +184,7 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
 
     .site-footer__social--link {
         text-decoration: none;
-        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
     }
 
     .site-footer__social--link:active {
@@ -188,12 +211,7 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
     .site-footer__wordmark {
         display: block;
         height: 32px;
-        margin: 0 0 14px;
         width: auto;
-    }
-
-    .site-footer__wordmark[hidden] {
-        display: none;
     }
 
     @media (max-width: 768px) {
@@ -204,10 +222,6 @@ const ICONS: Record<string, typeof IconApplePodcasts> = {
 
         .site-footer__inner {
             grid-template-columns: 1fr;
-        }
-
-        .site-footer__qr-code {
-            order: -1;
         }
     }
 </style>

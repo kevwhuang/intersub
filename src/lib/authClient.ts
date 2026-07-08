@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { AUTH_TOKEN_PATTERN, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
+
 interface AuthUser {
     email?: string;
 }
@@ -13,6 +15,7 @@ interface StoredSession {
 
 interface TokenResponse {
     access_token: string;
+    email?: string;
     expires_in: number;
     refresh_token: string;
 }
@@ -23,18 +26,49 @@ const EXPIRY_BUFFER = 60_000;
 const IDENTITY_URL = typeof window !== 'undefined'
     ? `${window.location.origin}/.netlify/identity`
     : '';
-const IS_LOCAL = typeof window !== 'undefined'
+const IS_LOCAL = import.meta.env.DEV
+    && typeof window !== 'undefined'
     && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
 
-function storeSession(data: TokenResponse, email: string) {
-    const session: StoredSession = {
-        accessToken: data.access_token,
-        email,
-        expiresAt: Date.now() + data.expires_in * 1_000,
-        refreshToken: data.refresh_token,
-    };
+let refreshPromise: Promise<StoredSession | null> | null = null;
 
-    localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+function clearAuthHash() {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
+function clearSession() {
+    localStorage.removeItem(AUTH_KEY);
+}
+
+async function createSession(data: TokenResponse): Promise<AuthUser | null> {
+    if (!data.access_token) return null;
+
+    const email = data.email ?? await fetchUserEmail(data.access_token);
+
+    storeSession(data, email);
+
+    return { email };
+}
+
+async function fetchIdentity(path: string, options: RequestInit) {
+    return fetch(`${IDENTITY_URL}${path}`, options);
+}
+
+async function fetchUserEmail(accessToken: string): Promise<string> {
+    try {
+        const response = await fetchIdentity('/user', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            method: 'GET',
+        });
+
+        if (!response.ok) return '';
+
+        const data = await response.json();
+
+        return data.email ?? '';
+    } catch {
+        return '';
+    }
 }
 
 function loadSession(): StoredSession | null {
@@ -45,7 +79,7 @@ function loadSession(): StoredSession | null {
 
         const parsed = JSON.parse(raw);
 
-        if (parsed.accessToken && parsed.refreshToken && parsed.email) return parsed;
+        if (parsed.accessToken && parsed.refreshToken && typeof parsed.email === 'string') return parsed;
     } catch {
         return null;
     }
@@ -53,25 +87,43 @@ function loadSession(): StoredSession | null {
     return null;
 }
 
-function clearSession() {
-    localStorage.removeItem(AUTH_KEY);
+function parseAuthHash() {
+    const match = window.location.hash.match(AUTH_TOKEN_PATTERN);
+
+    if (!match) return null;
+
+    return { kind: match[1], token: match[2] };
 }
 
-async function fetchIdentity(path: string, options: RequestInit) {
-    return fetch(`${IDENTITY_URL}${path}`, options);
-}
+async function refreshSession(): Promise<StoredSession | null> {
+    const stored = loadSession();
 
-async function refreshToken(token: string): Promise<TokenResponse | null> {
+    if (!stored) return null;
+
     try {
         const response = await fetchIdentity('/token', {
-            body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(token)}`,
+            body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(stored.refreshToken)}`,
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             method: 'POST',
         });
 
-        if (!response.ok) return null;
+        if (response.ok) {
+            const data = await response.json();
 
-        return response.json();
+            storeSession(data, stored.email);
+
+            return loadSession();
+        }
+
+        if (response.status === 400 || response.status === 401) {
+            const current = loadSession();
+
+            if (current && current.refreshToken !== stored.refreshToken) return current;
+
+            clearSession();
+        }
+
+        return null;
     } catch {
         return null;
     }
@@ -84,60 +136,46 @@ async function resolveSession(): Promise<{ email: string; token: string } | null
 
     if (stored.expiresAt > Date.now() + EXPIRY_BUFFER) return { email: stored.email, token: stored.accessToken };
 
-    const refreshed = await refreshToken(stored.refreshToken);
+    refreshPromise ??= refreshSession().finally(() => {
+        refreshPromise = null;
+    });
 
-    if (refreshed) {
-        storeSession(refreshed, stored.email);
+    const refreshed = await refreshPromise;
 
-        return { email: stored.email, token: refreshed.access_token };
-    }
+    if (!refreshed) return null;
 
-    clearSession();
-
-    return null;
+    return { email: refreshed.email, token: refreshed.accessToken };
 }
 
-async function processHashToken(): Promise<AuthUser | null> {
-    const hash = window.location.hash;
+function storeSession(data: TokenResponse, email: string) {
+    const session: StoredSession = {
+        accessToken: data.access_token,
+        email,
+        expiresAt: Date.now() + data.expires_in * 1_000,
+        refreshToken: data.refresh_token,
+    };
 
-    const confirmMatch = hash.match(/confirmation_token=([^&]+)/);
-    const inviteMatch = hash.match(/invite_token=([^&]+)/);
-    const recoveryMatch = hash.match(/recovery_token=([^&]+)/);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+}
 
-    const token = recoveryMatch?.[1] ?? inviteMatch?.[1] ?? confirmMatch?.[1];
-    const type = recoveryMatch ? 'recovery' : inviteMatch ? 'invite' : confirmMatch ? 'signup' : null;
+async function verifyToken(body: Record<string, string>): Promise<AuthUser | null> {
+    const response = await fetchIdentity('/verify', {
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+    });
 
-    if (!token || !type) return null;
+    if (!response.ok) return null;
 
-    try {
-        const response = await fetchIdentity('/verify', {
-            body: JSON.stringify({ token, type }),
-            headers: { 'Content-Type': 'application/json' },
-            method: 'POST',
-        });
-
-        if (!response.ok) return null;
-
-        const data = await response.json();
-
-        window.location.hash = '';
-
-        if (data.access_token) {
-            storeSession(data, data.email ?? '');
-
-            return { email: data.email };
-        }
-
-        return null;
-    } catch {
-        return null;
-    }
+    return createSession(await response.json());
 }
 
 export function useAuth() {
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(!IS_LOCAL);
-    const [recovery, setRecovery] = useState(false);
+    const [isLoading, setIsLoading] = useState(!IS_LOCAL);
+    const [isPending, setIsPending] = useState(false);
+    const [isRecovery, setIsRecovery] = useState(false);
+    const [pendingInvite, setPendingInvite] = useState('');
     const [user, setUser] = useState<AuthUser | null>(IS_LOCAL ? { email: 'dev@localhost' } : null);
 
     async function getToken(): Promise<string | null> {
@@ -148,18 +186,30 @@ export function useAuth() {
         return session?.token ?? null;
     }
 
+    function handleCancelSetPassword() {
+        setError('');
+        setPendingInvite('');
+        setIsRecovery(false);
+    }
+
     async function handleLogin(email: string, password: string) {
+        if (isPending) return;
+
         setError('');
 
         if (!email.trim() || !password.trim()) {
             setError('Email and password are required.');
+
             return;
         }
 
         if (IS_LOCAL) {
             setUser({ email });
+
             return;
         }
+
+        setIsPending(true);
 
         try {
             const response = await fetchIdentity('/token', {
@@ -169,7 +219,10 @@ export function useAuth() {
             });
 
             if (!response.ok) {
-                setError('Invalid email or password.');
+                setError(response.status === 400 || response.status === 401
+                    ? 'Invalid email or password.'
+                    : 'Something went wrong. Please try again.');
+
                 return;
             }
 
@@ -178,27 +231,57 @@ export function useAuth() {
             storeSession(data, email);
             setUser({ email });
         } catch {
-            setError('Invalid email or password.');
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setIsPending(false);
         }
     }
 
+    function handleLogout() {
+        clearSession();
+        setError('');
+        setUser(null);
+    }
+
     async function handleSetPassword(password: string) {
+        if (isPending) return;
+
         setError('');
 
-        if (!password.trim() || password.length < 8) {
-            setError('Password must be at least 8 characters.');
+        if (!password.trim() || password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+            setError('Password must be 8\u201320 characters.');
+
             return;
         }
 
-        const session = await resolveSession();
-
-        if (!session) {
-            setError('Session expired. Please log in again.');
-            setUser(null);
-            return;
-        }
+        setIsPending(true);
 
         try {
+            if (pendingInvite) {
+                const verified = await verifyToken({ password, token: pendingInvite, type: 'signup' });
+
+                if (!verified) {
+                    setError('This invite link is invalid or has expired.');
+
+                    return;
+                }
+
+                setPendingInvite('');
+                setIsRecovery(false);
+                setUser(verified);
+
+                return;
+            }
+
+            const session = await resolveSession();
+
+            if (!session) {
+                setError('Session expired. Please sign in again.');
+                setUser(null);
+
+                return;
+            }
+
             const response = await fetchIdentity('/user', {
                 body: JSON.stringify({ password }),
                 headers: {
@@ -210,46 +293,73 @@ export function useAuth() {
 
             if (!response.ok) {
                 setError('Failed to set password.');
+
                 return;
             }
 
-            setRecovery(false);
-            window.location.hash = '';
+            setIsRecovery(false);
         } catch {
-            setError('Failed to set password.');
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setIsPending(false);
         }
-    }
-
-    async function handleLogout() {
-        clearSession();
-        setUser(null);
     }
 
     async function initAuth() {
         if (IS_LOCAL) return;
 
         try {
-            const hash = window.location.hash;
+            const authHash = parseAuthHash();
 
-            const isRecovery = hash.includes('recovery_token') || hash.includes('invite_token');
+            if (authHash) {
+                clearAuthHash();
 
-            const hashUser = await processHashToken();
+                if (authHash.kind === 'invite') {
+                    const probe = await fetchIdentity('/verify', {
+                        body: JSON.stringify({ token: authHash.token, type: 'signup' }),
+                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                    });
 
-            if (hashUser) {
-                if (isRecovery) setRecovery(true);
+                    if (probe.ok) {
+                        const invited = await createSession(await probe.json());
 
-                setUser(hashUser);
+                        if (invited) {
+                            setIsRecovery(true);
+                            setUser(invited);
 
-                return;
+                            return;
+                        }
+                    } else if (probe.status !== 404) {
+                        setPendingInvite(authHash.token);
+                        setIsRecovery(true);
+
+                        return;
+                    }
+
+                    setError('This link is invalid or has expired.');
+                } else {
+                    const verified = await verifyToken({ token: authHash.token, type: authHash.kind === 'recovery' ? 'recovery' : 'signup' });
+
+                    if (verified) {
+                        if (authHash.kind === 'recovery') setIsRecovery(true);
+
+                        setUser(verified);
+
+                        return;
+                    }
+
+                    setError('This link is invalid or has expired.');
+                }
             }
 
             const session = await resolveSession();
 
             if (session) setUser({ email: session.email });
         } catch {
-            clearSession();
+            setError('Something went wrong. Please try again.');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     }
 
@@ -257,5 +367,5 @@ export function useAuth() {
         initAuth();
     }, []);
 
-    return { error, getToken, handleLogin, handleLogout, handleSetPassword, loading, recovery, user };
+    return { error, getToken, handleCancelSetPassword, handleLogin, handleLogout, handleSetPassword, isLoading, isPending, isRecovery, user };
 }

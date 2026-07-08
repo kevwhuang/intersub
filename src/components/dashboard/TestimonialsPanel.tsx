@@ -1,77 +1,63 @@
-import FormField from '@components/FormField';
-import Spinner from '@components/Spinner';
+import EditForm from '@components/dashboard/EditForm';
 import { FONT_HEADING, FONT_MONO, STYLES } from '@lib/constants';
 
-export default function TestimonialsPanel({ editingTestimonial, isMobile, onCancelEdit, onSave, onSort, onStartEdit, onStartNew, onUpdate, saving, set, sortDirection, sortKey, testimonialForm, testimonialFormErrors, testimonials }: {
-    editingTestimonial: string | null;
+const GRID_TEMPLATE = '1fr 120px 120px 1.5fr 114px';
+
+const TESTIMONIAL_FORM_ROWS: EditFormField<TestimonialFormData>[][] = [
+    [{ errorMessage: 'Name is required.', key: 'name', kind: 'input', label: 'Name', placeholder: 'e.g. Chen Yuan', required: true }],
+    [
+        { errorMessage: 'Role is required.', key: 'role', kind: 'input', label: 'Role', placeholder: 'e.g. Product Director', required: true },
+        { errorMessage: 'Industry is required.', key: 'industry', kind: 'input', label: 'Industry', placeholder: 'e.g. Logistics', required: true },
+    ],
+    [{ errorMessage: 'Quote is required.', key: 'quote', kind: 'textarea', label: 'Quote', placeholder: 'What the client said about working with InterSub.', required: true, rows: 4 }],
+];
+
+export default function TestimonialsPanel({ editingTestimonialId, isMobile, isSaving, onCancelEdit, onRequestDelete, onSave, onSort, onStartEdit, onStartNew, onUpdate, sortDirection, sortKey, testimonialForm, testimonialFormErrors, testimonials }: {
+    editingTestimonialId: string | null;
     isMobile: boolean;
+    isSaving: boolean;
     onCancelEdit: () => void;
+    onRequestDelete: (id: string) => void;
     onSave: () => Promise<void>;
     onSort: (field: string) => void;
     onStartEdit: (id: string) => void;
     onStartNew: () => void;
     onUpdate: (fields: Partial<TestimonialFormData>) => void;
-    saving: boolean;
-    set: (payload: Partial<DashboardState>) => void;
     sortDirection: string;
     sortKey: string;
     testimonialForm: TestimonialFormData | null;
     testimonialFormErrors: Record<string, boolean>;
     testimonials: AdminTestimonial[];
 }) {
-    if (editingTestimonial !== null && testimonialForm) {
-        function errorBorder(field: string) {
-            return testimonialFormErrors[field] ? STYLES.colorErrorSoft : STYLES.colorBorder;
-        }
+    function getAriaSort(field: string): 'ascending' | 'descending' | 'none' {
+        if (sortKey !== field) return 'none';
 
-        return (
-            <div style={{ margin: '0 auto', maxWidth: 760 }}>
-                <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 28px' }}>
-                    {editingTestimonial === 'new' ? 'New testimonial' : 'Edit testimonial'}
-                </h1>
-                <form
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        onSave();
-                    }}
-                    style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: STYLES.borderRadiusLg, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, 3.5vw, 40px)' }}
-                >
-                    <FormField errorId="error-testimonial-name" errorMessage={testimonialFormErrors.name ? 'Name is required.' : undefined} label="Name" required>
-                        <input className="dashboard-input" aria-describedby={testimonialFormErrors.name ? 'error-testimonial-name' : undefined} value={testimonialForm.name} onChange={event => onUpdate({ name: event.target.value })} placeholder="e.g. Chen Yuan" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('name')}` }} />
-                    </FormField>
-                    <div style={{ display: 'grid', gap: 16, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
-                        <FormField errorId="error-testimonial-role" errorMessage={testimonialFormErrors.role ? 'Role is required.' : undefined} label="Role" required>
-                            <input className="dashboard-input" aria-describedby={testimonialFormErrors.role ? 'error-testimonial-role' : undefined} value={testimonialForm.role} onChange={event => onUpdate({ role: event.target.value })} placeholder="e.g. Product Director" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('role')}` }} />
-                        </FormField>
-                        <FormField errorId="error-testimonial-industry" errorMessage={testimonialFormErrors.industry ? 'Industry is required.' : undefined} label="Industry" required>
-                            <input className="dashboard-input" aria-describedby={testimonialFormErrors.industry ? 'error-testimonial-industry' : undefined} value={testimonialForm.industry} onChange={event => onUpdate({ industry: event.target.value })} placeholder="e.g. Logistics" style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('industry')}` }} />
-                        </FormField>
-                    </div>
-                    <FormField errorId="error-testimonial-quote" errorMessage={testimonialFormErrors.quote ? 'Quote is required.' : undefined} label="Quote" required>
-                        <textarea className="dashboard-input" aria-describedby={testimonialFormErrors.quote ? 'error-testimonial-quote' : undefined} value={testimonialForm.quote} onChange={event => onUpdate({ quote: event.target.value })} rows={4} placeholder="What the client said about working with InterSub." style={{ ...STYLES.inputBase, border: `1px solid ${errorBorder('quote')}`, lineHeight: 1.6, minHeight: 140, resize: 'vertical' as const }} />
-                    </FormField>
-                    <div style={{ borderTop: `1px solid ${STYLES.colorBorder}`, display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                        <button className="dashboard-button--primary" disabled={saving} type="submit" style={{ alignItems: 'center', display: 'inline-flex', justifyContent: 'center', minHeight: 44, minWidth: isMobile ? undefined : 150 }}>
-                            {saving ? <Spinner /> : editingTestimonial === 'new' ? 'Create testimonial' : 'Save changes'}
-                        </button>
-                        <button className="dashboard-button--outline" disabled={saving} type="button" onClick={onCancelEdit}>
-                            Cancel
-                        </button>
-                        {editingTestimonial !== 'new' && (
-                            <>
-                                {!isMobile && <div style={{ flex: 1 }} />}
-                                <button className="dashboard-button--danger" disabled={saving} type="button" onClick={() => set({ confirmDelete: editingTestimonial, confirmDeleteType: 'testimonial' })}>
-                                    Delete testimonial
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </form>
-            </div>
-        );
+        return sortDirection === 'asc' ? 'ascending' : 'descending';
     }
 
-    const actionStyle: React.CSSProperties = { borderRadius: 8, fontSize: 12, padding: '7px 12px' };
+    function getSortArrow(field: string) {
+        if (sortKey !== field) return '';
+
+        return sortDirection === 'asc' ? ' \u2191' : ' \u2193';
+    }
+
+    if (editingTestimonialId !== null && testimonialForm) {
+        return (
+            <EditForm
+                editingId={editingTestimonialId}
+                entity="testimonial"
+                fieldRows={TESTIMONIAL_FORM_ROWS}
+                form={testimonialForm}
+                formErrors={testimonialFormErrors}
+                isMobile={isMobile}
+                isSaving={isSaving}
+                onCancel={onCancelEdit}
+                onDelete={() => onRequestDelete(editingTestimonialId)}
+                onSave={onSave}
+                onUpdate={onUpdate}
+            />
+        );
+    }
 
     return (
         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
@@ -84,27 +70,33 @@ export default function TestimonialsPanel({ editingTestimonial, isMobile, onCanc
                         {testimonials.length === 1 ? 'testimonial' : 'testimonials'}
                     </span>
                 </div>
-                <button className="dashboard-button--primary" onClick={onStartNew} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 16, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+                <button className="dashboard-button dashboard-button--primary" onClick={onStartNew} style={{ alignItems: 'center', display: 'inline-flex', gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
                     +&ensp;New testimonial
                 </button>
             </div>
-            <div style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+            <div aria-label={isMobile ? undefined : 'Testimonials'} role={isMobile ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
                 {!isMobile && (
-                    <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 1.5fr 130px', padding: '12px clamp(14px, 2.5vw, 22px)' }}>
-                        <button className="dashboard-button--ghost" onClick={() => onSort('name')} style={{ alignItems: 'center', color: STYLES.colorGhost, display: 'flex', fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, gap: 5, letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' }}>
-                            Name
-                            {sortKey === 'name' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}
-                        </button>
-                        <button className="dashboard-button--ghost" onClick={() => onSort('role')} style={{ alignItems: 'center', color: STYLES.colorGhost, display: 'flex', fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, gap: 5, letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' }}>
-                            Role
-                            {sortKey === 'role' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}
-                        </button>
-                        <button className="dashboard-button--ghost" onClick={() => onSort('industry')} style={{ alignItems: 'center', color: STYLES.colorGhost, display: 'flex', fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, gap: 5, letterSpacing: '.08em', padding: 0, textAlign: 'left', textTransform: 'uppercase' }}>
-                            Industry
-                            {sortKey === 'industry' ? (sortDirection === 'asc' ? ' ↑' : ' ↓') : ''}
-                        </button>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase' }}>Quote</span>
-                        <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.08em', textAlign: 'right', textTransform: 'uppercase', width: '100%' }}>Actions</span>
+                    <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '12px clamp(14px, 2.5vw, 22px)' }}>
+                        <div aria-sort={getAriaSort('name')} role="columnheader">
+                            <button className="dashboard-button dashboard-button--ghost" onClick={() => onSort('name')} style={STYLES.headerBase}>
+                                Name
+                                {getSortArrow('name')}
+                            </button>
+                        </div>
+                        <div aria-sort={getAriaSort('role')} role="columnheader">
+                            <button className="dashboard-button dashboard-button--ghost" onClick={() => onSort('role')} style={STYLES.headerBase}>
+                                Role
+                                {getSortArrow('role')}
+                            </button>
+                        </div>
+                        <div aria-sort={getAriaSort('industry')} role="columnheader">
+                            <button className="dashboard-button dashboard-button--ghost" onClick={() => onSort('industry')} style={STYLES.headerBase}>
+                                Industry
+                                {getSortArrow('industry')}
+                            </button>
+                        </div>
+                        <span role="columnheader" style={STYLES.headerBase}>Quote</span>
+                        <span role="columnheader" style={STYLES.headerBase}>Actions</span>
                     </div>
                 )}
                 {testimonials.length > 0
@@ -126,22 +118,22 @@ export default function TestimonialsPanel({ editingTestimonial, isMobile, onCanc
                                                 </p>
                                             </div>
                                             <div style={{ display: 'flex', gap: 6 }}>
-                                                <button className="dashboard-button--outline" onClick={() => onStartEdit(testimonial.id)} style={{ ...actionStyle, flex: 1 }}>Edit</button>
-                                                <button className="dashboard-button--danger" onClick={() => set({ confirmDelete: testimonial.id, confirmDeleteType: 'testimonial' })} style={{ ...actionStyle, flex: 1 }}>Delete</button>
+                                                <button className="dashboard-button dashboard-button--outline" onClick={() => onStartEdit(testimonial.id)} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Edit</button>
+                                                <button className="dashboard-button dashboard-button--danger" onClick={() => onRequestDelete(testimonial.id)} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Delete</button>
                                             </div>
                                         </div>
                                     )
                                 : (
-                                        <div key={testimonial.id} style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: '1fr 120px 120px 1.5fr 130px', padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
-                                            <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{testimonial.name}</p>
-                                            <span style={{ color: STYLES.colorMuted, fontSize: 16 }}>{testimonial.role}</span>
-                                            <span style={{ color: STYLES.colorMuted, fontSize: 16 }}>{testimonial.industry}</span>
-                                            <p style={{ color: STYLES.colorGhost, fontSize: 12, fontStyle: 'italic', lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <div key={testimonial.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
+                                            <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{testimonial.name}</p>
+                                            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16 }}>{testimonial.role}</span>
+                                            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16 }}>{testimonial.industry}</span>
+                                            <p role="cell" style={{ color: STYLES.colorGhost, fontSize: 12, fontStyle: 'italic', lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                 {testimonial.quote}
                                             </p>
-                                            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                                                <button className="dashboard-button--outline" onClick={() => onStartEdit(testimonial.id)} style={actionStyle}>Edit</button>
-                                                <button className="dashboard-button--danger" onClick={() => set({ confirmDelete: testimonial.id, confirmDeleteType: 'testimonial' })} style={actionStyle}>Delete</button>
+                                            <div role="cell" style={{ display: 'flex', gap: 6 }}>
+                                                <button className="dashboard-button dashboard-button--outline" onClick={() => onStartEdit(testimonial.id)} style={STYLES.actionBase}>Edit</button>
+                                                <button className="dashboard-button dashboard-button--danger" onClick={() => onRequestDelete(testimonial.id)} style={STYLES.actionBase}>Delete</button>
                                             </div>
                                         </div>
                                     )

@@ -1,101 +1,65 @@
-export const COBALT = '#2a52e0';
-export const FONT_HEADING = '\'Space Grotesk\', system-ui, sans-serif';
-export const FONT_MONO = '\'IBM Plex Mono\', ui-monospace, monospace';
-
-export const METHOD_BLOCKS = [
-    {
-        detail: '1:1 coaching, team workshops, and focused events. Every engagement starts from your real work.',
-        label: 'What we do',
-        step: '1',
-        statement: 'Training built on the situations you actually face.',
-    },
-    {
-        detail: 'Not grammar drills. Specific, honest feedback on your actual calls, emails, and presentations.',
-        label: 'How we work',
-        step: '2',
-        statement: 'We practise on your real work and give feedback you use the same day.',
-    },
-    {
-        detail: 'Directors, founders, procurement leads who already command authority in Mandarin and need it in English.',
-        label: 'Who we serve',
-        step: '3',
-        statement: 'Chinese professionals where unclear English costs deals and credibility.',
-    },
-    {
-        detail: 'Sharper emails within days, more confident calls within weeks, fewer clarifications, faster decisions.',
-        label: 'What changes',
-        step: '4',
-        statement: 'Not someday fluency. This week\'s meeting, run with authority.',
-    },
-] as const;
+export const AUTH_TOKEN_PATTERN = /(confirmation|invite|recovery)_token=([^&]+)/;
+export const COBALT = 'var(--color-cobalt)';
+export const COLLECTIONS = ['events', 'outcomes', 'testimonials'] as const;
+export const CONTENT_DIR = 'src/content';
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const FONT_HEADING = 'var(--font-heading)';
+export const FONT_MONO = 'var(--font-mono)';
+export const IS_DEV = import.meta.env.DEV;
+export const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Cohort'] as const;
+export const MESSAGE_MAX = 2_000;
+export const NAME_MAX = 100;
+export const PASSWORD_MAX = 20;
+export const PASSWORD_MIN = 8;
 
 export const ROUTES = [
     { href: '/', label: 'Home' },
     { href: '/events', label: 'Events' },
 ] as const;
 
-export const SOCIALS = [
-    { href: 'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411', label: 'Xiaoyuzhou (小宇宙)' },
-    { href: 'https://podcasts.apple.com/cn/podcast/id1856157603', label: 'Apple Podcasts' },
-    { label: 'Xiaohongshu (RedNote)' },
-    { label: 'Douyin (抖音)' },
-] as const;
-
-export const SOLUTIONS = [
-    {
-        desc: 'Private, focused coaching for leaders who need to perform in English under real pressure: calls, negotiations, presentations.',
-        details: [
-            { label: 'Format', value: 'Private 1:1' },
-            { label: 'Details', value: 'Weekly · 60 min' },
-            { label: 'Best for', value: 'Senior leaders' },
-        ],
-        title: '1:1 Executive Coaching',
-    },
-    {
-        desc: 'Cohort training built around your team\'s actual communication: the meetings they run and the partners they email.',
-        details: [
-            { label: 'Format', value: 'On-site or remote' },
-            { label: 'Details', value: '6–14 per cohort' },
-            { label: 'Best for', value: 'Functional teams' },
-        ],
-        title: 'Team Workshops',
-    },
-    {
-        desc: 'Focused sessions on a single skill: negotiation, presentations, writing. Open to individuals and small groups.',
-        details: [
-            { label: 'Format', value: 'Half / full day' },
-            { label: 'Details', value: 'Beginner–Advanced' },
-            { label: 'Best for', value: 'Targeted upskilling' },
-        ],
-        title: 'Events & Intensives',
-    },
-] as const;
-
 export const STYLES = {
-    border: '1px solid #e4e7ec',
-    borderMuted: '1px solid #dfe2e8',
+    actionBase: {
+        borderRadius: 8,
+        fontSize: 12,
+        padding: '7px 12px',
+    } as React.CSSProperties,
+    border: '1px solid var(--color-silver-strong)',
+    borderMuted: '1px solid var(--color-silver-muted)',
     borderRadius: 10,
-    borderRadiusLg: 16,
-    borderRadiusSm: 9,
-    colorBorder: '#eceef2',
-    colorBorderHover: '#d4d8e0',
-    colorError: '#c0392b',
-    colorErrorBg: '#fbe9ee',
-    colorErrorInk: '#a4324a',
-    colorErrorSoft: '#e0a0a0',
-    colorGhost: '#6e7482',
-    colorInk: '#14161c',
-    colorInkSoft: '#3f4654',
-    colorMuted: '#4a515e',
-    colorRowBorder: '1px solid #f1f2f5',
-    colorSuccess: '#0d7a5f',
-    colorSuccessBg: '#e7f4ef',
-    colorSurface: '#ffffff',
-    colorSurface90: '#ffffffe6',
-    colorSurfaceRaised: '#f7f8fa',
+    borderRadiusLarge: 16,
+    borderRadiusSmall: 9,
+    colorBorder: 'var(--color-silver)',
+    colorBorderHover: 'var(--color-silver-hover)',
+    colorError: 'var(--color-red)',
+    colorErrorBackground: 'var(--color-rose)',
+    colorErrorInk: 'var(--color-crimson)',
+    colorGhost: 'var(--color-slate-ghost)',
+    colorInk: 'var(--color-slate)',
+    colorMuted: 'var(--color-slate-muted)',
+    colorRowBorder: '1px solid var(--color-silver-light)',
+    colorSuccess: 'var(--color-teal)',
+    colorSuccessBackground: 'var(--color-mint)',
+    colorSurface: 'var(--color-white)',
+    colorSurface90: 'var(--color-white-90)',
+    colorSurfaceRaised: 'var(--color-snow)',
+    gridEvents: '1fr 120px 120px 130px 114px',
+    headerBase: {
+        alignItems: 'center',
+        color: 'var(--color-slate-ghost)',
+        display: 'flex',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        fontWeight: 500,
+        gap: 5,
+        justifyContent: 'flex-start',
+        letterSpacing: '.08em',
+        padding: 0,
+        textAlign: 'left',
+        textTransform: 'uppercase',
+    } as React.CSSProperties,
     inputBase: {
         borderRadius: 10,
-        color: '#14161c',
+        color: 'var(--color-slate)',
         fontFamily: 'inherit',
         fontSize: 16,
         outline: 'none',
@@ -108,10 +72,13 @@ export const STYLES = {
         fontWeight: 600,
         marginBottom: 7,
     } as React.CSSProperties,
-    overlayBackdrop: '#14161c73',
-    overlayLight: '#14161c59',
-    shadowCard: '0 1px 3px #14161c0a, 0 10px 40px #14161c0f',
-    shadowModal: '0 24px 60px #14161c40',
-    shadowSidebar: '0 16px 40px #14161c2e',
-    shadowToast: '0 8px 24px #14161c29',
+    overlayBackdrop: 'var(--color-slate-45)',
+    overlayLight: 'var(--color-slate-35)',
+    shadowCard: '0 1px 3px var(--color-slate-05), 0 10px 40px var(--color-slate-05)',
+    shadowModal: '0 24px 60px var(--color-slate-25)',
+    shadowSidebar: '0 16px 40px var(--color-slate-20)',
+    shadowToast: '0 8px 24px var(--color-slate-15)',
 } as const;
+
+export const TIMEZONE = 'Asia/Shanghai';
+export const URL_PATTERN = /^https?:\/\/.+/;

@@ -1,35 +1,37 @@
 import { join } from 'node:path';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 
+import { CONTENT_DIR } from '../src/lib/constants';
+
 interface FieldConfig {
-    array: boolean;
+    isArray: boolean;
     name: string;
 }
 
-const COLLECTIONS: Record<string, FieldConfig[]> = {
-    outcomes: [
-        { array: true, name: 'points' },
-        { array: false, name: 'summary' },
-        { array: false, name: 'title' },
-    ],
+const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
     events: [
-        { array: false, name: 'title' },
+        { isArray: false, name: 'title' },
+    ],
+    outcomes: [
+        { isArray: true, name: 'points' },
+        { isArray: false, name: 'summary' },
+        { isArray: false, name: 'title' },
     ],
     testimonials: [
-        { array: false, name: 'industry' },
-        { array: false, name: 'name' },
-        { array: false, name: 'quote' },
-        { array: false, name: 'role' },
+        { isArray: false, name: 'industry' },
+        { isArray: false, name: 'name' },
+        { isArray: false, name: 'quote' },
+        { isArray: false, name: 'role' },
     ],
 };
 
-const CONTENT_DIR = join(import.meta.dir, '..', 'src', 'content');
+const contentRoot = join(import.meta.dir, '..', CONTENT_DIR);
 
-const TRANSLATIONS_DIR = join(CONTENT_DIR, 'translations');
+const translationsRoot = join(contentRoot, 'translations');
 
 function scaffoldCollection(collection: string, fields: FieldConfig[]) {
-    const contentDirectory = join(CONTENT_DIR, collection);
-    const translationPath = join(TRANSLATIONS_DIR, `${collection}.json`);
+    const contentDirectory = join(contentRoot, collection);
+    const translationPath = join(translationsRoot, `${collection}.json`);
 
     const entries: Record<string, Record<string, string | string[]>> = JSON.parse(readFileSync(translationPath, 'utf-8'));
     const files = readdirSync(contentDirectory).filter(file => file.endsWith('.json'));
@@ -43,7 +45,7 @@ function scaffoldCollection(collection: string, fields: FieldConfig[]) {
         for (const field of fields) {
             if (field.name in entries[id]) continue;
 
-            entries[id][field.name] = field.array && Array.isArray(content[field.name])
+            entries[id][field.name] = field.isArray && Array.isArray(content[field.name])
                 ? (content[field.name] as unknown[]).map(() => '')
                 : '';
         }
@@ -53,11 +55,11 @@ function scaffoldCollection(collection: string, fields: FieldConfig[]) {
         if (!files.includes(`${id}.json`)) delete entries[id];
     }
 
-    const sorted = Object.fromEntries(Object.entries(entries).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)));
+    const sortedEntries = Object.fromEntries(Object.entries(entries).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)));
 
-    writeFileSync(translationPath, JSON.stringify(sorted, null, 4));
+    writeFileSync(translationPath, JSON.stringify(sortedEntries, null, 4));
 }
 
-for (const [collection, fields] of Object.entries(COLLECTIONS)) {
+for (const [collection, fields] of Object.entries(FIELD_CONFIGS)) {
     scaffoldCollection(collection, fields);
 }

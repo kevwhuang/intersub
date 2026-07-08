@@ -1,15 +1,14 @@
 import { getStore } from '@netlify/blobs';
 
+import { IS_DEV } from '@lib/constants';
 import { deleteEntry, readCollection, writeEntry } from '@lib/local';
 import { getOutcomes } from '@lib/store';
 import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
 
-const DEV = import.meta.env.DEV;
-
 async function loadOutcomes(): Promise<Record<string, unknown>[]> {
-    if (DEV) return readCollection('outcomes');
+    if (IS_DEV) return readCollection('outcomes');
 
     return getOutcomes();
 }
@@ -29,10 +28,14 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     if (!id) return Response.json({ error: 'Missing id' }, { status: 400 });
 
-    if (DEV) {
+    const outcomes = await loadOutcomes();
+
+    if (!outcomes.find(entry => String(entry.id) === String(id))) return Response.json({ error: 'Outcome not found' }, { status: 400 });
+
+    if (IS_DEV) {
         deleteEntry('outcomes', id);
     } else {
-        await getStore({ consistency: 'strong', name: 'outcomes' }).delete(String(id));
+        await getStore({ consistency: 'strong', name: 'outcomes' }).setJSON(String(id), { deleted: true });
     }
 
     return Response.json({ deleted: true });
@@ -57,24 +60,35 @@ export const POST: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
+    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
+
+    const points = Array.isArray(body.points) ? body.points.map(entry => String(entry).trim()).filter(Boolean) : [];
+    const summary = String(body.summary || '').trim();
+    const title = String(body.title || '').trim();
+
+    if (!points.length) return Response.json({ error: 'At least one outcome point is required' }, { status: 400 });
+    if (!summary) return Response.json({ error: 'Summary is required' }, { status: 400 });
+    if (!title) return Response.json({ error: 'Title is required' }, { status: 400 });
+
     let id = body.id ? String(body.id) : null;
 
+    const outcomes = await loadOutcomes();
+
+    if (id && !outcomes.find(entry => String(entry.id) === id)) return Response.json({ error: 'Outcome not found' }, { status: 400 });
+
     if (!id) {
-        const outcomes = await loadOutcomes();
         const maxId = outcomes.reduce((max, entry) => {
             const parsedId = parseInt(String(entry.id), 10);
+
             return Number.isNaN(parsedId) ? max : Math.max(max, parsedId);
         }, 0);
+
         id = String(maxId + 1);
     }
 
-    const data: Record<string, string | string[]> = {
-        points: Array.isArray(body.points) ? body.points.map(String) : [],
-        summary: String(body.summary || ''),
-        title: String(body.title || ''),
-    };
+    const data: Record<string, string | string[]> = { points, summary, title };
 
-    if (DEV) {
+    if (IS_DEV) {
         writeEntry('outcomes', id, data);
     } else {
         await getStore({ consistency: 'strong', name: 'outcomes' }).setJSON(id, data);

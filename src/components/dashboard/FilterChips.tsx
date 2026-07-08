@@ -1,48 +1,68 @@
-import { FONT_MONO, STYLES } from '@lib/constants';
-import { getLevelMeta } from '@lib/utils';
+import { FONT_MONO, LEVELS, STYLES } from '@lib/constants';
 
-export default function FilterChips({ activeFilters, activeLocation, locations, onFilterToggle, onLocationChange, onNewEvent }: {
-    activeFilters: string[];
+const GROUP_LABEL_STYLE: React.CSSProperties = { color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' };
+
+const TIMINGS = [
+    { label: 'All', value: 'all' },
+    { label: 'Upcoming', value: 'upcoming' },
+    { label: 'Past', value: 'past' },
+] as const;
+
+function getChipClassName(isActive: boolean) {
+    return isActive ? 'chip chip--active' : 'chip';
+}
+
+export default function FilterChips({ activeLevel, activeLocation, activeTiming, locations, onLevelChange, onLocationChange, onNewEvent, onTimingChange }: {
+    activeLevel: string;
     activeLocation: string;
+    activeTiming: string;
     locations: string[];
-    onFilterToggle: (value: string) => void;
+    onLevelChange: (value: string) => void;
     onLocationChange: (value: string) => void;
     onNewEvent: () => void;
+    onTimingChange: (value: string) => void;
 }) {
-    function chipClassName(active: boolean) {
-        return active ? 'dashboard-chip dashboard-chip--active' : 'dashboard-chip';
-    }
-
-    const groupLabelStyle: React.CSSProperties = { color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 10, letterSpacing: '.08em', margin: '0 0 8px', textTransform: 'uppercase' };
-
     return (
         <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'space-between', marginBottom: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <div>
-                    <p style={groupLabelStyle}>Location</p>
+                    <p style={GROUP_LABEL_STYLE}>When</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {['all', ...locations].map(location => (
-                            <button className={chipClassName(activeLocation === location)} key={location} onClick={() => onLocationChange(location)}>
-                                {location === 'all' ? 'All locations' : location}
+                        {TIMINGS.map(timing => (
+                            <button className={getChipClassName(activeTiming === timing.value)} key={timing.value} onClick={() => onTimingChange(timing.value)}>
+                                {timing.label}
                             </button>
                         ))}
                     </div>
                 </div>
                 <div>
-                    <p style={groupLabelStyle}>Level</p>
+                    <p style={GROUP_LABEL_STYLE}>Where</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        <button className={chipClassName(activeFilters.length === 0)} onClick={() => onFilterToggle('all')}>
+                        <button className={getChipClassName(activeLocation === 'all')} onClick={() => onLocationChange('all')}>
+                            Everywhere
+                        </button>
+                        {locations.map(location => (
+                            <button className={getChipClassName(activeLocation === location)} key={location} onClick={() => onLocationChange(location)}>
+                                {location}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <p style={GROUP_LABEL_STYLE}>Who</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <button className={getChipClassName(activeLevel === 'all')} onClick={() => onLevelChange('all')}>
                             Everyone
                         </button>
-                        {['Beginner', 'Intermediate', 'Advanced', 'Cohort'].map(level => (
-                            <button className={chipClassName(activeFilters.includes(level))} key={level} onClick={() => onFilterToggle(level)}>
-                                {getLevelMeta(level).label}
+                        {LEVELS.map(level => (
+                            <button className={getChipClassName(activeLevel === level)} key={level} onClick={() => onLevelChange(level)}>
+                                {level}
                             </button>
                         ))}
                     </div>
                 </div>
             </div>
-            <button className="dashboard-button--primary" onClick={onNewEvent} style={{ alignItems: 'center', display: 'inline-flex', fontSize: 16, gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+            <button className="dashboard-button dashboard-button--primary" onClick={onNewEvent} style={{ alignItems: 'center', display: 'inline-flex', gap: 6, padding: '10px 16px', whiteSpace: 'nowrap' }}>
                 +&ensp;New event
             </button>
         </div>

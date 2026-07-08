@@ -14,8 +14,8 @@ export default class ErrorBoundary extends Component<{ children: React.ReactNode
 
         return (
             <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
-                <div style={{ maxWidth: 600 }}>
-                    <p style={{ color: `color-mix(in srgb, ${COBALT} 18%, ${STYLES.colorSurface})`, fontFamily: FONT_HEADING, fontSize: 'clamp(120px, 20vw, 240px)', fontWeight: 700, letterSpacing: '-0.05em', lineHeight: 0.8, margin: '0 0 16px' }} aria-hidden="true">
+                <div style={{ maxWidth: 620 }}>
+                    <p aria-hidden="true" style={{ color: `color-mix(in srgb, ${COBALT} 18%, ${STYLES.colorSurface})`, fontFamily: FONT_HEADING, fontSize: 'clamp(120px, 20vw, 240px)', fontWeight: 700, letterSpacing: '-0.05em', lineHeight: 0.8, margin: '0 0 16px' }}>
                         Error
                     </p>
                     <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 12px' }}>
@@ -29,7 +29,7 @@ export default class ErrorBoundary extends Component<{ children: React.ReactNode
                             Refresh
                         </button>
                         <a href="/" style={{ alignItems: 'center', border: `1px solid ${STYLES.colorBorderHover}`, borderRadius: 10, color: STYLES.colorInk, display: 'inline-flex', fontFamily: 'inherit', fontSize: 16, fontWeight: 600, padding: '15px 24px', textDecoration: 'none' }}>
-                            Home
+                            Go home
                         </a>
                     </div>
                 </div>

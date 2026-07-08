@@ -1,9 +1,37 @@
 ---
-import { SOLUTIONS } from '@lib/constants';
+const SOLUTIONS = [
+    {
+        description: 'Private, focused coaching for leaders who need to perform in English under real pressure: calls, negotiations, presentations.',
+        details: [
+            { label: 'Format', value: 'Private 1:1' },
+            { label: 'Details', value: 'Weekly \u00B7 60 min' },
+            { label: 'Best for', value: 'Senior leaders' },
+        ],
+        title: '1:1 Executive Coaching',
+    },
+    {
+        description: 'Cohort training built around your team\'s actual communication: the meetings they run and the partners they email.',
+        details: [
+            { label: 'Format', value: 'On-site or remote' },
+            { label: 'Details', value: '6\u201314 per cohort' },
+            { label: 'Best for', value: 'Functional teams' },
+        ],
+        title: 'Team Workshops',
+    },
+    {
+        description: 'Focused sessions on a single skill: negotiation, presentations, writing. Open to individuals and small groups.',
+        details: [
+            { label: 'Format', value: 'Half / full day' },
+            { label: 'Details', value: 'Beginner\u2013Advanced' },
+            { label: 'Best for', value: 'Targeted upskilling' },
+        ],
+        title: 'Events & Intensives',
+    },
+] as const;
 ---
 
 <section
-    class="solutions"
+    class="solutions section"
     aria-labelledby="solutions-title"
 >
     <div class="shell">
@@ -12,19 +40,19 @@ import { SOLUTIONS } from '@lib/constants';
             <p class="solutions__intro" data-i18n-html="solutions-intro">Three formats, each built around your real situations: the meetings you run, the clients you email, the rooms you need to win.</p>
         </div>
         <div class="solutions__list flex flex-col gap-[22px]" data-scroll data-scroll-stagger="0.12">
-            {SOLUTIONS.map(s => (
+            {SOLUTIONS.map(solution => (
                 <article class="solutions__card">
                     <div class="solutions__card-main flex flex-col">
                         <div>
-                            <h3 class="solutions__card-title" data-i18n={s.title}>{s.title}</h3>
-                            <p class="solutions__card-description" data-i18n={s.desc}>{s.desc}</p>
+                            <h3 class="solutions__card-title" data-i18n={solution.title}>{solution.title}</h3>
+                            <p class="solutions__card-description" data-i18n={solution.description}>{solution.description}</p>
                         </div>
                     </div>
                     <dl class="solutions__details">
-                        {s.details.map(d => (
+                        {solution.details.map(detail => (
                             <div class="solutions__detail">
-                                <dt class="solutions__detail-key" data-i18n={d.label}>{d.label}</dt>
-                                <dd class="solutions__detail-value" data-i18n={d.value}>{d.value}</dd>
+                                <dt class="solutions__detail-key" data-i18n={detail.label}>{detail.label}</dt>
+                                <dd class="solutions__detail-value" data-i18n={detail.value}>{detail.value}</dd>
                             </div>
                         ))}
                     </dl>
@@ -38,7 +66,6 @@ import { SOLUTIONS } from '@lib/constants';
     .solutions {
         background: var(--color-snow);
         border-bottom: 1px solid var(--color-silver);
-        padding: clamp(64px, 9vw, 120px) 0;
     }
 
     .solutions__card {
@@ -50,18 +77,7 @@ import { SOLUTIONS } from '@lib/constants';
         gap: clamp(24px, 4vw, 56px);
         grid-template-columns: 1.1fr 1fr;
         padding: clamp(28px, 3.5vw, 44px);
-        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
-    }
-
-    .solutions__card:active {
-        opacity: 0.95;
-        transform: translateY(0);
-    }
-
-    .solutions__card:focus-visible {
-        border-color: var(--color-cobalt);
-        box-shadow: 0 0 0 3px var(--color-cobalt-20);
-        outline: none;
+        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
     .solutions__card:hover {

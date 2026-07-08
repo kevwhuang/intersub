@@ -13,7 +13,7 @@ import hero from '@images/hero.webp';
         <Image
             class="hero__background-image"
             alt=""
-            loading="eager"
+            priority
             sizes="100vw"
             src={hero}
             widths={[768, 1280, 1920]}
@@ -59,8 +59,8 @@ import hero from '@images/hero.webp';
 
     .hero__overlay {
         background:
-            linear-gradient(to right, var(--color-slate-overlay-70) 0%, var(--color-slate-overlay-40) 70%, var(--color-slate-overlay-30) 100%),
-            var(--color-slate-overlay-20);
+            linear-gradient(to right, var(--color-midnight-70) 0%, var(--color-midnight-40) 70%, var(--color-midnight-30) 100%),
+            var(--color-midnight-20);
         inset: 0;
         z-index: -1;
     }

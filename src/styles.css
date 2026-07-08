@@ -99,15 +99,18 @@
     border-color: var(--color-cobalt);
 }
 
-.dashboard-button--danger {
-    background: none;
-    border: 1px solid var(--color-rose);
+.dashboard-button {
     border-radius: 10px;
-    color: var(--color-crimson);
     font-family: inherit;
     font-size: 16px;
     font-weight: 600;
     padding: 12px 22px;
+}
+
+.dashboard-button--danger {
+    background: none;
+    border: 1px solid var(--color-rose);
+    color: var(--color-crimson);
     transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
 
@@ -134,10 +137,24 @@
     border-color: var(--color-crimson);
 }
 
+.dashboard-button--danger-solid {
+    background: var(--color-red);
+    border-color: var(--color-red);
+    color: var(--color-white);
+    transition: filter var(--duration-fast) ease;
+}
+
+.dashboard-button--danger-solid:active {
+    filter: brightness(0.92);
+}
+
+.dashboard-button--danger-solid:hover {
+    filter: brightness(1.1);
+}
+
 .dashboard-button--ghost {
     background: none;
     border: none;
-    font-family: inherit;
     transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
 }
 
@@ -159,15 +176,29 @@
     color: var(--color-slate);
 }
 
+.dashboard-button--muted {
+    color: var(--color-slate-ghost);
+    transition: color var(--duration-fast) ease;
+}
+
+.dashboard-button--muted:hover {
+    color: var(--color-slate);
+}
+
+.dashboard-button--hit {
+    position: relative;
+}
+
+.dashboard-button--hit::after {
+    content: '';
+    inset: -6px;
+    position: absolute;
+}
+
 .dashboard-button--outline {
     background: none;
     border: 1px solid var(--color-silver-hover);
-    border-radius: 10px;
     color: var(--color-slate);
-    font-family: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 12px 22px;
     transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
 
@@ -197,12 +228,7 @@
 .dashboard-button--primary {
     background: var(--color-cobalt);
     border: none;
-    border-radius: 10px;
     color: var(--color-white);
-    font-family: inherit;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 12px 22px;
     transition: filter var(--duration-fast) ease;
 }
 
@@ -227,51 +253,15 @@
     filter: brightness(1.1);
 }
 
-.dashboard-chip {
-    background: var(--color-white);
-    border: 1px solid var(--color-silver-muted);
-    border-radius: 99px;
-    color: var(--color-slate-muted);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 7px 14px;
-    transition: border-color var(--duration-fast) ease, opacity var(--duration-fast) ease;
-}
-
-.dashboard-chip:active {
-    opacity: 0.8;
-}
-
-.dashboard-chip:disabled {
-    opacity: 0.5;
-}
-
-.dashboard-chip:focus-visible {
-    box-shadow: 0 0 0 3px var(--color-cobalt-20);
-    outline: none;
-}
-
-.dashboard-chip:hover {
-    border-color: var(--color-slate-ghost);
-}
-
-.dashboard-chip--active {
-    background: var(--color-cobalt);
-    border-color: var(--color-cobalt);
-    color: var(--color-white);
-}
-
-.dashboard-chip--active:hover {
-    border-color: var(--color-cobalt);
-}
-
 .dashboard-input {
+    border: 1px solid var(--color-silver-muted);
     font-family: inherit;
     outline: none;
+    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 
 .dashboard-link {
+    color: var(--color-slate-ghost);
     text-decoration: none;
     transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
 }
@@ -290,8 +280,9 @@
 }
 
 .dashboard-nav {
+    color: var(--color-slate-soft);
     font-family: inherit;
-    transition: background var(--duration-fast) ease;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
 }
 
 .dashboard-nav:active {
@@ -305,6 +296,15 @@
 
 .dashboard-nav:hover {
     background: var(--color-snow);
+}
+
+.dashboard-nav--active {
+    background: color-mix(in srgb, var(--color-cobalt) 10%, var(--color-white));
+    color: var(--color-cobalt);
+}
+
+.dashboard-nav--active:hover {
+    background: color-mix(in srgb, var(--color-cobalt) 10%, var(--color-white));
 }
 
 .input,
@@ -334,6 +334,7 @@
     border-color: var(--color-slate-ghost);
 }
 
+.dashboard-input--error,
 .input--error,
 .textarea--error {
     border-color: var(--color-rose-soft);

@@ -1,24 +1,85 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
 import DeleteModal from '@components/DeleteModal';
+import EditForm from '@components/dashboard/EditForm';
 import ErrorBoundary from '@components/ErrorBoundary';
-import Spinner from '@components/Spinner';
-import AdminForm from '@components/dashboard/AdminForm';
-import AdminSidebar from '@components/dashboard/AdminSidebar';
-import AdminTopBar from '@components/dashboard/AdminTopBar';
+import EventRow from '@components/dashboard/EventRow';
+import EventTableHeader from '@components/dashboard/EventTableHeader';
 import FilterChips from '@components/dashboard/FilterChips';
 import LoginScreen from '@components/dashboard/LoginScreen';
 import OutcomesPanel from '@components/dashboard/OutcomesPanel';
-import EventRow from '@components/dashboard/EventRow';
 import SetPasswordScreen from '@components/dashboard/SetPasswordScreen';
-import TableHeader from '@components/dashboard/TableHeader';
+import Sidebar from '@components/dashboard/Sidebar';
+import Spinner from '@components/Spinner';
 import TestimonialsPanel from '@components/dashboard/TestimonialsPanel';
-import { FONT_HEADING, FONT_MONO, STYLES } from '@lib/constants';
+import TopBar from '@components/dashboard/TopBar';
+import { FONT_HEADING, FONT_MONO, LEVELS, STYLES, URL_PATTERN } from '@lib/constants';
+import { getToday } from '@lib/utils';
 import { useAuth } from '@lib/authClient';
 
 type DashboardAction
     = | { payload: (state: DashboardState) => Partial<DashboardState>; type: 'FN' }
         | { payload: Partial<DashboardState>; type: 'SET' };
+
+interface DashboardState {
+    activeLevel: string;
+    activeLocation: string;
+    activePanel: 'events' | 'outcomes' | 'testimonials';
+    activeTiming: string;
+    confirmDeleteId: string | null;
+    confirmDeleteType: 'event' | 'outcome' | 'testimonial';
+    editingEventId: string | null;
+    editingOutcomeId: string | null;
+    editingTestimonialId: string | null;
+    eventForm: EventFormData | null;
+    eventFormErrors: Record<string, boolean>;
+    events: AdminEvent[];
+    isDrawerOpen: boolean;
+    isLoading: boolean;
+    isSaving: boolean;
+    isToastError: boolean;
+    outcomeForm: OutcomeFormData | null;
+    outcomeFormErrors: Record<string, boolean>;
+    outcomes: AdminOutcome[];
+    searchValue: string;
+    sortDirection: 'asc' | 'desc';
+    sortKey: string;
+    testimonialForm: TestimonialFormData | null;
+    testimonialFormErrors: Record<string, boolean>;
+    testimonials: AdminTestimonial[];
+    toast: string | null;
+}
+
+interface EventFormData {
+    content: string;
+    cover: string;
+    date: string;
+    level: string;
+    location: string;
+    title: string;
+}
+
+const EVENT_FORM_ROWS: EditFormField<EventFormData>[][] = [
+    [{ errorMessage: 'Title is required.', key: 'title', kind: 'input', label: 'Title', placeholder: 'e.g. Executive Presence in English Meetings', required: true }],
+    [
+        { errorMessage: 'Date is required.', key: 'date', kind: 'date', label: 'Date', required: true },
+        { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
+    ],
+    [{ errorMessage: 'Location is required.', key: 'location', kind: 'input', label: 'Location', placeholder: 'e.g. Shanghai', required: true }],
+    [{ errorMessage: 'Must be a valid URL.', key: 'cover', kind: 'input', label: 'Cover', placeholder: 'https://\u2026' }],
+    [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, mono: true, placeholder: 'Describe what the event covers and who it serves.\n\n## What you\u2019ll learn\n- First key takeaway or skill\n- Second key takeaway or skill\n- Third key takeaway or skill\n\n## Who it\u2019s for\nThe target audience and their typical challenges.', required: true, rows: 9 }],
+];
+
+const MOBILE_BREAKPOINT = 1_024;
+const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
+
+const PANEL_META = {
+    event: { endpoint: '/api/events', label: 'Event' },
+    outcome: { endpoint: '/api/outcomes', label: 'Outcome' },
+    testimonial: { endpoint: '/api/testimonials', label: 'Testimonial' },
+} as const;
+
+const TOAST_DURATION = 3_000;
 
 function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
     if (action.type === 'SET') return { ...state, ...action.payload };
@@ -27,210 +88,295 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
     return state;
 }
 
-const TOAST_DURATION = 3_000;
+function getFailureMessage(fallback: string) {
+    return navigator.onLine ? fallback : OFFLINE_ERROR;
+}
 
-function useDashboardState(getToken: () => Promise<string | null>) {
+function useDashboardState(getToken: () => Promise<string | null>, onSessionExpired: () => void) {
     const [state, dispatch] = useReducer(dashboardReducer, {
+        activeLevel: 'all',
+        activeLocation: 'all',
         activePanel: 'events',
-        adminFilters: [],
-        adminLocation: 'all',
-        adminSearch: '',
-        confirmDelete: null,
+        activeTiming: 'all',
+        confirmDeleteId: null,
         confirmDeleteType: 'event',
-        drawerOpen: typeof window !== 'undefined' && window.innerWidth > 1024,
-        editing: null,
-        editingOutcome: null,
-        editingTestimonial: null,
-        form: null,
-        formErrors: {},
-        loading: true,
+        editingEventId: null,
+        editingOutcomeId: null,
+        editingTestimonialId: null,
+        eventForm: null,
+        eventFormErrors: {},
+        events: [],
+        isDrawerOpen: typeof window !== 'undefined' && window.innerWidth > MOBILE_BREAKPOINT,
+        isLoading: true,
+        isSaving: false,
+        isToastError: false,
         outcomeForm: null,
         outcomeFormErrors: {},
         outcomes: [],
-        saving: false,
-        events: [],
+        searchValue: '',
         sortDirection: 'asc',
         sortKey: 'name',
         testimonialForm: null,
         testimonialFormErrors: {},
         testimonials: [],
         toast: null,
-        toastError: false,
     } satisfies DashboardState);
+
+    const [isMobile, setIsMobile] = useState(false);
 
     const set = useCallback(
         (payload: Partial<DashboardState>) => dispatch({ payload, type: 'SET' }),
         [],
     );
 
+    const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
     const update = useCallback(
         (callback: (state: DashboardState) => Partial<DashboardState>) => dispatch({ payload: callback, type: 'FN' }),
         [],
     );
 
-    const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-    const [isMobile, setIsMobile] = useState(false);
+    async function fetchData() {
+        try {
+            const responses = await Promise.all([
+                fetch(PANEL_META.event.endpoint),
+                fetch(PANEL_META.outcome.endpoint),
+                fetch(PANEL_META.testimonial.endpoint),
+            ]);
 
-    async function authFetch(url: string, options: RequestInit) {
+            if (responses.some(response => !response.ok)) {
+                set({ isLoading: false });
+                showToast(getFailureMessage('Failed to load data'), true);
+
+                return;
+            }
+
+            const [events, outcomes, testimonials] = await Promise.all(responses.map(response => response.json()));
+
+            set({ events, isLoading: false, outcomes, testimonials });
+        } catch {
+            set({ isLoading: false });
+            showToast(getFailureMessage('Failed to load data'), true);
+        }
+    }
+
+    async function fetchWithAuth(url: string, options: RequestInit) {
         const token = await getToken();
-        const headers = { ...options.headers as Record<string, string> };
 
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (!token) {
+            if (navigator.onLine) onSessionExpired();
+
+            throw new Error('Session expired');
+        }
+
+        const headers = { ...options.headers as Record<string, string>, Authorization: `Bearer ${token}` };
 
         return fetch(url, { ...options, headers });
     }
 
-    async function fetchData() {
-        try {
-            const [outcomesResponse, eventsResponse, testimonialsResponse] = await Promise.all([
-                fetch('/api/outcomes'),
-                fetch('/api/events'),
-                fetch('/api/testimonials'),
-            ]);
-
-            set({
-                loading: false,
-                outcomes: await outcomesResponse.json(),
-                events: await eventsResponse.json(),
-                testimonials: await testimonialsResponse.json(),
-            });
-        } catch {
-            set({ loading: false });
-        }
+    function handleCancelEventEdit() {
+        set({ editingEventId: null, eventForm: null, eventFormErrors: {} });
     }
 
-    function showToast(message: string, error = false) {
-        clearTimeout(toastTimer.current);
-        set({ toast: message, toastError: error });
-        toastTimer.current = setTimeout(() => set({ toast: null, toastError: false }), TOAST_DURATION);
+    function handleCancelOutcomeEdit() {
+        set({ editingOutcomeId: null, outcomeForm: null, outcomeFormErrors: {} });
     }
 
-    function handleCancelEdit() {
-        set({ editing: null, form: null, formErrors: {} });
+    function handleCancelTestimonialEdit() {
+        set({ editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} });
     }
 
     function handleResetForLogout() {
-        set({ drawerOpen: false, editing: null });
+        set({ isDrawerOpen: false, editingEventId: null });
     }
 
-    async function handleSaveForm() {
-        if (!state.form) return;
+    async function handleSaveEvent() {
+        if (!state.eventForm) return;
 
         const errors: Record<string, boolean> = {};
-        if (!state.form.title.trim()) errors.title = true;
-        if (!state.form.date) errors.date = true;
-        if (!state.form.location.trim()) errors.location = true;
-        if (state.form.cover.trim() && !/^https?:\/\/.+/.test(state.form.cover.trim())) errors.cover = true;
-        if (!state.form.content.trim()) errors.content = true;
+
+        if (!state.eventForm.title.trim()) errors.title = true;
+        if (!state.eventForm.date) errors.date = true;
+        if (!state.eventForm.location.trim()) errors.location = true;
+        if (state.eventForm.cover.trim() && !URL_PATTERN.test(state.eventForm.cover.trim())) errors.cover = true;
+        if (!state.eventForm.content.trim()) errors.content = true;
+
         if (Object.keys(errors).length) {
-            set({ formErrors: errors });
+            set({ eventFormErrors: errors });
 
             return;
         }
 
-        const isNew = state.editing === 'new';
-        const body: Record<string, string> = { ...state.form };
+        const isNew = state.editingEventId === 'new';
+        const body: Record<string, string> = { ...state.eventForm };
 
-        if (!isNew && state.editing) body.id = state.editing;
+        if (!isNew && state.editingEventId) body.id = state.editingEventId;
 
-        set({ saving: true });
+        set({ isSaving: true });
 
         try {
-            const response = await authFetch('/api/events', {
+            const response = await fetchWithAuth(PANEL_META.event.endpoint, {
                 body: JSON.stringify(body),
                 headers: { 'Content-Type': 'application/json' },
                 method: 'POST',
             });
 
-            if (response.status === 409) {
-                set({ saving: false });
-                showToast('An event already exists on this date', true);
-
-                return;
-            }
-
             if (!response.ok) {
-                set({ saving: false });
-                showToast('Failed to save', true);
+                const { error } = await response.json().catch(() => ({}));
+
+                set({ isSaving: false });
+                showToast(error || 'Failed to save', true);
 
                 return;
             }
 
-            set({ editing: null, form: null, formErrors: {}, saving: false });
+            set({ editingEventId: null, eventForm: null, eventFormErrors: {}, isSaving: false });
             fetchData();
             showToast(isNew ? 'Event created' : 'Changes saved');
         } catch {
-            set({ saving: false });
-            showToast('Failed to save', true);
+            set({ isSaving: false });
+            showToast(getFailureMessage('Failed to save'), true);
         }
-    }
-
-    function handleStartEdit(id: string) {
-        const entry = state.events.find(item => item.id === id);
-
-        if (entry) {
-            set({
-                editing: entry.date || id,
-                form: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, title: entry.title },
-                formErrors: {},
-            });
-        }
-    }
-
-    function handleStartNew() {
-        set({ editing: 'new', form: { content: '', cover: '', date: '', level: '', location: '', title: '' }, formErrors: {} });
-    }
-
-    function handleToggleNav() {
-        set({ drawerOpen: !state.drawerOpen });
-    }
-
-    function handleCancelOutcomeEdit() {
-        set({ editingOutcome: null, outcomeForm: null, outcomeFormErrors: {} });
     }
 
     async function handleSaveOutcome() {
         if (!state.outcomeForm) return;
 
         const errors: Record<string, boolean> = {};
+
         if (!state.outcomeForm.title.trim()) errors.title = true;
         if (!state.outcomeForm.summary.trim()) errors.summary = true;
         if (!state.outcomeForm.points.trim()) errors.points = true;
+
         if (Object.keys(errors).length) {
             set({ outcomeFormErrors: errors });
 
             return;
         }
 
-        const isNew = state.editingOutcome === 'new';
+        const isNew = state.editingOutcomeId === 'new';
         const points = state.outcomeForm.points.split('\n').map(line => line.trim()).filter(Boolean);
+
         const body: Record<string, string | string[]> = { points, summary: state.outcomeForm.summary, title: state.outcomeForm.title };
 
-        if (!isNew && state.editingOutcome) body.id = state.editingOutcome;
+        if (!isNew && state.editingOutcomeId) body.id = state.editingOutcomeId;
 
-        set({ saving: true });
+        set({ isSaving: true });
 
         try {
-            await authFetch('/api/outcomes', { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
-            set({ editingOutcome: null, outcomeForm: null, outcomeFormErrors: {}, saving: false });
+            const response = await fetchWithAuth(PANEL_META.outcome.endpoint, { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
+
+            if (!response.ok) {
+                const { error } = await response.json().catch(() => ({}));
+
+                set({ isSaving: false });
+                showToast(error || 'Failed to save', true);
+
+                return;
+            }
+
+            set({ editingOutcomeId: null, outcomeForm: null, outcomeFormErrors: {}, isSaving: false });
             fetchData();
             showToast(isNew ? 'Outcome created' : 'Changes saved');
         } catch {
-            set({ saving: false });
-            showToast('Failed to save', true);
+            set({ isSaving: false });
+            showToast(getFailureMessage('Failed to save'), true);
         }
     }
 
-    function handleStartOutcomeEdit(id: string) {
-        const outcome = state.outcomes.find(item => item.id === id);
+    async function handleSaveTestimonial() {
+        if (!state.testimonialForm) return;
 
-        if (outcome) {
-            set({ editingOutcome: id, outcomeForm: { points: outcome.points.join('\n'), summary: outcome.summary, title: outcome.title }, outcomeFormErrors: {} });
+        const errors: Record<string, boolean> = {};
+
+        if (!state.testimonialForm.industry.trim()) errors.industry = true;
+        if (!state.testimonialForm.name.trim()) errors.name = true;
+        if (!state.testimonialForm.quote.trim()) errors.quote = true;
+        if (!state.testimonialForm.role.trim()) errors.role = true;
+
+        if (Object.keys(errors).length) {
+            set({ testimonialFormErrors: errors });
+
+            return;
         }
+
+        const isNew = state.editingTestimonialId === 'new';
+        const body: Record<string, string> = { ...state.testimonialForm };
+
+        if (!isNew && state.editingTestimonialId) body.id = state.editingTestimonialId;
+
+        set({ isSaving: true });
+
+        try {
+            const response = await fetchWithAuth(PANEL_META.testimonial.endpoint, { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
+
+            if (!response.ok) {
+                const { error } = await response.json().catch(() => ({}));
+
+                set({ isSaving: false });
+                showToast(error || 'Failed to save', true);
+
+                return;
+            }
+
+            set({ editingTestimonialId: null, isSaving: false, testimonialForm: null, testimonialFormErrors: {} });
+            fetchData();
+            showToast(isNew ? 'Testimonial created' : 'Changes saved');
+        } catch {
+            set({ isSaving: false });
+            showToast(getFailureMessage('Failed to save'), true);
+        }
+    }
+
+    function handleStartEventEdit(id: string) {
+        const entry = state.events.find(entry => entry.id === id);
+
+        if (entry) {
+            set({
+                editingEventId: entry.date || id,
+                eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, title: entry.title },
+                eventFormErrors: {},
+            });
+        }
+    }
+
+    function handleStartNewEvent() {
+        set({ editingEventId: 'new', eventForm: { content: '', cover: '', date: '', level: '', location: '', title: '' }, eventFormErrors: {} });
     }
 
     function handleStartNewOutcome() {
-        set({ editingOutcome: 'new', outcomeForm: { points: '', summary: '', title: '' }, outcomeFormErrors: {} });
+        set({ editingOutcomeId: 'new', outcomeForm: { points: '', summary: '', title: '' }, outcomeFormErrors: {} });
+    }
+
+    function handleStartNewTestimonial() {
+        set({ editingTestimonialId: 'new', testimonialForm: { industry: '', name: '', quote: '', role: '' }, testimonialFormErrors: {} });
+    }
+
+    function handleStartOutcomeEdit(id: string) {
+        const outcome = state.outcomes.find(outcome => outcome.id === id);
+
+        if (outcome) set({ editingOutcomeId: id, outcomeForm: { points: outcome.points.join('\n'), summary: outcome.summary, title: outcome.title }, outcomeFormErrors: {} });
+    }
+
+    function handleStartTestimonialEdit(id: string) {
+        const testimonial = state.testimonials.find(testimonial => testimonial.id === id);
+
+        if (testimonial) set({ editingTestimonialId: id, testimonialForm: { industry: testimonial.industry, name: testimonial.name, quote: testimonial.quote, role: testimonial.role }, testimonialFormErrors: {} });
+    }
+
+    function handleToggleDrawer() {
+        set({ isDrawerOpen: !state.isDrawerOpen });
+    }
+
+    function handleUpdateEventForm(fields: Partial<EventFormData>) {
+        update((previous) => {
+            if (!previous.eventForm) return {};
+
+            return {
+                eventForm: { ...previous.eventForm, ...fields },
+                eventFormErrors: { ...previous.eventFormErrors, ...Object.fromEntries(Object.keys(fields).map(key => [key, false])) },
+            };
+        });
     }
 
     function handleUpdateOutcomeForm(fields: Partial<OutcomeFormData>) {
@@ -244,54 +390,6 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         });
     }
 
-    function handleCancelTestimonialEdit() {
-        set({ editingTestimonial: null, testimonialForm: null, testimonialFormErrors: {} });
-    }
-
-    async function handleSaveTestimonial() {
-        if (!state.testimonialForm) return;
-
-        const errors: Record<string, boolean> = {};
-        if (!state.testimonialForm.industry.trim()) errors.industry = true;
-        if (!state.testimonialForm.name.trim()) errors.name = true;
-        if (!state.testimonialForm.quote.trim()) errors.quote = true;
-        if (!state.testimonialForm.role.trim()) errors.role = true;
-        if (Object.keys(errors).length) {
-            set({ testimonialFormErrors: errors });
-
-            return;
-        }
-
-        const isNew = state.editingTestimonial === 'new';
-        const body: Record<string, string> = { ...state.testimonialForm };
-
-        if (!isNew && state.editingTestimonial) body.id = state.editingTestimonial;
-
-        set({ saving: true });
-
-        try {
-            await authFetch('/api/testimonials', { body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, method: 'POST' });
-            set({ editingTestimonial: null, saving: false, testimonialForm: null, testimonialFormErrors: {} });
-            fetchData();
-            showToast(isNew ? 'Testimonial created' : 'Changes saved');
-        } catch {
-            set({ saving: false });
-            showToast('Failed to save', true);
-        }
-    }
-
-    function handleStartNewTestimonial() {
-        set({ editingTestimonial: 'new', testimonialForm: { industry: '', name: '', quote: '', role: '' }, testimonialFormErrors: {} });
-    }
-
-    function handleStartTestimonialEdit(id: string) {
-        const testimonial = state.testimonials.find(item => item.id === id);
-
-        if (testimonial) {
-            set({ editingTestimonial: id, testimonialForm: { industry: testimonial.industry, name: testimonial.name, quote: testimonial.quote, role: testimonial.role }, testimonialFormErrors: {} });
-        }
-    }
-
     function handleUpdateTestimonialForm(fields: Partial<TestimonialFormData>) {
         update((previous) => {
             if (!previous.testimonialForm) return {};
@@ -303,15 +401,10 @@ function useDashboardState(getToken: () => Promise<string | null>) {
         });
     }
 
-    function handleUpdateForm(fields: Partial<EventFormData>) {
-        update((previous) => {
-            if (!previous.form) return {};
-
-            return {
-                form: { ...previous.form, ...fields },
-                formErrors: { ...previous.formErrors, ...Object.fromEntries(Object.keys(fields).map(key => [key, false])) },
-            };
-        });
+    function showToast(message: string, isError = false) {
+        clearTimeout(toastTimer.current);
+        set({ isToastError: isError, toast: message });
+        toastTimer.current = setTimeout(() => set({ isToastError: false, toast: null }), TOAST_DURATION);
     }
 
     useEffect(() => {
@@ -319,16 +412,28 @@ function useDashboardState(getToken: () => Promise<string | null>) {
     }, []);
 
     useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 1024px)');
+        const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
 
         setIsMobile(mediaQuery.matches);
 
-        const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+        function handleChange(event: MediaQueryListEvent) {
+            setIsMobile(event.matches);
+        }
 
-        mediaQuery.addEventListener('change', onChange);
+        mediaQuery.addEventListener('change', handleChange);
 
-        return () => mediaQuery.removeEventListener('change', onChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
+
+    useEffect(() => {
+        function handleDrawerEscape(event: KeyboardEvent) {
+            if (event.key === 'Escape' && isMobile) set({ isDrawerOpen: false });
+        }
+
+        document.addEventListener('keydown', handleDrawerEscape);
+
+        return () => document.removeEventListener('keydown', handleDrawerEscape);
+    }, [isMobile, set]);
 
     useEffect(() => {
         return () => {
@@ -337,23 +442,23 @@ function useDashboardState(getToken: () => Promise<string | null>) {
     }, []);
 
     return {
-        authFetch,
         fetchData,
-        handleCancelEdit,
+        fetchWithAuth,
+        handleCancelEventEdit,
         handleCancelOutcomeEdit,
         handleCancelTestimonialEdit,
         handleResetForLogout,
-        handleSaveForm,
+        handleSaveEvent,
         handleSaveOutcome,
         handleSaveTestimonial,
-        handleStartEdit,
-        handleStartNew,
+        handleStartEventEdit,
+        handleStartNewEvent,
         handleStartNewOutcome,
         handleStartNewTestimonial,
         handleStartOutcomeEdit,
         handleStartTestimonialEdit,
-        handleToggleNav,
-        handleUpdateForm,
+        handleToggleDrawer,
+        handleUpdateEventForm,
         handleUpdateOutcomeForm,
         handleUpdateTestimonialForm,
         isMobile,
@@ -366,33 +471,34 @@ function useDashboardState(getToken: () => Promise<string | null>) {
 
 function DashboardInner() {
     const auth = useAuth();
+
     const {
-        authFetch,
         fetchData,
-        handleCancelEdit,
+        fetchWithAuth,
+        handleCancelEventEdit,
         handleCancelOutcomeEdit,
         handleCancelTestimonialEdit,
         handleResetForLogout,
-        handleSaveForm,
+        handleSaveEvent,
         handleSaveOutcome,
         handleSaveTestimonial,
-        handleStartEdit,
-        handleStartNew,
+        handleStartEventEdit,
+        handleStartNewEvent,
         handleStartNewOutcome,
         handleStartNewTestimonial,
         handleStartOutcomeEdit,
         handleStartTestimonialEdit,
-        handleToggleNav,
-        handleUpdateForm,
+        handleToggleDrawer,
+        handleUpdateEventForm,
         handleUpdateOutcomeForm,
         handleUpdateTestimonialForm,
         isMobile,
         set,
         showToast,
         state,
-    } = useDashboardState(auth.getToken);
+    } = useDashboardState(auth.getToken, auth.handleLogout);
 
-    if (auth.loading) {
+    if (auth.isLoading) {
         return (
             <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
                 <Spinner size={48} />
@@ -400,43 +506,43 @@ function DashboardInner() {
             </div>
         );
     }
+
+    if (auth.isRecovery) return <SetPasswordScreen auth={auth} />;
 
     if (!auth.user) return <LoginScreen auth={auth} />;
 
-    if (auth.recovery) return <SetPasswordScreen auth={auth} />;
-
-    function handleFilterToggle(value: string) {
-        if (value === 'all') {
-            set({ adminFilters: [] });
-        } else {
-            set({
-                adminFilters: state.adminFilters.includes(value)
-                    ? state.adminFilters.filter(filter => filter !== value)
-                    : [...state.adminFilters, value],
-            });
-        }
-    }
-
     async function handleConfirmDelete() {
-        const id = state.confirmDelete;
-        const endpoints: Record<string, string> = { outcome: '/api/outcomes', event: '/api/events', testimonial: '/api/testimonials' };
-        const labels: Record<string, string> = { outcome: 'Outcome', event: 'Event', testimonial: 'Testimonial' };
+        const id = state.confirmDeleteId;
 
-        const endpoint = endpoints[state.confirmDeleteType];
-        const label = labels[state.confirmDeleteType];
+        const { endpoint, label } = PANEL_META[state.confirmDeleteType];
 
-        set({ confirmDelete: null, editing: null, editingOutcome: null, editingTestimonial: null, form: null, outcomeForm: null, testimonialForm: null });
+        set({ confirmDeleteId: null });
 
         try {
-            await authFetch(endpoint, { body: JSON.stringify({ id }), headers: { 'Content-Type': 'application/json' }, method: 'DELETE' });
+            const response = await fetchWithAuth(endpoint, { body: JSON.stringify({ id }), headers: { 'Content-Type': 'application/json' }, method: 'DELETE' });
+
+            if (!response.ok) {
+                const { error } = await response.json().catch(() => ({}));
+
+                showToast(error || 'Failed to delete', true);
+
+                return;
+            }
+
+            set({ editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, testimonialForm: null });
             fetchData();
             showToast(`${label} deleted`);
         } catch {
-            showToast('Failed to delete', true);
+            showToast(getFailureMessage('Failed to delete'), true);
         }
     }
 
-    if (state.loading) {
+    function handleSignOut() {
+        auth.handleLogout();
+        handleResetForLogout();
+    }
+
+    if (state.isLoading) {
         return (
             <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
                 <Spinner size={48} />
@@ -445,225 +551,245 @@ function DashboardInner() {
         );
     }
 
-    const query = state.adminSearch.trim().toLowerCase();
     const direction = state.sortDirection === 'asc' ? 1 : -1;
+    const query = state.searchValue.trim().toLowerCase();
+    const today = getToday();
 
-    const filteredOutcomes = query
-        ? state.outcomes.filter(outcome => outcome.title.toLowerCase().includes(query) || outcome.summary.toLowerCase().includes(query))
-        : state.outcomes;
+    const confirmCollections = { event: state.events, outcome: state.outcomes, testimonial: state.testimonials };
 
-    const filteredTestimonials = (query
-        ? state.testimonials.filter(testimonial => testimonial.name.toLowerCase().includes(query) || testimonial.industry.toLowerCase().includes(query) || testimonial.role.toLowerCase().includes(query))
-        : state.testimonials
-    ).slice().sort((a, b) => {
-        const key = state.sortKey as keyof AdminTestimonial;
-        const valueA = (key === 'industry' || key === 'name' || key === 'role') ? a[key].toLowerCase() : a.name.toLowerCase();
-        const valueB = (key === 'industry' || key === 'name' || key === 'role') ? b[key].toLowerCase() : b.name.toLowerCase();
+    const confirmItem = state.confirmDeleteId
+        ? confirmCollections[state.confirmDeleteType].find(entry => entry.id === state.confirmDeleteId)
+        : null;
 
-        return valueA < valueB ? -direction : valueA > valueB ? direction : 0;
-    });
-
-    const filteredRows = state.events
+    const filteredEvents = state.events
         .filter(entry =>
-            (state.adminFilters.length === 0 || state.adminFilters.includes(entry.level || ''))
-            && (state.adminLocation === 'all' || entry.location === state.adminLocation)
-            && (!query || entry.title.toLowerCase().includes(query) || entry.location.toLowerCase().includes(query)),
+            (state.activeLevel === 'all' || entry.level === state.activeLevel)
+            && (state.activeLocation === 'all' || entry.location === state.activeLocation)
+            && (state.activeTiming === 'all' || (state.activeTiming === 'upcoming' && entry.date >= today) || (state.activeTiming === 'past' && entry.date < today))
+            && (!query || entry.location.toLowerCase().includes(query) || entry.title.toLowerCase().includes(query)),
         )
         .slice()
-        .sort((a, b) => {
+        .sort((entryA, entryB) => {
             let valueA: string, valueB: string;
 
             switch (state.sortKey) {
                 case 'date':
-                    valueA = a.date;
-                    valueB = b.date;
+                    valueA = entryA.date;
+                    valueB = entryB.date;
                     break;
                 case 'level':
-                    valueA = a.level || '';
-                    valueB = b.level || '';
+                    valueA = entryA.level || '';
+                    valueB = entryB.level || '';
                     break;
                 case 'location':
-                    valueA = a.location.toLowerCase();
-                    valueB = b.location.toLowerCase();
+                    valueA = entryA.location.toLowerCase();
+                    valueB = entryB.location.toLowerCase();
                     break;
                 default:
-                    valueA = a.title.toLowerCase();
-                    valueB = b.title.toLowerCase();
+                    valueA = entryA.title.toLowerCase();
+                    valueB = entryB.title.toLowerCase();
             }
 
-            return valueA < valueB ? -direction : valueA > valueB ? direction : 0;
+            if (valueA < valueB) return -direction;
+            if (valueA > valueB) return direction;
+
+            return 0;
         });
 
-    const confirmItem = state.confirmDelete
-        ? (state.confirmDeleteType === 'outcome'
-                ? state.outcomes.find(outcome => outcome.id === state.confirmDelete)
-                : state.confirmDeleteType === 'testimonial'
-                    ? state.testimonials.find(testimonial => testimonial.id === state.confirmDelete)
-                    : state.events.find(entry => entry.id === state.confirmDelete))
-        : null;
+    const filteredOutcomes = query
+        ? state.outcomes.filter(outcome => outcome.summary.toLowerCase().includes(query) || outcome.title.toLowerCase().includes(query))
+        : state.outcomes;
+
+    const filteredTestimonials = (query
+        ? state.testimonials.filter(testimonial => testimonial.industry.toLowerCase().includes(query) || testimonial.name.toLowerCase().includes(query) || testimonial.role.toLowerCase().includes(query))
+        : state.testimonials
+    ).slice().sort((testimonialA, testimonialB) => {
+        const key = state.sortKey as keyof AdminTestimonial;
+
+        const valueA = (key === 'industry' || key === 'name' || key === 'role') ? testimonialA[key].toLowerCase() : testimonialA.name.toLowerCase();
+        const valueB = (key === 'industry' || key === 'name' || key === 'role') ? testimonialB[key].toLowerCase() : testimonialB.name.toLowerCase();
+
+        if (valueA < valueB) return -direction;
+        if (valueA > valueB) return direction;
+
+        return 0;
+    });
 
     function handleToggleSort(field: string) {
         set({ sortDirection: state.sortKey === field && state.sortDirection === 'asc' ? 'desc' : 'asc', sortKey: field });
     }
 
+    function renderPanel() {
+        if (state.activePanel === 'testimonials') {
+            return (
+                <TestimonialsPanel
+                    editingTestimonialId={state.editingTestimonialId}
+                    isMobile={isMobile}
+                    onCancelEdit={handleCancelTestimonialEdit}
+                    onRequestDelete={id => set({ confirmDeleteId: id, confirmDeleteType: 'testimonial' })}
+                    onSave={handleSaveTestimonial}
+                    onSort={handleToggleSort}
+                    onStartEdit={handleStartTestimonialEdit}
+                    onStartNew={handleStartNewTestimonial}
+                    onUpdate={handleUpdateTestimonialForm}
+                    isSaving={state.isSaving}
+                    sortDirection={state.sortDirection}
+                    sortKey={state.sortKey}
+                    testimonialForm={state.testimonialForm}
+                    testimonialFormErrors={state.testimonialFormErrors}
+                    testimonials={filteredTestimonials}
+                />
+            );
+        }
+
+        if (state.activePanel === 'outcomes') {
+            return (
+                <OutcomesPanel
+                    editingOutcomeId={state.editingOutcomeId}
+                    isMobile={isMobile}
+                    onCancelEdit={handleCancelOutcomeEdit}
+                    onRequestDelete={id => set({ confirmDeleteId: id, confirmDeleteType: 'outcome' })}
+                    onSave={handleSaveOutcome}
+                    onStartEdit={handleStartOutcomeEdit}
+                    onStartNew={handleStartNewOutcome}
+                    onUpdate={handleUpdateOutcomeForm}
+                    outcomeForm={state.outcomeForm}
+                    outcomeFormErrors={state.outcomeFormErrors}
+                    outcomes={filteredOutcomes}
+                    isSaving={state.isSaving}
+                />
+            );
+        }
+
+        if (state.editingEventId === null) {
+            const locations = [...new Set(state.events.map(entry => entry.location))].sort();
+
+            return (
+                <div style={{ margin: '0 auto', maxWidth: 1280 }}>
+                    <div style={{ marginBottom: 24 }}>
+                        <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Events</h1>
+                        <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em', textTransform: 'lowercase' }}>
+                            <span>
+                                {state.events.length}
+                                {' '}
+                                {state.events.length === 1 ? 'event' : 'events'}
+                            </span>
+                            <span aria-hidden="true">&middot;</span>
+                            <span>
+                                {locations.length}
+                                {' '}
+                                {locations.length === 1 ? 'location' : 'locations'}
+                            </span>
+                            {LEVELS.map((level) => {
+                                const count = state.events.filter(entry => entry.level === level).length;
+
+                                if (!count) return null;
+
+                                return (
+                                    <Fragment key={level}>
+                                        <span aria-hidden="true">&middot;</span>
+                                        <span>
+                                            {count}
+                                            {' '}
+                                            {level}
+                                        </span>
+                                    </Fragment>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <FilterChips
+                        activeLevel={state.activeLevel}
+                        activeLocation={state.activeLocation}
+                        activeTiming={state.activeTiming}
+                        locations={locations}
+                        onLevelChange={value => set({ activeLevel: value })}
+                        onLocationChange={value => set({ activeLocation: value })}
+                        onNewEvent={handleStartNewEvent}
+                        onTimingChange={value => set({ activeTiming: value })}
+                    />
+                    <div aria-label={isMobile ? undefined : 'Events'} role={isMobile ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+                        {!isMobile && (
+                            <EventTableHeader
+                                onSort={handleToggleSort}
+                                sortDirection={state.sortDirection}
+                                sortKey={state.sortKey}
+                            />
+                        )}
+                        {filteredEvents.length > 0
+                            ? filteredEvents.map(entry => (
+                                    <EventRow
+                                        entry={entry}
+                                        isMobile={isMobile}
+                                        key={entry.id}
+                                        onDelete={() => set({ confirmDeleteId: entry.id, confirmDeleteType: 'event' })}
+                                        onEdit={() => handleStartEventEdit(entry.id)}
+                                    />
+                                ))
+                            : (
+                                    <div style={{ padding: '56px 24px', textAlign: 'center' }}>
+                                        <p style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 6px' }}>No events found</p>
+                                        <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Try a different search or filter, or add a new event.</p>
+                                    </div>
+                                )}
+                    </div>
+                </div>
+            );
+        }
+
+        if (state.eventForm) {
+            return (
+                <EditForm
+                    editingId={state.editingEventId}
+                    entity="event"
+                    fieldRows={EVENT_FORM_ROWS}
+                    form={state.eventForm}
+                    formErrors={state.eventFormErrors}
+                    isMobile={isMobile}
+                    isSaving={state.isSaving}
+                    onCancel={handleCancelEventEdit}
+                    onDelete={() => set({ confirmDeleteId: state.editingEventId, confirmDeleteType: 'event' })}
+                    onSave={handleSaveEvent}
+                    onUpdate={handleUpdateEventForm}
+                />
+            );
+        }
+
+        return null;
+    }
+
     return (
         <div style={{ background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <AdminTopBar
-                drawerOpen={state.drawerOpen}
-                onSearchChange={value => set({ adminSearch: value })}
-                onToggleNav={handleToggleNav}
-                searchValue={state.adminSearch}
+            <TopBar
+                isDrawerOpen={state.isDrawerOpen}
+                onSearchChange={value => set({ searchValue: value })}
+                onToggleDrawer={handleToggleDrawer}
+                searchValue={state.searchValue}
             />
             <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
-                {isMobile && state.drawerOpen && <div aria-hidden="true" onClick={() => set({ drawerOpen: false })} onKeyDown={event => event.key === 'Escape' && set({ drawerOpen: false })} role="button" tabIndex={-1} style={{ background: STYLES.overlayLight, inset: '60px 0 0 0', position: 'fixed', zIndex: 30 }} />}
-                <AdminSidebar
+                {isMobile && state.isDrawerOpen && <button aria-label="Close navigation" onClick={() => set({ isDrawerOpen: false })} type="button" style={{ background: STYLES.overlayLight, border: 'none', inset: '60px 0 0 0', position: 'fixed', zIndex: 30 }} />}
+                <Sidebar
                     activePanel={state.activePanel}
-                    drawerOpen={state.drawerOpen}
+                    isDrawerOpen={state.isDrawerOpen}
                     isMobile={isMobile}
-                    onCloseDrawer={() => set({ drawerOpen: false })}
-                    onLogout={() => {
-                        auth.handleLogout();
-                        handleResetForLogout();
-                    }}
-                    onSelectPanel={key => set({ activePanel: key as DashboardState['activePanel'], editing: null, editingOutcome: null, editingTestimonial: null, form: null, outcomeForm: null, testimonialForm: null })}
+                    onCloseDrawer={() => set({ isDrawerOpen: false })}
+                    onLogout={handleSignOut}
+                    onSelectPanel={key => set({ activePanel: key as DashboardState['activePanel'], editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, testimonialForm: null })}
                     userEmail={auth.user?.email ?? ''}
                 />
                 <main style={{ flex: 1, minWidth: 0, padding: 'clamp(20px, 4vw, 48px) clamp(16px, 3vw, 40px)' }}>
-                    {state.activePanel === 'testimonials'
-                        ? (
-                                <TestimonialsPanel
-                                    editingTestimonial={state.editingTestimonial}
-                                    isMobile={isMobile}
-                                    onCancelEdit={handleCancelTestimonialEdit}
-                                    onSave={handleSaveTestimonial}
-                                    onSort={handleToggleSort}
-                                    onStartEdit={handleStartTestimonialEdit}
-                                    onStartNew={handleStartNewTestimonial}
-                                    onUpdate={handleUpdateTestimonialForm}
-                                    saving={state.saving}
-                                    set={set}
-                                    sortDirection={state.sortDirection}
-                                    sortKey={state.sortKey}
-                                    testimonialForm={state.testimonialForm}
-                                    testimonialFormErrors={state.testimonialFormErrors}
-                                    testimonials={filteredTestimonials}
-                                />
-                            )
-                        : state.activePanel === 'outcomes'
-                            ? (
-                                    <OutcomesPanel
-                                        editingOutcome={state.editingOutcome}
-                                        isMobile={isMobile}
-                                        onCancelEdit={handleCancelOutcomeEdit}
-                                        onSave={handleSaveOutcome}
-                                        onStartEdit={handleStartOutcomeEdit}
-                                        onStartNew={handleStartNewOutcome}
-                                        onUpdate={handleUpdateOutcomeForm}
-                                        outcomeForm={state.outcomeForm}
-                                        outcomeFormErrors={state.outcomeFormErrors}
-                                        outcomes={filteredOutcomes}
-                                        saving={state.saving}
-                                        set={set}
-                                    />
-                                )
-                            : state.editing === null
-                                ? (
-                                        <div style={{ margin: '0 auto', maxWidth: 1280 }}>
-                                            <div style={{ marginBottom: 24 }}>
-                                                <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Events</h1>
-                                                <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em' }}>
-                                                    <span>
-                                                        {state.events.length}
-                                                        {' '}
-                                                        {state.events.length === 1 ? 'event' : 'events'}
-                                                    </span>
-                                                    <span aria-hidden="true">&middot;</span>
-                                                    <span>
-                                                        {[...new Set(state.events.map(entry => entry.location))].length}
-                                                        {' '}
-                                                        {[...new Set(state.events.map(entry => entry.location))].length === 1 ? 'location' : 'locations'}
-                                                    </span>
-                                                    <span aria-hidden="true">&middot;</span>
-                                                    <span>
-                                                        {state.events.filter(entry => entry.level === 'Beginner').length}
-                                                        {' '}
-                                                        Beginner
-                                                    </span>
-                                                    <span aria-hidden="true">&middot;</span>
-                                                    <span>
-                                                        {state.events.filter(entry => entry.level === 'Intermediate').length}
-                                                        {' '}
-                                                        Intermediate
-                                                    </span>
-                                                    <span aria-hidden="true">&middot;</span>
-                                                    <span>
-                                                        {state.events.filter(entry => entry.level === 'Advanced').length}
-                                                        {' '}
-                                                        Advanced
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <FilterChips
-                                                activeFilters={state.adminFilters}
-                                                activeLocation={state.adminLocation}
-                                                locations={[...new Set(state.events.map(entry => entry.location))].sort()}
-                                                onFilterToggle={handleFilterToggle}
-                                                onLocationChange={value => set({ adminLocation: value })}
-                                                onNewEvent={handleStartNew}
-                                            />
-                                            <div style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
-                                                {!isMobile && (
-                                                    <TableHeader
-                                                        onSort={handleToggleSort}
-                                                        sortDirection={state.sortDirection}
-                                                        sortKey={state.sortKey}
-                                                    />
-                                                )}
-                                                {filteredRows.length > 0
-                                                    ? filteredRows.map(entry => (
-                                                            <EventRow
-                                                                isMobile={isMobile}
-                                                                key={entry.id}
-                                                                onDelete={() => set({ confirmDelete: entry.id, confirmDeleteType: 'event' })}
-                                                                onEdit={() => handleStartEdit(entry.id)}
-                                                                entry={entry}
-                                                            />
-                                                        ))
-                                                    : (
-                                                            <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-                                                                <p style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 6px' }}>No events found</p>
-                                                                <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Try a different search or filter, or add a new event.</p>
-                                                            </div>
-                                                        )}
-                                            </div>
-                                        </div>
-                                    )
-                                : state.form
-                                    ? (
-                                            <AdminForm
-                                                editing={state.editing}
-                                                form={state.form}
-                                                formErrors={state.formErrors}
-                                                isMobile={isMobile}
-                                                onCancel={handleCancelEdit}
-                                                onDelete={() => set({ confirmDelete: state.editing, confirmDeleteType: 'event' })}
-                                                onSave={handleSaveForm}
-                                                onUpdate={handleUpdateForm}
-                                                saving={state.saving}
-                                            />
-                                        )
-                                    : null}
+                    {renderPanel()}
                 </main>
             </div>
-            {state.confirmDelete && confirmItem && (
+            {state.confirmDeleteId && confirmItem && (
                 <DeleteModal
-                    onCancel={() => set({ confirmDelete: null })}
+                    onCancel={() => set({ confirmDeleteId: null })}
                     onConfirm={handleConfirmDelete}
                     title={'title' in confirmItem ? confirmItem.title : confirmItem.name}
                 />
             )}
             {state.toast && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.toastError ? STYLES.colorErrorBg : STYLES.colorSuccessBg, border: `1px solid ${state.toastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.toastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 50 }}>
+                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', zIndex: 50 }}>
                     {state.toast}
                 </div>
             )}
