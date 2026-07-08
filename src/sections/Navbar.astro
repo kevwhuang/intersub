@@ -5,29 +5,31 @@ import { ROUTES } from '@lib/constants';
 ---
 
 <header class="site-header fixed">
-    <div class="site-header__inner flex items-center justify-between">
+    <div class="shell site-header__inner flex items-center justify-between">
         <a
             class="site-header__brand flex items-center no-underline select-none"
             aria-label="InterSub Home"
             data-i18n-aria="InterSub Home"
             href="/"
         >
-            <img class="site-header__wordmark" alt="InterSub" data-lang-logo="en" height="24" src={logoEn.src} />
-            <img class="site-header__wordmark" alt="言际阁" data-lang-logo="zh" height="24" hidden src={logoZh.src} />
+            <img class="site-header__wordmark" alt="InterSub" height="24" src={logoEn.src} />
+            <img class="site-header__wordmark" alt="言际阁" height="24" src={logoZh.src} />
         </a>
         <nav
             class="site-nav flex items-center"
             aria-label="Primary"
             data-i18n-aria="Primary"
         >
-            {ROUTES.map(route => (
-                <a
-                    class="site-nav__link"
-                    href={route.href}
-                >
-                    <span data-i18n={route.label}>{route.label}</span>
-                </a>
-            ))}
+            <div id="site-nav-menu" class="site-nav__menu flex items-center" data-nav-menu>
+                {ROUTES.map(route => (
+                    <a
+                        class="site-nav__link"
+                        href={route.href}
+                    >
+                        <span data-i18n={route.label}>{route.label}</span>
+                    </a>
+                ))}
+            </div>
             <button
                 class="site-nav__language"
                 aria-label="Switch language"
@@ -36,6 +38,17 @@ import { ROUTES } from '@lib/constants';
                 type="button"
             >
                 中文
+            </button>
+            <button
+                class="site-nav__toggle items-center justify-center"
+                aria-controls="site-nav-menu"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+                data-i18n-aria="Toggle navigation"
+                data-nav-toggle
+                type="button"
+            >
+                <span class="site-nav__toggle-bar" aria-hidden="true" />
             </button>
         </nav>
     </div>
@@ -53,21 +66,33 @@ import { ROUTES } from '@lib/constants';
         z-index: 50;
     }
 
+    .site-header__brand {
+        gap: 12px;
+        transition: opacity var(--duration-fast) ease;
+    }
+
+    .site-header__brand:active {
+        opacity: 0.7;
+    }
+
+    .site-header__brand:focus-visible {
+        border-radius: 4px;
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
+        outline: none;
+    }
+
+    .site-header__brand:hover {
+        opacity: 0.85;
+    }
+
     .site-header__inner {
         height: 100%;
-        margin: 0 auto;
-        max-width: var(--shell-max);
-        padding: 0 var(--shell-pad);
     }
 
     .site-header__wordmark {
         display: block;
         height: 24px;
         width: auto;
-    }
-
-    .site-header__wordmark[hidden] {
-        display: none;
     }
 
     .site-nav {
@@ -84,6 +109,7 @@ import { ROUTES } from '@lib/constants';
         font-weight: 600;
         min-width: 44px;
         padding: 6px;
+        position: relative;
         text-align: center;
         transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
     }
@@ -100,6 +126,12 @@ import { ROUTES } from '@lib/constants';
     .site-nav__language:hover {
         border-color: var(--color-slate-ghost);
         color: var(--color-slate);
+    }
+
+    .site-nav__language::after {
+        content: '';
+        inset: -9px -3px;
+        position: absolute;
     }
 
     .site-nav__link {
@@ -127,13 +159,115 @@ import { ROUTES } from '@lib/constants';
     }
 
     .site-nav__link--active {
-        background: var(--color-snow);
+        background: var(--color-cobalt);
+        color: var(--color-white);
+    }
+
+    .site-nav__link--active:hover {
+        background: var(--color-cobalt-dark);
+        color: var(--color-white);
+    }
+
+    .site-nav__menu {
+        gap: clamp(6px, 2vw, 14px);
+    }
+
+    .site-nav__toggle {
+        background: none;
+        border: 1px solid var(--color-silver-muted);
+        border-radius: 7px;
+        color: var(--color-slate-faint);
+        display: none;
+        height: 30px;
+        position: relative;
+        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+        width: 36px;
+    }
+
+    .site-nav__toggle:active {
+        opacity: 0.8;
+    }
+
+    .site-nav__toggle:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
+        outline: none;
+    }
+
+    .site-nav__toggle:hover {
+        border-color: var(--color-slate-ghost);
         color: var(--color-slate);
     }
 
+    .site-nav__toggle::after {
+        content: '';
+        inset: -10px -7px;
+        position: absolute;
+    }
+
+    .site-nav__toggle-bar {
+        background: currentColor;
+        box-shadow: 0 -5px 0 currentColor, 0 5px 0 currentColor;
+        display: block;
+        height: 1.6px;
+        width: 14px;
+    }
+
     @media (max-width: 768px) {
+        .site-header:has(.site-nav__menu--open) {
+            backdrop-filter: none;
+            background: var(--color-white);
+        }
+
+        .site-header::after {
+            background: var(--color-midnight-30);
+            content: '';
+            inset: var(--header-height) 0 0;
+            opacity: 0;
+            position: fixed;
+            transition: opacity var(--duration-fast) ease, visibility 0s ease var(--duration-fast);
+            visibility: hidden;
+            z-index: -1;
+        }
+
+        .site-header:has(.site-nav__menu--open)::after {
+            opacity: 1;
+            transition: opacity var(--duration-fast) ease;
+            visibility: visible;
+        }
+
         .site-header__wordmark {
             height: 20px;
+        }
+
+        .site-nav__link {
+            padding: 12px 14px;
+        }
+
+        .site-nav__menu {
+            align-items: stretch;
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-silver);
+            box-shadow: 0 16px 32px var(--color-slate-10);
+            flex-direction: column;
+            gap: 4px;
+            left: 0;
+            opacity: 0;
+            padding: 12px var(--shell-pad) 16px;
+            position: fixed;
+            right: 0;
+            top: var(--header-height);
+            transition: opacity var(--duration-fast) ease, visibility 0s ease var(--duration-fast);
+            visibility: hidden;
+        }
+
+        .site-nav__menu--open {
+            opacity: 1;
+            transition: opacity var(--duration-fast) ease;
+            visibility: visible;
+        }
+
+        .site-nav__toggle {
+            display: flex;
         }
     }
 </style>
@@ -148,19 +282,77 @@ import { ROUTES } from '@lib/constants';
         controller = new AbortController();
 
         const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+        const menu = document.querySelector<HTMLElement>('[data-nav-menu]');
+        const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+
+        function closeMenu(shouldRestoreFocus = false) {
+            menu?.classList.remove('site-nav__menu--open');
+            toggle?.setAttribute('aria-expanded', 'false');
+
+            if (shouldRestoreFocus) toggle?.focus();
+        }
+
+        function openMenu() {
+            menu?.classList.add('site-nav__menu--open');
+            toggle?.setAttribute('aria-expanded', 'true');
+            requestAnimationFrame(() => menu?.querySelector<HTMLElement>('a')?.focus());
+        }
 
         document.querySelectorAll('.site-nav__link').forEach((link) => {
             const href = link.getAttribute('href')?.replace(/\/$/, '') || '/';
-            const active = href === currentPath;
 
-            link.classList.toggle('site-nav__link--active', active);
+            const isActive = href === currentPath;
 
-            if (active) {
+            link.classList.toggle('site-nav__link--active', isActive);
+
+            if (isActive) {
                 link.setAttribute('aria-current', 'page');
             } else {
                 link.removeAttribute('aria-current');
             }
+
+            link.addEventListener('click', () => closeMenu(), { signal: controller.signal });
         });
+
+        toggle?.addEventListener('click', () => {
+            if (menu?.classList.contains('site-nav__menu--open')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        }, { signal: controller.signal });
+
+        document.addEventListener('keydown', (event) => {
+            if (!menu?.classList.contains('site-nav__menu--open')) return;
+
+            if (event.key === 'Escape') {
+                closeMenu(true);
+
+                return;
+            }
+
+            if (event.key !== 'Tab') return;
+
+            const links = menu.querySelectorAll<HTMLElement>('a');
+
+            const first = links[0];
+            const last = links[links.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }, { signal: controller.signal });
+
+        document.addEventListener('mousedown', (event) => {
+            if (!menu?.classList.contains('site-nav__menu--open')) return;
+            if (!(event.target instanceof Element)) return;
+
+            if (!event.target.closest('.site-header') || event.clientY > menu.getBoundingClientRect().bottom) closeMenu();
+        }, { signal: controller.signal });
 
         document.querySelector('[data-lang-toggle]')?.addEventListener('click', toggleLanguage, { signal: controller.signal });
     }

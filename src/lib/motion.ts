@@ -5,12 +5,10 @@ const SCROLL_DURATION = 0.62;
 const SCROLL_EASE = 'power3.out';
 const SCROLL_OFFSET = 26;
 
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 function initScrollAnimations() {
     const elements = document.querySelectorAll<HTMLElement>('[data-scroll]');
 
-    if (prefersReducedMotion) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         elements.forEach((element) => {
             element.style.opacity = '1';
         });
@@ -49,9 +47,9 @@ function initScrollAnimations() {
     });
 }
 
-gsap.registerPlugin(ScrollTrigger);
-
 export function initMotion() {
     ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     initScrollAnimations();
 }
+
+gsap.registerPlugin(ScrollTrigger);

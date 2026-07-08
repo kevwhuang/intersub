@@ -1,5 +1,5 @@
 [build]
-command = 'bun run scripts/prebuild.ts && bun run build'
+command = 'bun scripts/prebuild && bun run build'
 publish = 'dist'
 
 [dev]

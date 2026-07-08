@@ -1,16 +1,22 @@
-import { existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const CONTENT_DIR = join(process.cwd(), 'src', 'content');
+import { CONTENT_DIR } from '@lib/constants';
+
+const SAFE_ID_PATTERN = /^[\w-]+$/;
+
+const contentRoot = join(process.cwd(), CONTENT_DIR);
 
 export function deleteEntry(collection: string, id: string) {
-    const filepath = join(CONTENT_DIR, collection, `${id}.json`);
+    if (!SAFE_ID_PATTERN.test(id)) throw new Error(`Invalid id: ${id}`);
+
+    const filepath = join(contentRoot, collection, `${id}.json`);
 
     if (existsSync(filepath)) unlinkSync(filepath);
 }
 
-export function readCollection(name: string): Record<string, unknown>[] {
-    const directory = join(CONTENT_DIR, name);
+export function readCollection(collection: string): Record<string, unknown>[] {
+    const directory = join(contentRoot, collection);
 
     if (!existsSync(directory)) return [];
 
@@ -24,7 +30,9 @@ export function readCollection(name: string): Record<string, unknown>[] {
 }
 
 export function writeEntry(collection: string, id: string, data: Record<string, unknown>) {
-    const directory = join(CONTENT_DIR, collection);
+    if (!SAFE_ID_PATTERN.test(id)) throw new Error(`Invalid id: ${id}`);
+
+    const directory = join(contentRoot, collection);
     const entry = { ...data };
 
     delete entry.id;

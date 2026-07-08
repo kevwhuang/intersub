@@ -1,5 +1,5 @@
 ---
-
+import { MESSAGE_MAX, NAME_MAX } from '@lib/constants';
 ---
 
 <section
@@ -14,8 +14,8 @@
     <div class="contact__ring contact__ring--5" aria-hidden="true" />
     <div class="shell contact__inner">
         <div data-scroll>
-            <h2 id="contact-title" class="contact__title" data-i18n="Get in Touch">Get in Touch</h2>
-            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or attending an event? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.">Interested in coaching, a workshop, or attending an event? Tell us about your team and goals. We will respond within two business days with a tailored recommendation.</p>
+            <h2 id="contact-title" class="contact__title" data-i18n="Get in touch">Get in touch</h2>
+            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We will respond with a tailored recommendation.">Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We will respond with a tailored recommendation.</p>
         </div>
         <div class="contact__success" hidden>
             <h3 class="contact__success-title" data-i18n-html="contact-success-title">Thank you, message sent.</h3>
@@ -30,54 +30,56 @@
                     aria-describedby="error-name"
                     autocomplete="name"
                     data-i18n-placeholder="Your full name"
-                    maxlength="100"
+                    maxlength={NAME_MAX}
                     name="name"
                     placeholder="Your full name"
                     required
                     type="text"
                 />
-                <p class="contact__error" id="error-name" data-i18n="Please enter your name." hidden>Please enter your name.</p>
+                <p id="error-name" class="contact__error" data-i18n="Please enter your name." hidden>Please enter your name.</p>
             </label>
             <label class="label">
-                <span data-i18n="Weixin">Weixin</span> <span class="label__required">*</span>
+                <span data-i18n="WeChat">WeChat</span> <span class="label__required">*</span>
                 <input
                     class="input"
-                    aria-describedby="error-weixin"
-                    data-i18n-placeholder="Your Weixin ID or number"
-                    name="weixin"
-                    placeholder="Your Weixin ID or number"
+                    aria-describedby="error-wechat"
+                    data-i18n-placeholder="Your WeChat ID or phone number"
+                    name="wechat"
+                    placeholder="Your WeChat ID or phone number"
                     required
                     type="text"
                 />
-                <p class="contact__error" id="error-weixin" data-i18n="Please enter your Weixin ID." hidden>Please enter your Weixin ID.</p>
+                <p id="error-wechat" class="contact__error" data-i18n="Please enter your WeChat ID or phone number." hidden>Please enter your WeChat ID or phone number.</p>
             </label>
             <label class="label">
                 <span data-i18n="Email">Email</span>
                 <input
                     class="input"
+                    aria-describedby="error-email"
                     autocomplete="email"
                     data-i18n-placeholder="you@company.com"
                     name="email"
                     placeholder="you@company.com"
                     type="email"
                 />
+                <p id="error-email" class="contact__error" data-i18n="Please enter a valid email." hidden>Please enter a valid email.</p>
             </label>
             <label class="label">
                 <span data-i18n="Message">Message</span> <span class="label__required">*</span>
                 <textarea
                     class="textarea"
                     aria-describedby="error-message"
-                    data-i18n-placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
-                    maxlength="2000"
+                    data-i18n-placeholder="Your message"
+                    maxlength={MESSAGE_MAX}
                     name="message"
-                    placeholder="Tell us about your team, the English situations they face, and what you'd like to improve."
+                    placeholder="Your message"
                     required
                     rows="5"
                 />
-                <p class="contact__error" id="error-message" data-i18n="Please add a short message." hidden>Please add a short message.</p>
+                <p id="error-message" class="contact__error" data-i18n="Please add a short message." hidden>Please add a short message.</p>
             </label>
             <button class="button contact__submit self-center" data-i18n="Send message" type="submit">Send message</button>
-            <p class="contact__error contact__network-error" data-i18n="Something went wrong. Please try again." hidden>Something went wrong. Please try again.</p>
+            <p class="contact__error contact__network-error" data-i18n="Something went wrong. Please try again." hidden role="alert">Something went wrong. Please try again.</p>
         </form>
     </div>
 </section>
@@ -195,6 +197,13 @@
 </style>
 
 <script>
+    import { EMAIL_PATTERN } from '@lib/constants';
+    import { translate } from '@lib/i18n';
+
+    const ERROR_GENERIC = 'Something went wrong. Please try again.';
+    const ERROR_RATE_LIMITED = 'Too many requests. Please try again later.';
+    const STATUS_RATE_LIMITED = 429;
+
     let controller: AbortController;
 
     function initContact() {
@@ -202,32 +211,53 @@
         controller = new AbortController();
 
         const section = document.querySelector('.contact');
+
         if (!section) return;
 
         const form = section.querySelector<HTMLFormElement>('.contact__form');
+        const resetButton = section.querySelector<HTMLElement>('.contact__reset');
+        const successPanel = section.querySelector<HTMLElement>('.contact__success');
+
         const submitButton = form?.querySelector<HTMLButtonElement>('.contact__submit');
-        const success = section.querySelector<HTMLElement>('.contact__success');
-        const reset = section.querySelector<HTMLElement>('.contact__reset');
 
-        if (!form || !submitButton || !success || !reset) return;
+        if (!form || !resetButton || !submitButton || !successPanel) return;
 
-        const nameInput = form.querySelector<HTMLInputElement>('input[name="name"]');
-        const weixinInput = form.querySelector<HTMLInputElement>('input[name="weixin"]');
+        const emailError = form.querySelector<HTMLElement>('#error-email');
         const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]');
-        const messageInput = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
         const errors = form.querySelectorAll<HTMLElement>('.contact__error');
+        const messageError = form.querySelector<HTMLElement>('#error-message');
+        const messageInput = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
+        const nameError = form.querySelector<HTMLElement>('#error-name');
+        const nameInput = form.querySelector<HTMLInputElement>('input[name="name"]');
         const networkError = form.querySelector<HTMLElement>('.contact__network-error');
+        const wechatError = form.querySelector<HTMLElement>('#error-wechat');
+        const wechatInput = form.querySelector<HTMLInputElement>('input[name="wechat"]');
+
+        const eventTitle = new URLSearchParams(window.location.search).get('event');
+
+        if (eventTitle && messageInput) {
+            messageInput.value = `Hi! I'd like to sign up for "${eventTitle}".\n\n`;
+            history.replaceState(null, '', window.location.pathname + window.location.hash);
+        }
+
+        function showNetworkError(key: string) {
+            if (!networkError) return;
+
+            networkError.dataset.i18n = key;
+            networkError.textContent = translate(key);
+            networkError.hidden = false;
+        }
 
         function clearErrors() {
             errors.forEach(error => error.hidden = true);
-            if (networkError) networkError.hidden = true;
+
             form.querySelectorAll('.input--error, .textarea--error').forEach((element) => {
                 element.classList.remove('input--error', 'textarea--error');
             });
         }
 
         nameInput?.addEventListener('input', clearErrors, { signal: controller.signal });
-        weixinInput?.addEventListener('input', clearErrors, { signal: controller.signal });
+        wechatInput?.addEventListener('input', clearErrors, { signal: controller.signal });
         emailInput?.addEventListener('input', clearErrors, { signal: controller.signal });
         messageInput?.addEventListener('input', clearErrors, { signal: controller.signal });
 
@@ -235,33 +265,33 @@
             event.preventDefault();
             clearErrors();
 
-            let valid = true;
+            let isValid = true;
 
             if (!nameInput?.value.trim()) {
-                errors[0].hidden = false;
+                if (nameError) nameError.hidden = false;
                 nameInput?.classList.add('input--error');
-                valid = false;
+                isValid = false;
             }
 
-            if (!weixinInput?.value.trim() || /\s/.test(weixinInput.value.trim())) {
-                errors[1].hidden = false;
-                weixinInput?.classList.add('input--error');
-                valid = false;
+            if (!wechatInput?.value.trim() || /\s/.test(wechatInput.value.trim())) {
+                if (wechatError) wechatError.hidden = false;
+                wechatInput?.classList.add('input--error');
+                isValid = false;
             }
 
-            if (emailInput?.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
-                errors[2].hidden = false;
+            if (emailInput?.value.trim() && !EMAIL_PATTERN.test(emailInput.value.trim())) {
+                if (emailError) emailError.hidden = false;
                 emailInput?.classList.add('input--error');
-                valid = false;
+                isValid = false;
             }
 
             if (!messageInput?.value.trim()) {
-                errors[3].hidden = false;
+                if (messageError) messageError.hidden = false;
                 messageInput?.classList.add('textarea--error');
-                valid = false;
+                isValid = false;
             }
 
-            if (!valid) return;
+            if (!isValid) return;
 
             submitButton.disabled = true;
 
@@ -271,27 +301,31 @@
                         email: emailInput?.value.trim(),
                         message: messageInput?.value.trim(),
                         name: nameInput?.value.trim(),
-                        weixin: weixinInput?.value.trim(),
+                        wechat: wechatInput?.value.trim(),
                     }),
                     headers: { 'Content-Type': 'application/json' },
                     method: 'POST',
                 });
 
-                if (!response.ok) throw new Error();
+                if (!response.ok) {
+                    showNetworkError(response.status === STATUS_RATE_LIMITED ? ERROR_RATE_LIMITED : ERROR_GENERIC);
+
+                    return;
+                }
 
                 form.hidden = true;
-                success.hidden = false;
+                successPanel.hidden = false;
             } catch {
-                if (networkError) networkError.hidden = false;
+                showNetworkError(ERROR_GENERIC);
             } finally {
                 submitButton.disabled = false;
             }
         }, { signal: controller.signal });
 
-        reset.addEventListener('click', () => {
+        resetButton.addEventListener('click', () => {
             form.reset();
             clearErrors();
-            success.hidden = true;
+            successPanel.hidden = true;
             form.hidden = false;
         }, { signal: controller.signal });
     }

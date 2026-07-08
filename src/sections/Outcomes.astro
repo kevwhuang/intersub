@@ -5,7 +5,7 @@ const outcomes = await getOutcomes();
 ---
 
 <section
-    class="outcomes"
+    class="outcomes section"
     aria-labelledby="outcomes-title"
 >
     <div class="shell">
@@ -32,7 +32,6 @@ const outcomes = await getOutcomes();
 <style>
     .outcomes {
         border-bottom: 1px solid var(--color-silver);
-        padding: clamp(64px, 9vw, 120px) 0;
     }
 
     .outcomes__card {
@@ -43,18 +42,7 @@ const outcomes = await getOutcomes();
         display: flex;
         flex-direction: column;
         padding: 28px;
-        transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
-    }
-
-    .outcomes__card:active {
-        opacity: 0.95;
-        transform: translateY(0);
-    }
-
-    .outcomes__card:focus-visible {
-        border-color: var(--color-cobalt);
-        box-shadow: 0 0 0 3px var(--color-cobalt-20);
-        outline: none;
+        transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
     .outcomes__card:hover {
@@ -115,7 +103,7 @@ const outcomes = await getOutcomes();
 
     .outcomes__point::before {
         color: var(--color-cobalt);
-        content: '·';
+        content: '\00B7';
         flex: none;
         font-weight: 700;
     }

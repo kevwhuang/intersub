@@ -1,17 +1,43 @@
+import { getStore } from '@netlify/blobs';
 import { Resend } from 'resend';
+
+import template from '@lib/contact.html?raw';
+import { EMAIL_PATTERN, IS_DEV, MESSAGE_MAX, NAME_MAX } from '@lib/constants';
 
 import type { APIRoute } from 'astro';
 
-import template from '@lib/contact.html?raw';
+const EMAIL_MAX = 200;
+const RATE_LIMIT = 5;
+const RATE_WINDOW = 3_600_000;
+const WECHAT_MAX = 50;
 
-const MAX_EMAIL = 200;
-const MAX_MESSAGE = 2_000;
-const MAX_NAME = 100;
-const MAX_WEIXIN = 50;
+async function isRateLimited(clientAddress: string): Promise<boolean> {
+    if (IS_DEV) return false;
+
+    try {
+        const key = `contact-${clientAddress}`;
+        const now = Date.now();
+        const store = getStore({ consistency: 'strong', name: 'rate-limits' });
+
+        const record = await store.get(key, { type: 'json' });
+
+        const isSameWindow = record && now - record.windowStart < RATE_WINDOW;
+
+        if (isSameWindow && record.count >= RATE_LIMIT) return true;
+
+        await store.setJSON(key, isSameWindow ? { count: record.count + 1, windowStart: record.windowStart } : { count: 1, windowStart: now });
+
+        return false;
+    } catch {
+        return false;
+    }
+}
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ clientAddress, request }) => {
+    if (await isRateLimited(clientAddress)) return Response.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+
     let body: Record<string, string>;
 
     try {
@@ -20,17 +46,15 @@ export const POST: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const { email, message, name, weixin } = body;
+    const { email, message, name, wechat } = body;
 
-    if (!name?.trim() || name.trim().length > MAX_NAME) return Response.json({ error: `Name is required (max ${MAX_NAME} characters)` }, { status: 400 });
+    if (!name?.trim() || name.trim().length > NAME_MAX) return Response.json({ error: `Name is required (max ${NAME_MAX} characters)` }, { status: 400 });
 
-    if (!weixin?.trim() || /\s/.test(weixin.trim()) || weixin.trim().length > MAX_WEIXIN) return Response.json({ error: `Weixin is required, no spaces (max ${MAX_WEIXIN} characters)` }, { status: 400 });
+    if (!wechat?.trim() || /\s/.test(wechat.trim()) || wechat.trim().length > WECHAT_MAX) return Response.json({ error: `WeChat is required, no spaces (max ${WECHAT_MAX} characters)` }, { status: 400 });
 
-    if (email?.trim() && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || email.trim().length > MAX_EMAIL)) {
-        return Response.json({ error: `Please enter a valid email (max ${MAX_EMAIL} characters)` }, { status: 400 });
-    }
+    if (email?.trim() && (!EMAIL_PATTERN.test(email.trim()) || email.trim().length > EMAIL_MAX)) return Response.json({ error: `Please enter a valid email (max ${EMAIL_MAX} characters)` }, { status: 400 });
 
-    if (!message?.trim() || message.trim().length > MAX_MESSAGE) return Response.json({ error: `Message is required (max ${MAX_MESSAGE} characters)` }, { status: 400 });
+    if (!message?.trim() || message.trim().length > MESSAGE_MAX) return Response.json({ error: `Message is required (max ${MESSAGE_MAX} characters)` }, { status: 400 });
 
     const apiKey = import.meta.env.RESEND_API_KEY;
 
@@ -42,35 +66,42 @@ export const POST: APIRoute = async ({ request }) => {
 
     const resend = new Resend(apiKey);
 
-    function esc(str: string) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function escapeHtml(text: string) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    const trimmed = {
-        email: esc(email?.trim() ?? ''),
-        message: esc(message.trim()),
-        name: esc(name.trim()),
-        weixin: esc(weixin.trim()),
+    const raw = {
+        email: email?.trim() ?? '',
+        message: message.trim(),
+        name: name.trim(),
+        wechat: wechat.trim(),
     };
 
-    const emailRow = trimmed.email
+    const escaped = {
+        email: escapeHtml(raw.email),
+        message: escapeHtml(raw.message),
+        name: escapeHtml(raw.name),
+        wechat: escapeHtml(raw.wechat),
+    };
+
+    const emailRow = escaped.email
         ? `<tr>
                 <td style="color: #6e7482; font-size: 16px; padding: 6px 12px 6px 0; vertical-align: top; white-space: nowrap">Email</td>
-                <td style="color: #14161c; font-size: 16px; padding: 6px 0; word-break: break-word"><a href="mailto:${trimmed.email}" style="color: #2a52e0; text-decoration: none">${trimmed.email}</a></td>
+                <td style="color: #14161c; font-size: 16px; padding: 6px 0; word-break: break-word"><a href="mailto:${escaped.email}" style="color: #2a52e0; text-decoration: none">${escaped.email}</a></td>
             </tr>`
         : '';
 
     const html = template
-        .replace(/\{\{name\}\}/g, trimmed.name)
-        .replace('{{weixin}}', trimmed.weixin)
-        .replace('{{emailRow}}', emailRow)
-        .replace('{{message}}', trimmed.message);
+        .replace(/\{\{name\}\}/g, () => escaped.name)
+        .replace('{{wechat}}', () => escaped.wechat)
+        .replace('{{emailRow}}', () => emailRow)
+        .replace('{{message}}', () => escaped.message);
 
     const { error } = await resend.emails.send({
         from: 'InterSub <noreply@intersubstudio.com>',
         html,
-        ...(trimmed.email && { replyTo: trimmed.email }),
-        subject: `New inquiry from ${trimmed.name}`,
+        ...(raw.email && { replyTo: raw.email }),
+        subject: `New inquiry from ${raw.name}`,
         to: import.meta.env.CONTACT_EMAIL as string,
     });
 

@@ -2,20 +2,10 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-const CONTENT_PATH = 'src/content';
-const LEVELS = ['Advanced', 'Beginner', 'Intermediate', 'Cohort'] as const;
-
-const outcomes = defineCollection({
-    loader: glob({ base: `./${CONTENT_PATH}/outcomes`, pattern: '**/*.json' }),
-    schema: z.object({
-        points: z.array(z.string()).min(1),
-        summary: z.string(),
-        title: z.string(),
-    }),
-});
+import { CONTENT_DIR, LEVELS } from '@lib/constants';
 
 const events = defineCollection({
-    loader: glob({ base: `./${CONTENT_PATH}/events`, pattern: '**/*.json' }),
+    loader: glob({ base: `./${CONTENT_DIR}/events`, pattern: '**/*.json' }),
     schema: z.object({
         content: z.string(),
         cover: z.string().optional(),
@@ -26,8 +16,17 @@ const events = defineCollection({
     }),
 });
 
+const outcomes = defineCollection({
+    loader: glob({ base: `./${CONTENT_DIR}/outcomes`, pattern: '**/*.json' }),
+    schema: z.object({
+        points: z.array(z.string()).min(1),
+        summary: z.string(),
+        title: z.string(),
+    }),
+});
+
 const testimonials = defineCollection({
-    loader: glob({ base: `./${CONTENT_PATH}/testimonials`, pattern: '**/*.json' }),
+    loader: glob({ base: `./${CONTENT_DIR}/testimonials`, pattern: '**/*.json' }),
     schema: z.object({
         industry: z.string(),
         name: z.string(),
@@ -36,4 +35,4 @@ const testimonials = defineCollection({
     }),
 });
 
-export const collections = { outcomes, events, testimonials };
+export const collections = { events, outcomes, testimonials };

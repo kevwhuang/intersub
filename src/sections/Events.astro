@@ -1,146 +1,135 @@
 ---
-import { formatDate, getLevelMeta, getInitials } from '@lib/utils';
+import { LEVELS } from '@lib/constants';
+import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
 import { getEvents } from '@lib/store';
+
+const LEVEL_FILTERS = ['all', ...LEVELS] as const;
+const TIMINGS = [
+    { label: 'All', value: 'all' },
+    { label: 'Upcoming', value: 'upcoming' },
+    { label: 'Past', value: 'past' },
+] as const;
 
 const events = await getEvents();
 
 const locations = [...new Set(events.map(entry => String(entry.location)))].sort();
-const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as const;
+
+const locationFilters = ['all', ...locations];
 ---
 
-<div class="events" data-events>
-    <section class="events__hero" aria-labelledby="events-title">
-        <div class="shell">
-            <h1 id="events-title" class="events__title" data-i18n="Events" data-scroll>Events</h1>
-            <p class="events__subtitle" data-i18n-html="events-subtitle" data-scroll>Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
-        </div>
-    </section>
+<section class="events__hero" aria-labelledby="events-title">
+    <div class="shell">
+        <h1 id="events-title" class="events__title" data-i18n="Events" data-scroll>Events</h1>
+        <p class="events__subtitle" data-i18n-html="events-subtitle" data-scroll>Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
+    </div>
+</section>
 
-    <section class="section" aria-label="Event catalog" data-i18n-aria="Event catalog">
-        <div class="shell">
-            <div class="events__toolbar">
-                <div class="events__filters flex flex-col gap-5">
-                    <div>
-                        <p class="events__filter-label" data-i18n="When">When</p>
-                        <div class="flex flex-wrap gap-2">
+<section class="section" aria-label="Event catalog" data-events data-i18n-aria="Event catalog">
+    <div class="shell">
+        <div class="events__toolbar">
+            <div class="events__filters flex flex-col gap-5">
+                <div>
+                    <p class="events__filter-label" data-i18n="When">When</p>
+                    <div class="flex flex-wrap gap-2">
+                        {TIMINGS.map(timing => (
                             <button
-                                class="chip chip--active"
-                                data-filter-timing="all"
+                                class:list={['chip', { 'chip--active': timing.value === 'all' }]}
+                                data-filter-timing={timing.value}
                                 type="button"
                             >
-                                <span data-i18n="All">All</span>
+                                <span data-i18n={timing.label}>{timing.label}</span>
                             </button>
-                            <button
-                                class="chip"
-                                data-filter-timing="upcoming"
-                                type="button"
-                            >
-                                <span data-i18n="Upcoming">Upcoming</span>
-                            </button>
-                            <button
-                                class="chip"
-                                data-filter-timing="past"
-                                type="button"
-                            >
-                                <span data-i18n="Past">Past</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="events__filter-label" data-i18n="Where">Where</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button
-                                class="chip chip--active"
-                                data-filter-location="all"
-                                type="button"
-                            >
-                                <span data-i18n="Everywhere">Everywhere</span>
-                            </button>
-                            {locations.map(loc => (
-                                <button
-                                    class="chip"
-                                    data-filter-location={loc}
-                                    type="button"
-                                >
-                                    <span data-i18n={loc}>{loc}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div>
-                        <p class="events__filter-label" data-i18n="Who">Who</p>
-                        <div class="flex flex-wrap gap-2">
-                            {LEVELS.map(d => (
-                                <button
-                                    class:list={['chip', { 'chip--active': d === 'all' }]}
-                                    data-filter-level={d}
-                                    type="button"
-                                >
-                                    <span data-i18n={d === 'all' ? 'Everyone' : d}>{d === 'all' ? 'Everyone' : d}</span>
-                                </button>
-                            ))}
-                        </div>
+                        ))}
                     </div>
                 </div>
-                <p class="events__count" data-count>
-                    {events.length} {events.length === 1 ? 'event' : 'events'}
-                </p>
-            </div>
-
-            <div class="events__grid" data-grid data-scroll data-scroll-stagger="0.08">
-                {events.map((sem) => {
-                    const meta = getLevelMeta(sem.level);
-                    const initials = getInitials(sem.title);
-                    return (
-                        <a
-                            class="events__card"
-                            data-card
-                            data-card-date={sem.date}
-                            data-card-level={sem.level}
-                            data-card-location={sem.location}
-                            href={`/events/${sem.date}`}
-                        >
-                            <div
-                                class="events__card-cover"
-                                style={`background:${meta.cover};color:${meta.ink}`}
+                <div>
+                    <p class="events__filter-label" data-i18n="Where">Where</p>
+                    <div class="flex flex-wrap gap-2">
+                        {locationFilters.map(location => (
+                            <button
+                                class:list={['chip', { 'chip--active': location === 'all' }]}
+                                data-filter-location={location}
+                                type="button"
                             >
-                                {sem.cover
-                                    ? <img class="events__card-image" alt="" src={sem.cover} />
-                                    : <span class="events__card-initials">{initials}</span>}
-                            </div>
-                            <div class="events__card-body">
-                                <h2 class="events__card-title" data-i18n={sem.title}>{sem.title}</h2>
-                                {sem.level && (
-                                    <div class="events__card-badge mb-[14px]">
-                                        <span class={`tag tag--${String(sem.level).toLowerCase()}`} data-i18n={meta.label}>{meta.label}</span>
-                                    </div>
-                                )}
-                                <dl class="events__card-details">
-                                    <div class="events__card-row">
-                                        <dt class="events__card-key" data-i18n="Date">Date</dt>
-                                        <dd class="events__card-value">
-                                            <time data-i18n-date={sem.date} datetime={sem.date}>{formatDate(sem.date)}</time>
-                                        </dd>
-                                    </div>
-                                    <div class="events__card-row">
-                                        <dt class="events__card-key" data-i18n="Location">Location</dt>
-                                        <dd class="events__card-value" data-i18n={sem.location}>{sem.location}</dd>
-                                    </div>
-                                </dl>
-                            </div>
-                        </a>
-                    );
-                })}
+                                <span data-i18n={location === 'all' ? 'Everywhere' : location}>{location === 'all' ? 'Everywhere' : location}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <p class="events__filter-label" data-i18n="Who">Who</p>
+                    <div class="flex flex-wrap gap-2">
+                        {LEVEL_FILTERS.map(level => (
+                            <button
+                                class:list={['chip', { 'chip--active': level === 'all' }]}
+                                data-filter-level={level}
+                                type="button"
+                            >
+                                <span data-i18n={level === 'all' ? 'Everyone' : level}>{level === 'all' ? 'Everyone' : level}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
-
-            <div class="events__empty" data-empty style="display:none">
-                <h2 class="events__empty-title" data-i18n="No events match those filters">No events match those filters</h2>
-                <p class="events__empty-text" data-i18n="Try widening your selection. New sessions are added throughout the season.">Try widening your selection. New sessions are added throughout the season.</p>
-                <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
-            </div>
+            <p class="events__count" aria-atomic="true" aria-live="polite" data-count>
+                {events.length} {events.length === 1 ? 'event' : 'events'}
+            </p>
         </div>
-    </section>
-</div>
+
+        <div class="events__grid" data-grid data-scroll data-scroll-stagger="0.08">
+            {events.map((event) => {
+                const initials = getInitials(event.title);
+                const meta = getLevelMeta(event.level);
+
+                return (
+                    <a
+                        class="events__card"
+                        data-card
+                        data-card-date={event.date}
+                        data-card-level={event.level}
+                        data-card-location={event.location}
+                        href={`/events/${event.date}`}
+                    >
+                        <div
+                            class="events__card-cover"
+                            style={`background:${meta.cover};color:${meta.ink}`}
+                        >
+                            {event.cover
+                                ? <img class="events__card-image" alt="" decoding="async" loading="lazy" src={event.cover} />
+                                : <span class="events__card-initials">{initials}</span>}
+                        </div>
+                        <div class="events__card-body">
+                            <h2 class="events__card-title" data-i18n={event.title}>{event.title}</h2>
+                            {event.level && (
+                                <div class="events__card-badge mb-[14px]">
+                                    <span class={`tag tag--${String(event.level).toLowerCase()}`} data-i18n={meta.label}>{meta.label}</span>
+                                </div>
+                            )}
+                            <dl class="events__card-details">
+                                <div class="events__card-row">
+                                    <dt class="events__card-key" data-i18n="Date">Date</dt>
+                                    <dd class="events__card-value">
+                                        <time data-i18n-date={event.date} datetime={event.date}>{formatDate(event.date)}</time>
+                                    </dd>
+                                </div>
+                                <div class="events__card-row">
+                                    <dt class="events__card-key" data-i18n="Location">Location</dt>
+                                    <dd class="events__card-value" data-i18n={event.location}>{event.location}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </a>
+                );
+            })}
+        </div>
+
+        <div class="events__empty" data-empty hidden>
+            <h2 class="events__empty-title" data-i18n="No events match those filters">No events match those filters</h2>
+            <p class="events__empty-text" data-i18n="Try widening your selection. New sessions are added throughout the season.">Try widening your selection. New sessions are added throughout the season.</p>
+            <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
+        </div>
+    </div>
+</section>
 
 <style>
     .events__card {
@@ -180,9 +169,9 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
 
     .events__card-cover {
         align-items: center;
+        aspect-ratio: 2.5;
         border-bottom: 1px solid var(--color-silver);
         display: flex;
-        aspect-ratio: 2.5;
         justify-content: center;
         overflow: hidden;
     }
@@ -282,7 +271,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
     .events__grid {
         display: grid;
         gap: 28px;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
     }
 
     .events__hero {
@@ -321,6 +310,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
 </style>
 
 <script>
+    import { getToday } from '@lib/utils';
     import { translate } from '@lib/i18n';
 
     const DEFAULT_FILTER = 'all';
@@ -332,6 +322,7 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         controller = new AbortController();
 
         const root = document.querySelector<HTMLElement>('[data-events]');
+
         if (!root) return;
 
         let activeLevel = DEFAULT_FILTER;
@@ -346,10 +337,10 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
         const locationButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-location]');
         const timingButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-timing]');
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getToday();
 
         function update() {
-            let visible = 0;
+            let visibleCount = 0;
 
             cards.forEach((card) => {
                 const date = card.dataset.cardDate || '';
@@ -360,30 +351,35 @@ const LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Cohort'] as cons
                     || (activeTiming === 'upcoming' && date >= today)
                     || (activeTiming === 'past' && date < today);
 
-                const show = matchesTiming
+                const shouldShow = matchesTiming
                     && (activeLevel === DEFAULT_FILTER || level === activeLevel)
                     && (activeLocation === DEFAULT_FILTER || location === activeLocation);
 
-                card.style.display = show ? '' : 'none';
-                if (show) visible++;
+                card.style.display = shouldShow ? '' : 'none';
+
+                if (shouldShow) visibleCount++;
             });
 
             levelButtons.forEach((button) => {
                 button.classList.toggle('chip--active', button.dataset.filterLevel === activeLevel);
             });
+
             locationButtons.forEach((button) => {
                 button.classList.toggle('chip--active', button.dataset.filterLocation === activeLocation);
             });
+
             timingButtons.forEach((button) => {
                 button.classList.toggle('chip--active', button.dataset.filterTiming === activeTiming);
             });
 
             if (countElement) {
-                const unit = translate(visible === 1 ? 'event' : 'events');
-                countElement.textContent = `${visible} ${unit}`;
+                const unit = translate(visibleCount === 1 ? 'event' : 'events');
+
+                countElement.textContent = `${visibleCount} ${unit}`;
             }
-            if (gridElement) gridElement.style.display = visible ? '' : 'none';
-            if (emptyElement) emptyElement.style.display = visible ? 'none' : '';
+
+            if (gridElement) gridElement.style.display = visibleCount ? '' : 'none';
+            if (emptyElement) emptyElement.hidden = visibleCount > 0;
         }
 
         levelButtons.forEach((button) => {

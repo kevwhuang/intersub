@@ -2,15 +2,15 @@
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
-import { formatDate, getLevelMeta, getInitials } from '@lib/utils';
+import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
 import { getEvents } from '@lib/store';
 
 type ContentBlock = { content: string; type: 'h' | 'li' | 'p' };
 
-function parseEventContent(md: string) {
+function parseEventContent(markdown: string) {
     const blocks: ContentBlock[] = [];
 
-    for (const line of (md || '').split('\n')) {
+    for (const line of (markdown || '').split('\n')) {
         const trimmed = line.trim();
 
         if (!trimmed) continue;
@@ -22,37 +22,39 @@ function parseEventContent(md: string) {
     return blocks;
 }
 
-export const prerender = false;
-
-const { slug } = Astro.params;
 const events = await getEvents();
+const { slug } = Astro.params;
 
-const found = events.find(entry => String(entry.date) === slug);
+const event = events.find(entry => String(entry.date) === slug);
 
-if (!found) return Astro.redirect('/404');
+if (!event) return Astro.rewrite('/404');
 
-const cover = String(found.cover || '');
-const date = String(found.date);
-const level = String(found.level || '');
-const location = String(found.location);
-const title = String(found.title);
+const cover = String(event.cover || '');
+const date = String(event.date);
+const level = String(event.level || '');
+const location = String(event.location);
+const title = String(event.title);
 
-const meta = getLevelMeta(level);
 const initials = getInitials(title);
-const rawBlocks = parseEventContent(String(found.content));
-const grouped: Array<{ items: string[]; type: ContentBlock['type'] }> = [];
+const meta = getLevelMeta(level);
+const rawBlocks = parseEventContent(String(event.content));
+
+const groupedBlocks: Array<{ items: string[]; type: ContentBlock['type'] }> = [];
+
 for (const block of rawBlocks) {
-    if (block.type === 'li' && grouped.length && grouped[grouped.length - 1].type === 'li') {
-        grouped[grouped.length - 1].items.push(block.content);
+    if (block.type === 'li' && groupedBlocks.length && groupedBlocks[groupedBlocks.length - 1].type === 'li') {
+        groupedBlocks[groupedBlocks.length - 1].items.push(block.content);
     } else {
-        grouped.push({ items: [block.content], type: block.type });
+        groupedBlocks.push({ items: [block.content], type: block.type });
     }
 }
+
+export const prerender = false;
 ---
 
 <Layout
     description={`${title}. ${meta.label ? `${meta.label} level. ` : ''}Business English event in ${location} for Chinese professionals. Coaching and practice on real workplace communication.`}
-    title={`${title} | InterSub`}
+    title={`${title} \u2014 InterSub`}
 >
     <Navbar />
     <main class="flex flex-col flex-1">
@@ -87,18 +89,18 @@ for (const block of rawBlocks) {
                     style={`background:${meta.cover};color:${meta.ink}`}
                 >
                     {cover
-                        ? <img class="event-detail__cover-image" alt="" src={cover} />
+                        ? <img class="event-detail__cover-image" alt="" decoding="async" src={cover} />
                         : <span class="event-detail__cover-initials">{initials}</span>}
                 </div>
                 <div class="prose event-detail__content" data-scroll>
-                    {grouped.map((group) => {
+                    {groupedBlocks.map((group) => {
                         if (group.type === 'h') return <h2>{group.items[0]}</h2>;
                         if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
                         return <p>{group.items[0]}</p>;
                     })}
                 </div>
                 <div class="event-detail__actions">
-                    <a class="button" href="/#contact"><span data-i18n="Register">Register</span></a>
+                    <a class="button" href={`/?event=${encodeURIComponent(title)}#contact`}><span data-i18n="Register">Register</span></a>
                     <a class="button button--outline" href="/events"><span data-i18n="Back to all">Back to all</span></a>
                 </div>
             </div>
@@ -153,10 +155,10 @@ for (const block of rawBlocks) {
 
     .event-detail__cover {
         align-items: center;
+        aspect-ratio: 2.5;
         border: 1px solid var(--color-silver);
         border-radius: 16px;
         display: flex;
-        aspect-ratio: 2.5;
         justify-content: center;
         margin-bottom: 44px;
         overflow: hidden;

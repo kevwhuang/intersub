@@ -3,21 +3,21 @@
 ---
 
 <section
-    class="not-found"
-    aria-labelledby="not-found-title"
+    class="server-error"
+    aria-labelledby="server-error-title"
 >
-    <div class="shell not-found__inner">
-        <p class="not-found__code" aria-hidden="true">404</p>
-        <h1 id="not-found-title" class="not-found__title" data-i18n="This page doesn't exist">This page doesn't exist</h1>
-        <p class="not-found__text" data-i18n="The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.">The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.</p>
-        <div class="not-found__actions flex justify-center">
+    <div class="shell server-error__inner">
+        <p class="server-error__code" aria-hidden="true">500</p>
+        <h1 id="server-error-title" class="server-error__title" data-i18n="Something went wrong">Something went wrong</h1>
+        <p class="server-error__text" data-i18n="An unexpected error occurred. Try refreshing the page or returning home.">An unexpected error occurred. Try refreshing the page or returning home.</p>
+        <div class="server-error__actions flex justify-center">
             <a class="button" href="/"><span data-i18n="Go home">Go home</span></a>
         </div>
     </div>
 </section>
 
 <style>
-    .not-found {
+    .server-error {
         align-items: center;
         display: flex;
         justify-content: center;
@@ -26,7 +26,7 @@
         padding-top: calc(var(--header-height) + clamp(48px, 8vw, 100px));
     }
 
-    .not-found__code {
+    .server-error__code {
         color: color-mix(in srgb, var(--color-cobalt) 18%, var(--color-white));
         font-family: var(--font-heading);
         font-size: clamp(120px, 20vw, 240px);
@@ -37,19 +37,19 @@
         user-select: none;
     }
 
-    .not-found__inner {
+    .server-error__inner {
         max-width: 620px;
         text-align: center;
     }
 
-    .not-found__text {
+    .server-error__text {
         color: var(--color-slate-muted);
         font-size: clamp(16px, 1.3vw, 20px);
         line-height: 1.6;
         margin: 0 0 32px;
     }
 
-    .not-found__title {
+    .server-error__title {
         font-size: clamp(24px, 3.5vw, 40px);
         font-weight: 700;
         letter-spacing: -0.02em;

@@ -1,7 +1,13 @@
 ---
-import '@fontsource/hanken-grotesk/index.css';
-import '@fontsource/ibm-plex-mono/index.css';
-import '@fontsource/space-grotesk/index.css';
+import '@fontsource/hanken-grotesk/400.css';
+import '@fontsource/hanken-grotesk/500.css';
+import '@fontsource/hanken-grotesk/600.css';
+import '@fontsource/hanken-grotesk/700.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/600.css';
+import '@fontsource/space-grotesk/700.css';
 import { ClientRouter } from 'astro:transitions';
 
 import '@/global.css';
@@ -60,9 +66,18 @@ const { description, title } = Astro.props;
 </html>
 
 <script>
+    import { AUTH_TOKEN_PATTERN } from '@lib/constants';
     import { applyLanguage } from '@lib/i18n';
     import { initMotion } from '@lib/motion';
 
+    function redirectAuthHash() {
+        if (!AUTH_TOKEN_PATTERN.test(window.location.hash)) return;
+        if (window.location.pathname.startsWith('/admin')) return;
+
+        window.location.replace(`/admin${window.location.hash}`);
+    }
+
+    redirectAuthHash();
     document.addEventListener('astro:page-load', applyLanguage);
     document.addEventListener('astro:page-load', initMotion);
 </script>

@@ -1,11 +1,13 @@
 ---
 import Dashboard from '@components/Dashboard';
 import Layout from '@/Layout.astro';
+
+export const prerender = false;
 ---
 
 <Layout
     description="InterSub admin dashboard. Manage events, outcomes, and testimonials for business English coaching and workshops in Shanghai."
-    title="Admin | InterSub"
+    title={'Admin \u2014 InterSub'}
 >
     <Dashboard client:only="react" />
 </Layout>
