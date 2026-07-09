@@ -1,6 +1,9 @@
 ---
+import { Image } from 'astro:assets';
+
 import { LEVELS } from '@lib/constants';
 import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
+import { getCoverImage, resolveCover } from '@lib/covers';
 import { getEvents } from '@lib/store';
 
 const LEVEL_FILTERS = ['all', ...LEVELS] as const;
@@ -20,7 +23,7 @@ const locationFilters = ['all', ...locations];
 <section class="events__hero" aria-labelledby="events-title">
     <div class="shell">
         <h1 id="events-title" class="events__title" data-i18n="Events" data-scroll>Events</h1>
-        <p class="events__subtitle" data-i18n-html="events-subtitle" data-scroll>Focused intensives in Shanghai, each targeting a specific business English skill. Negotiation, executive presence, written communication, investor pitching, and more. Browse past and upcoming sessions below.</p>
+        <p class="events__subtitle" data-i18n-html="events-subtitle" data-scroll>Our business English community regularly hosts seminars, hands-on workshops, and group discussions centered on practical workplace communication and industry topics. Through structured English improvement marathons and real-world business projects, we support members at every stage, helping them build their skills through consistent micro-learning, systematic development, and practical application in professional contexts.</p>
     </div>
 </section>
 
@@ -78,6 +81,7 @@ const locationFilters = ['all', ...locations];
 
         <div class="events__grid" data-grid data-scroll data-scroll-stagger="0.08">
             {events.map((event) => {
+                const coverImage = getCoverImage(String(event.cover || ''));
                 const initials = getInitials(event.title);
                 const meta = getLevelMeta(event.level);
 
@@ -95,7 +99,9 @@ const locationFilters = ['all', ...locations];
                             style={`background:${meta.cover};color:${meta.ink}`}
                         >
                             {event.cover
-                                ? <img class="events__card-image" alt="" decoding="async" loading="lazy" src={event.cover} />
+                                ? coverImage
+                                    ? <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1250]} />
+                                    : <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(String(event.cover))} />
                                 : <span class="events__card-initials">{initials}</span>}
                         </div>
                         <div class="events__card-body">
@@ -112,6 +118,12 @@ const locationFilters = ['all', ...locations];
                                         <time data-i18n-date={event.date} datetime={event.date}>{formatDate(event.date)}</time>
                                     </dd>
                                 </div>
+                                {event.time && (
+                                    <div class="events__card-row">
+                                        <dt class="events__card-key" data-i18n="Time">Time</dt>
+                                        <dd class="events__card-value">{event.time}</dd>
+                                    </div>
+                                )}
                                 <div class="events__card-row">
                                     <dt class="events__card-key" data-i18n="Location">Location</dt>
                                     <dd class="events__card-value" data-i18n={event.location}>{event.location}</dd>
@@ -240,7 +252,7 @@ const locationFilters = ['all', ...locations];
         background: var(--color-snow);
         border: 1px dashed var(--color-silver-hover);
         border-radius: 16px;
-        padding: clamp(48px, 8vw, 88px) 32px;
+        padding: clamp(48px, calc(34.67px + 4.17vw), 88px) 32px;
         text-align: center;
     }
 
@@ -276,20 +288,20 @@ const locationFilters = ['all', ...locations];
 
     .events__hero {
         border-bottom: 1px solid var(--color-silver);
-        padding-bottom: clamp(48px, 7vw, 84px);
-        padding-top: calc(var(--header-height) + clamp(48px, 7vw, 84px));
+        padding-bottom: clamp(48px, calc(36px + 3.75vw), 84px);
+        padding-top: calc(var(--header-height) + clamp(48px, calc(36px + 3.75vw), 84px));
     }
 
     .events__subtitle {
         color: var(--color-slate-muted);
-        font-size: clamp(16px, 1.3vw, 20px);
+        font-size: clamp(16px, calc(14.67px + 0.42vw), 20px);
         line-height: 1.6;
         margin: 0;
     }
 
     .events__title {
         color: var(--color-slate);
-        font-size: clamp(32px, 4.6vw, 56px);
+        font-size: clamp(32px, calc(24px + 2.5vw), 56px);
         font-weight: 700;
         letter-spacing: -0.025em;
         line-height: 1.06;

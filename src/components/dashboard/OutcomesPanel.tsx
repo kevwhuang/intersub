@@ -45,7 +45,7 @@ export default function OutcomesPanel({ editingOutcomeId, isMobile, isSaving, on
         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
             <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
                 <div>
-                    <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Outcomes</h1>
+                    <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, calc(21.33px + 0.83vw), 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Outcomes</h1>
                     <span style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12, letterSpacing: '.06em' }}>
                         {outcomes.length}
                         {' '}
@@ -58,7 +58,7 @@ export default function OutcomesPanel({ editingOutcomeId, isMobile, isSaving, on
             </div>
             <div aria-label={isMobile ? undefined : 'Outcomes'} role={isMobile ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
                 {!isMobile && (
-                    <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '12px clamp(14px, 2.5vw, 22px)' }}>
+                    <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '12px 22px' }}>
                         <span role="columnheader" style={STYLES.headerBase}>Title</span>
                         <span role="columnheader" style={STYLES.headerBase}>Summary</span>
                         <span role="columnheader" style={STYLES.headerBase}>Outcomes</span>
@@ -69,7 +69,7 @@ export default function OutcomesPanel({ editingOutcomeId, isMobile, isSaving, on
                     ? outcomes.map(outcome => (
                             isMobile
                                 ? (
-                                        <div key={outcome.id} style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px clamp(14px, 2.5vw, 22px)' }}>
+                                        <div key={outcome.id} style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
                                             <div>
                                                 <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
                                                 <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: '6px 0 0' }}>{outcome.summary}</p>
@@ -86,7 +86,7 @@ export default function OutcomesPanel({ editingOutcomeId, isMobile, isSaving, on
                                         </div>
                                     )
                                 : (
-                                        <div key={outcome.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 22px)' }}>
+                                        <div key={outcome.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '16px 22px' }}>
                                             <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
                                             <p role="cell" style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
                                             <span role="cell" style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12 }}>{outcome.points.length}</span>

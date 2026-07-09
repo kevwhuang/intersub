@@ -12,6 +12,7 @@ const events = defineCollection({
         date: z.string(),
         level: z.enum(LEVELS).optional(),
         location: z.string(),
+        time: z.string(),
         title: z.string(),
     }),
 });

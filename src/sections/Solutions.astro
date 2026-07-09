@@ -19,7 +19,7 @@ const SOLUTIONS = [
         title: 'Team Workshops',
     },
     {
-        description: 'Focused sessions on a single skill: negotiation, presentations, writing. Open to individuals and small groups.',
+        description: 'Focused sessions on a single skill: fluency, small talk, interviews, debate. Open to individuals and small groups.',
         details: [
             { label: 'Format', value: 'Half / full day' },
             { label: 'Details', value: 'Beginner\u2013Advanced' },
@@ -74,9 +74,9 @@ const SOLUTIONS = [
         border: 1px solid var(--color-silver-strong);
         border-radius: 18px;
         display: grid;
-        gap: clamp(24px, 4vw, 56px);
+        gap: clamp(24px, calc(13.33px + 3.33vw), 56px);
         grid-template-columns: 1.1fr 1fr;
-        padding: clamp(28px, 3.5vw, 44px);
+        padding: clamp(28px, calc(22.67px + 1.67vw), 44px);
         transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
     }
 
@@ -94,7 +94,7 @@ const SOLUTIONS = [
     }
 
     .solutions__card-title {
-        font-size: clamp(20px, 2.2vw, 24px);
+        font-size: clamp(20px, calc(18.67px + 0.42vw), 24px);
         font-weight: 600;
         letter-spacing: -0.01em;
         line-height: 1.2;
@@ -135,19 +135,19 @@ const SOLUTIONS = [
     }
 
     .solutions__header {
-        margin-bottom: clamp(40px, 5vw, 64px);
+        margin-bottom: clamp(40px, calc(32px + 2.5vw), 64px);
         max-width: 640px;
     }
 
     .solutions__intro {
         color: var(--color-slate-muted);
-        font-size: clamp(16px, 1.3vw, 20px);
+        font-size: 16px;
         line-height: 1.6;
         margin: 0;
     }
 
     .solutions__title {
-        font-size: clamp(28px, 4vw, 48px);
+        font-size: clamp(28px, calc(21.33px + 2.08vw), 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
         line-height: 1.08;

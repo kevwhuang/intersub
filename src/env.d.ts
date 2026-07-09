@@ -9,6 +9,7 @@ interface AdminEvent {
     id: string;
     level?: string;
     location: string;
+    time: string;
     title: string;
 }
 

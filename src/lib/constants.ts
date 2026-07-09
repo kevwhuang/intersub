@@ -2,6 +2,7 @@ export const AUTH_TOKEN_PATTERN = /(confirmation|invite|recovery)_token=([^&]+)/
 export const COBALT = 'var(--color-cobalt)';
 export const COLLECTIONS = ['events', 'outcomes', 'testimonials'] as const;
 export const CONTENT_DIR = 'src/content';
+export const COVER_PATH_PATTERN = /^\/images\/events\/[\w-]+\.(jpe?g|png|webp)$/;
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const FONT_HEADING = 'var(--font-heading)';
 export const FONT_MONO = 'var(--font-mono)';
@@ -42,7 +43,7 @@ export const STYLES = {
     colorSurface: 'var(--color-white)',
     colorSurface90: 'var(--color-white-90)',
     colorSurfaceRaised: 'var(--color-snow)',
-    gridEvents: '1fr 120px 120px 130px 114px',
+    gridEvents: '1fr 120px 120px 120px 130px 114px',
     headerBase: {
         alignItems: 'center',
         color: 'var(--color-slate-ghost)',
@@ -80,5 +81,6 @@ export const STYLES = {
     shadowToast: '0 8px 24px var(--color-slate-15)',
 } as const;
 
+export const TIME_PATTERN = /^([01]?\d|2[0-3]):[0-5]\d\s*[-\u2013\u2014]\s*([01]?\d|2[0-3]):[0-5]\d$/;
 export const TIMEZONE = 'Asia/Shanghai';
 export const URL_PATTERN = /^https?:\/\/.+/;

@@ -54,7 +54,7 @@ export default function DeleteModal({ onCancel, onConfirm, title }: {
 
     return (
         <div style={{ alignItems: 'center', background: STYLES.overlayBackdrop, display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: 60 }}>
-            <div aria-describedby="delete-modal-text" aria-labelledby="delete-modal-title" aria-modal="true" ref={dialogRef} role="dialog" style={{ background: STYLES.colorSurface, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowModal, maxWidth: 420, padding: 'clamp(20px, 4vw, 30px)', width: '100%' }}>
+            <div aria-describedby="delete-modal-text" aria-labelledby="delete-modal-title" aria-modal="true" ref={dialogRef} role="dialog" style={{ background: STYLES.colorSurface, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowModal, maxWidth: 420, padding: 30, width: '100%' }}>
                 <h3 id="delete-modal-title" style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this item?</h3>
                 <p id="delete-modal-text" style={{ color: STYLES.colorMuted, fontSize: 16, lineHeight: 1.55, margin: '0 0 24px' }}>
                     &ldquo;

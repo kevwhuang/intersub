@@ -67,7 +67,6 @@ const { description, title } = Astro.props;
 
 <script>
     import { AUTH_TOKEN_PATTERN } from '@lib/constants';
-    import { applyLanguage } from '@lib/i18n';
     import { initMotion } from '@lib/motion';
 
     function redirectAuthHash() {
@@ -78,6 +77,5 @@ const { description, title } = Astro.props;
     }
 
     redirectAuthHash();
-    document.addEventListener('astro:page-load', applyLanguage);
     document.addEventListener('astro:page-load', initMotion);
 </script>

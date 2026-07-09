@@ -18,7 +18,7 @@ export default function EventTableHeader({ onSort, sortDirection, sortKey }: {
     }
 
     return (
-        <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: STYLES.gridEvents, padding: '12px clamp(14px, 2.5vw, 22px)' }}>
+        <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: STYLES.gridEvents, padding: '12px 22px' }}>
             <div aria-sort={getAriaSort('title')} role="columnheader">
                 <button className="dashboard-button dashboard-button--ghost" onClick={() => onSort('title')} style={STYLES.headerBase}>
                     Title
@@ -31,6 +31,7 @@ export default function EventTableHeader({ onSort, sortDirection, sortKey }: {
                     {getSortArrow('date')}
                 </button>
             </div>
+            <span role="columnheader" style={STYLES.headerBase}>Time</span>
             <div aria-sort={getAriaSort('location')} role="columnheader">
                 <button className="dashboard-button dashboard-button--ghost" onClick={() => onSort('location')} style={STYLES.headerBase}>
                     Location
