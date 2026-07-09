@@ -13,7 +13,7 @@ import Sidebar from '@components/dashboard/Sidebar';
 import Spinner from '@components/Spinner';
 import TestimonialsPanel from '@components/dashboard/TestimonialsPanel';
 import TopBar from '@components/dashboard/TopBar';
-import { FONT_HEADING, FONT_MONO, LEVELS, STYLES, URL_PATTERN } from '@lib/constants';
+import { COVER_PATH_PATTERN, FONT_HEADING, FONT_MONO, LEVELS, STYLES, TIME_PATTERN, URL_PATTERN } from '@lib/constants';
 import { getToday } from '@lib/utils';
 import { useAuth } from '@lib/authClient';
 
@@ -56,6 +56,7 @@ interface EventFormData {
     date: string;
     level: string;
     location: string;
+    time: string;
     title: string;
 }
 
@@ -63,10 +64,13 @@ const EVENT_FORM_ROWS: EditFormField<EventFormData>[][] = [
     [{ errorMessage: 'Title is required.', key: 'title', kind: 'input', label: 'Title', placeholder: 'e.g. Executive Presence in English Meetings', required: true }],
     [
         { errorMessage: 'Date is required.', key: 'date', kind: 'date', label: 'Date', required: true },
+        { errorMessage: 'Must be a 24-hour range, e.g. 14:00\u201317:00.', key: 'time', kind: 'input', label: 'Time', placeholder: 'e.g. 14:00\u201317:00', required: true },
+    ],
+    [
+        { errorMessage: 'Location is required.', key: 'location', kind: 'input', label: 'Location', placeholder: 'e.g. Shanghai', required: true },
         { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
     ],
-    [{ errorMessage: 'Location is required.', key: 'location', kind: 'input', label: 'Location', placeholder: 'e.g. Shanghai', required: true }],
-    [{ errorMessage: 'Must be a valid URL.', key: 'cover', kind: 'input', label: 'Cover', placeholder: 'https://\u2026' }],
+    [{ errorMessage: 'Must be a URL or internal image path.', key: 'cover', kind: 'input', label: 'Cover', placeholder: '/images/events/\u2026 or https://\u2026' }],
     [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, mono: true, placeholder: 'Describe what the event covers and who it serves.\n\n## What you\u2019ll learn\n- First key takeaway or skill\n- Second key takeaway or skill\n- Third key takeaway or skill\n\n## Who it\u2019s for\nThe target audience and their typical challenges.', required: true, rows: 9 }],
 ];
 
@@ -186,10 +190,6 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         set({ editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} });
     }
 
-    function handleResetForLogout() {
-        set({ isDrawerOpen: false, editingEventId: null });
-    }
-
     async function handleSaveEvent() {
         if (!state.eventForm) return;
 
@@ -198,7 +198,8 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         if (!state.eventForm.title.trim()) errors.title = true;
         if (!state.eventForm.date) errors.date = true;
         if (!state.eventForm.location.trim()) errors.location = true;
-        if (state.eventForm.cover.trim() && !URL_PATTERN.test(state.eventForm.cover.trim())) errors.cover = true;
+        if (!TIME_PATTERN.test(state.eventForm.time.trim())) errors.time = true;
+        if (state.eventForm.cover.trim() && !COVER_PATH_PATTERN.test(state.eventForm.cover.trim()) && !URL_PATTERN.test(state.eventForm.cover.trim())) errors.cover = true;
         if (!state.eventForm.content.trim()) errors.content = true;
 
         if (Object.keys(errors).length) {
@@ -334,14 +335,14 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         if (entry) {
             set({
                 editingEventId: entry.date || id,
-                eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, title: entry.title },
+                eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, time: entry.time || '', title: entry.title },
                 eventFormErrors: {},
             });
         }
     }
 
     function handleStartNewEvent() {
-        set({ editingEventId: 'new', eventForm: { content: '', cover: '', date: '', level: '', location: '', title: '' }, eventFormErrors: {} });
+        set({ editingEventId: 'new', eventForm: { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' }, eventFormErrors: {} });
     }
 
     function handleStartNewOutcome() {
@@ -447,7 +448,6 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         handleCancelEventEdit,
         handleCancelOutcomeEdit,
         handleCancelTestimonialEdit,
-        handleResetForLogout,
         handleSaveEvent,
         handleSaveOutcome,
         handleSaveTestimonial,
@@ -478,7 +478,6 @@ function DashboardInner() {
         handleCancelEventEdit,
         handleCancelOutcomeEdit,
         handleCancelTestimonialEdit,
-        handleResetForLogout,
         handleSaveEvent,
         handleSaveOutcome,
         handleSaveTestimonial,
@@ -539,7 +538,7 @@ function DashboardInner() {
 
     function handleSignOut() {
         auth.handleLogout();
-        handleResetForLogout();
+        set({ editingEventId: null, isDrawerOpen: false });
     }
 
     if (state.isLoading) {
@@ -574,8 +573,8 @@ function DashboardInner() {
 
             switch (state.sortKey) {
                 case 'date':
-                    valueA = entryA.date;
-                    valueB = entryB.date;
+                    valueA = entryA.date + (entryA.time || '');
+                    valueB = entryB.date + (entryB.time || '');
                     break;
                 case 'level':
                     valueA = entryA.level || '';
@@ -667,7 +666,7 @@ function DashboardInner() {
             return (
                 <div style={{ margin: '0 auto', maxWidth: 1280 }}>
                     <div style={{ marginBottom: 24 }}>
-                        <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Events</h1>
+                        <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, calc(21.33px + 0.83vw), 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Events</h1>
                         <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em', textTransform: 'lowercase' }}>
                             <span>
                                 {state.events.length}
@@ -777,7 +776,7 @@ function DashboardInner() {
                     onSelectPanel={key => set({ activePanel: key as DashboardState['activePanel'], editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, testimonialForm: null })}
                     userEmail={auth.user?.email ?? ''}
                 />
-                <main style={{ flex: 1, minWidth: 0, padding: 'clamp(20px, 4vw, 48px) clamp(16px, 3vw, 40px)' }}>
+                <main style={{ flex: 1, minWidth: 0, padding: 'clamp(20px, calc(10.67px + 2.92vw), 48px) clamp(16px, calc(8px + 2.5vw), 40px)' }}>
                     {renderPanel()}
                 </main>
             </div>
@@ -789,7 +788,7 @@ function DashboardInner() {
                 />
             )}
             {state.toast && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px clamp(16px, 3vw, 24px)', position: 'fixed', transform: 'translateX(-50%)', zIndex: 50 }}>
+                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in 0.4s ease both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, gap: 10, left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px 24px', position: 'fixed', transform: 'translateX(-50%)', zIndex: 50 }}>
                     {state.toast}
                 </div>
             )}

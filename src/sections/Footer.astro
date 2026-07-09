@@ -27,10 +27,10 @@ const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
     <div class="shell site-footer__inner grid items-start">
         <div>
             <div class="site-footer__brand flex items-center">
-                <img class="site-footer__wordmark" alt="InterSub" height="32" src={logoEn.src} />
-                <img class="site-footer__wordmark" alt="言际阁" height="32" src={logoZh.src} />
+                <img class="site-footer__wordmark" alt="InterSub" decoding="async" height="32" loading="lazy" src={logoEn.src} />
+                <img class="site-footer__wordmark" alt="言际阁" decoding="async" height="32" loading="lazy" src={logoZh.src} />
             </div>
-            <p class="site-footer__tag" data-i18n="Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.">Business English coaching, workshops, and events for Chinese professionals who lead meetings, close deals, and write under pressure. We practise on your real work and give feedback you use the same day. Based in Shanghai.</p>
+            <p class="site-footer__tag" data-i18n="We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.">We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.</p>
         </div>
         <div class="site-footer__column flex flex-col">
             <p class="site-footer__heading" data-i18n="Directory">Directory</p>
@@ -123,7 +123,7 @@ const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
         gap: 40px;
         grid-template-columns: 1.6fr 1fr 1.2fr;
         padding-bottom: 40px;
-        padding-top: clamp(48px, 6vw, 72px);
+        padding-top: clamp(48px, calc(40px + 2.5vw), 72px);
     }
 
     .site-footer__link {

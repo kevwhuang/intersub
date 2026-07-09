@@ -1,8 +1,11 @@
 ---
+import { Image } from 'astro:assets';
+
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
 import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
+import { getCoverImage, resolveCover } from '@lib/covers';
 import { getEvents } from '@lib/store';
 
 type ContentBlock = { content: string; type: 'h' | 'li' | 'p' };
@@ -33,11 +36,14 @@ const cover = String(event.cover || '');
 const date = String(event.date);
 const level = String(event.level || '');
 const location = String(event.location);
+const time = String(event.time || '');
 const title = String(event.title);
 
+const coverImage = getCoverImage(cover);
 const initials = getInitials(title);
 const meta = getLevelMeta(level);
 const rawBlocks = parseEventContent(String(event.content));
+const who = level ? meta.label : 'Everyone';
 
 const groupedBlocks: Array<{ items: string[]; type: ContentBlock['type'] }> = [];
 
@@ -53,7 +59,7 @@ export const prerender = false;
 ---
 
 <Layout
-    description={`${title}. ${meta.label ? `${meta.label} level. ` : ''}Business English event in ${location} for Chinese professionals. Coaching and practice on real workplace communication.`}
+    description={`${title}. ${level ? `${meta.label} level. ` : 'Open to all levels. '}Business English event with live practice and coaching on workplace communication.`}
     title={`${title} \u2014 InterSub`}
 >
     <Navbar />
@@ -72,25 +78,31 @@ export const prerender = false;
                             <time data-i18n-date={date} datetime={date}>{formatDate(date)}</time>
                         </dd>
                     </div>
+                    {time && (
+                        <div>
+                            <dt class="event-detail__meta-label" data-i18n="Time">Time</dt>
+                            <dd class="event-detail__meta-value">{time}</dd>
+                        </div>
+                    )}
                     <div>
                         <dt class="event-detail__meta-label" data-i18n="Location">Location</dt>
                         <dd class="event-detail__meta-value" data-i18n={location}>{location}</dd>
                     </div>
-                    {level && (
-                        <div>
-                            <dt class="event-detail__meta-label" data-i18n="Who">Who</dt>
-                            <dd class="event-detail__meta-value" data-i18n={meta.label}>{meta.label}</dd>
-                        </div>
-                    )}
+                    <div>
+                        <dt class="event-detail__meta-label" data-i18n="Who">Who</dt>
+                        <dd class="event-detail__meta-value" data-i18n={who}>{who}</dd>
+                    </div>
                 </dl>
                 <div
                     class="event-detail__cover"
                     data-scroll
                     style={`background:${meta.cover};color:${meta.ink}`}
                 >
-                    {cover
-                        ? <img class="event-detail__cover-image" alt="" decoding="async" src={cover} />
-                        : <span class="event-detail__cover-initials">{initials}</span>}
+                    {coverImage
+                        ? <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1250]} />
+                        : cover
+                            ? <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />
+                            : <span class="event-detail__cover-initials">{initials}</span>}
                 </div>
                 <div class="prose event-detail__content" data-scroll>
                     {groupedBlocks.map((group) => {
@@ -111,8 +123,8 @@ export const prerender = false;
 
 <style>
     .event-detail {
-        padding-bottom: clamp(64px, 9vw, 120px);
-        padding-top: calc(var(--header-height) + clamp(28px, 4vw, 44px));
+        padding-bottom: clamp(64px, calc(45.33px + 5.83vw), 120px);
+        padding-top: calc(var(--header-height) + clamp(28px, calc(22.67px + 1.67vw), 44px));
     }
 
     .event-detail__actions {
@@ -172,7 +184,7 @@ export const prerender = false;
 
     .event-detail__cover-initials {
         font-family: var(--font-heading);
-        font-size: clamp(60px, 12vw, 120px);
+        font-size: clamp(60px, calc(40px + 6.25vw), 120px);
         font-weight: 700;
         letter-spacing: -0.03em;
         opacity: 0.26;
@@ -206,7 +218,7 @@ export const prerender = false;
 
     .event-detail__title {
         color: var(--color-slate);
-        font-size: clamp(32px, 4.4vw, 48px);
+        font-size: clamp(32px, calc(26.67px + 1.67vw), 48px);
         font-weight: 700;
         letter-spacing: -0.025em;
         line-height: 1.06;

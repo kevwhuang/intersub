@@ -57,7 +57,7 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
 
     return (
         <div style={{ margin: '0 auto', maxWidth: 760 }}>
-            <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 28px' }}>
+            <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, calc(21.33px + 0.83vw), 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 28px' }}>
                 {isNew ? `New ${entity}` : `Edit ${entity}`}
             </h1>
             <form
@@ -65,7 +65,7 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
                     event.preventDefault();
                     onSave();
                 }}
-                style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: STYLES.borderRadiusLarge, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, 3.5vw, 40px)' }}
+                style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: STYLES.borderRadiusLarge, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, calc(13.33px + 2.08vw), 40px)' }}
             >
                 {fieldRows.map(row => (
                     row.length === 1

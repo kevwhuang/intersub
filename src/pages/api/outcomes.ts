@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
     const summary = String(body.summary || '').trim();
     const title = String(body.title || '').trim();
 
-    if (!points.length) return Response.json({ error: 'At least one outcome point is required' }, { status: 400 });
+    if (!points.length) return Response.json({ error: 'At least one outcome is required' }, { status: 400 });
     if (!summary) return Response.json({ error: 'Summary is required' }, { status: 400 });
     if (!title) return Response.json({ error: 'Title is required' }, { status: 400 });
 

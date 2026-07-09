@@ -64,7 +64,7 @@
     --duration-slow: 0.4s;
     --header-height: 68px;
     --shell-max: 1280px;
-    --shell-pad: clamp(20px, 5vw, 64px);
+    --shell-pad: clamp(20px, calc(5.33px + 4.58vw), 64px);
 }
 
 a,

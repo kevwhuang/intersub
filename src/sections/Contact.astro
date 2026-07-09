@@ -15,7 +15,7 @@ import { MESSAGE_MAX, NAME_MAX } from '@lib/constants';
     <div class="shell contact__inner">
         <div data-scroll>
             <h2 id="contact-title" class="contact__title" data-i18n="Get in touch">Get in touch</h2>
-            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We will respond with a tailored recommendation.">Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We will respond with a tailored recommendation.</p>
+            <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We'll reply with a tailored recommendation.">Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We'll reply with a tailored recommendation.</p>
         </div>
         <div class="contact__success" hidden>
             <h3 class="contact__success-title" data-i18n-html="contact-success-title">Thank you, message sent.</h3>
@@ -108,7 +108,7 @@ import { MESSAGE_MAX, NAME_MAX } from '@lib/constants';
         color: var(--color-slate-muted);
         font-size: 16px;
         line-height: 1.6;
-        margin: 0 0 clamp(40px, 5vw, 64px);
+        margin: 0 0 clamp(40px, calc(32px + 2.5vw), 64px);
     }
 
     .contact__reset {
@@ -125,38 +125,38 @@ import { MESSAGE_MAX, NAME_MAX } from '@lib/constants';
     }
 
     .contact__ring--1 {
-        height: clamp(280px, 30vw, 380px);
-        right: clamp(-140px, -10vw, -80px);
-        top: clamp(-160px, -12vw, -100px);
-        width: clamp(280px, 30vw, 380px);
+        height: clamp(280px, calc(246.67px + 10.42vw), 380px);
+        right: clamp(-140px, calc(-60px - 6.25vw), -80px);
+        top: clamp(-160px, calc(-80px - 6.25vw), -100px);
+        width: clamp(280px, calc(246.67px + 10.42vw), 380px);
     }
 
     .contact__ring--2 {
-        height: clamp(200px, 22vw, 280px);
-        right: clamp(-100px, -7vw, -50px);
-        top: clamp(-110px, -8vw, -60px);
-        width: clamp(200px, 22vw, 280px);
+        height: clamp(200px, calc(173.33px + 8.33vw), 280px);
+        right: clamp(-100px, calc(-33.33px - 5.21vw), -50px);
+        top: clamp(-110px, calc(-43.33px - 5.21vw), -60px);
+        width: clamp(200px, calc(173.33px + 8.33vw), 280px);
     }
 
     .contact__ring--3 {
-        height: clamp(120px, 14vw, 180px);
-        right: clamp(-60px, -3vw, -20px);
-        top: clamp(-60px, -4vw, -20px);
-        width: clamp(120px, 14vw, 180px);
+        height: clamp(120px, calc(100px + 6.25vw), 180px);
+        right: clamp(-60px, calc(-6.67px - 4.17vw), -20px);
+        top: clamp(-60px, calc(-6.67px - 4.17vw), -20px);
+        width: clamp(120px, calc(100px + 6.25vw), 180px);
     }
 
     .contact__ring--4 {
-        bottom: clamp(-140px, -10vw, -80px);
-        height: clamp(240px, 26vw, 320px);
-        left: clamp(-120px, -9vw, -70px);
-        width: clamp(240px, 26vw, 320px);
+        bottom: clamp(-140px, calc(-60px - 6.25vw), -80px);
+        height: clamp(240px, calc(213.33px + 8.33vw), 320px);
+        left: clamp(-120px, calc(-53.33px - 5.21vw), -70px);
+        width: clamp(240px, calc(213.33px + 8.33vw), 320px);
     }
 
     .contact__ring--5 {
-        bottom: clamp(-90px, -6vw, -50px);
-        height: clamp(160px, 18vw, 220px);
-        left: clamp(-80px, -5vw, -40px);
-        width: clamp(160px, 18vw, 220px);
+        bottom: clamp(-90px, calc(-36.67px - 4.17vw), -50px);
+        height: clamp(160px, calc(140px + 6.25vw), 220px);
+        left: clamp(-80px, calc(-26.67px - 4.17vw), -40px);
+        width: clamp(160px, calc(140px + 6.25vw), 220px);
     }
 
     .contact__success {
@@ -183,7 +183,7 @@ import { MESSAGE_MAX, NAME_MAX } from '@lib/constants';
 
     .contact__title {
         color: var(--color-slate);
-        font-size: clamp(28px, 4vw, 48px);
+        font-size: clamp(28px, calc(21.33px + 2.08vw), 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
         margin: 0 0 16px;
@@ -236,7 +236,7 @@ import { MESSAGE_MAX, NAME_MAX } from '@lib/constants';
         const eventTitle = new URLSearchParams(window.location.search).get('event');
 
         if (eventTitle && messageInput) {
-            messageInput.value = `Hi! I'd like to sign up for "${eventTitle}".\n\n`;
+            messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
             history.replaceState(null, '', window.location.pathname + window.location.hash);
         }
 

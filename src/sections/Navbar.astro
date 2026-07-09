@@ -91,12 +91,12 @@ import { ROUTES } from '@lib/constants';
 
     .site-header__wordmark {
         display: block;
-        height: 24px;
+        height: clamp(20px, calc(18.67px + 0.42vw), 24px);
         width: auto;
     }
 
     .site-nav {
-        gap: clamp(6px, 2vw, 14px);
+        gap: 14px;
     }
 
     .site-nav__language {
@@ -139,7 +139,7 @@ import { ROUTES } from '@lib/constants';
         color: var(--color-slate-faint);
         font-size: 16px;
         font-weight: 600;
-        padding: 8px clamp(10px, 1.5vw, 14px);
+        padding: 8px 14px;
         text-decoration: none;
         transition: background var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
     }
@@ -169,7 +169,7 @@ import { ROUTES } from '@lib/constants';
     }
 
     .site-nav__menu {
-        gap: clamp(6px, 2vw, 14px);
+        gap: 14px;
     }
 
     .site-nav__toggle {
@@ -235,10 +235,6 @@ import { ROUTES } from '@lib/constants';
             visibility: visible;
         }
 
-        .site-header__wordmark {
-            height: 20px;
-        }
-
         .site-nav__link {
             padding: 12px 14px;
         }
@@ -260,6 +256,10 @@ import { ROUTES } from '@lib/constants';
             visibility: hidden;
         }
 
+        .site-nav__menu--instant {
+            transition: none;
+        }
+
         .site-nav__menu--open {
             opacity: 1;
             transition: opacity var(--duration-fast) ease;
@@ -273,9 +273,17 @@ import { ROUTES } from '@lib/constants';
 </style>
 
 <script>
-    import { toggleLanguage } from '@lib/i18n';
+    import { applyLanguage, toggleLanguage } from '@lib/i18n';
+
+    const MOBILE_QUERY = '(max-width: 768px)';
 
     let controller: AbortController;
+
+    function applyPublicLanguage() {
+        if (window.location.pathname.startsWith('/admin')) return;
+
+        applyLanguage();
+    }
 
     function initNavbar() {
         if (controller) controller.abort();
@@ -351,11 +359,23 @@ import { ROUTES } from '@lib/constants';
             if (!menu?.classList.contains('site-nav__menu--open')) return;
             if (!(event.target instanceof Element)) return;
 
-            if (!event.target.closest('.site-header') || event.clientY > menu.getBoundingClientRect().bottom) closeMenu();
+            if (!event.target.closest('.site-header') || event.clientY >= menu.getBoundingClientRect().bottom) closeMenu();
+        }, { signal: controller.signal });
+
+        window.matchMedia(MOBILE_QUERY).addEventListener('change', (event) => {
+            if (!event.matches) {
+                closeMenu();
+
+                return;
+            }
+
+            menu?.classList.add('site-nav__menu--instant');
+            requestAnimationFrame(() => requestAnimationFrame(() => menu?.classList.remove('site-nav__menu--instant')));
         }, { signal: controller.signal });
 
         document.querySelector('[data-lang-toggle]')?.addEventListener('click', toggleLanguage, { signal: controller.signal });
     }
 
+    document.addEventListener('astro:page-load', applyPublicLanguage);
     document.addEventListener('astro:page-load', initNavbar);
 </script>

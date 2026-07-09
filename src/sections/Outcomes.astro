@@ -82,13 +82,13 @@ const outcomes = await getOutcomes();
     }
 
     .outcomes__header {
-        margin-bottom: clamp(40px, 5vw, 64px);
+        margin-bottom: clamp(40px, calc(32px + 2.5vw), 64px);
         max-width: 640px;
     }
 
     .outcomes__intro {
         color: var(--color-slate-muted);
-        font-size: clamp(16px, 1.3vw, 20px);
+        font-size: 16px;
         line-height: 1.6;
         margin: 0;
     }
@@ -119,7 +119,7 @@ const outcomes = await getOutcomes();
     }
 
     .outcomes__title {
-        font-size: clamp(28px, 4vw, 48px);
+        font-size: clamp(28px, calc(21.33px + 2.08vw), 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
         line-height: 1.08;

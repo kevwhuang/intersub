@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs';
 
-import { IS_DEV, LEVELS, URL_PATTERN } from '@lib/constants';
+import { COVER_PATH_PATTERN, IS_DEV, LEVELS, TIME_PATTERN, URL_PATTERN } from '@lib/constants';
 import { deleteEntry, readCollection, writeEntry } from '@lib/local';
 import { getEvents } from '@lib/store';
 import { verifyAuth } from '@lib/authServer';
@@ -71,13 +71,15 @@ export const POST: APIRoute = async ({ request }) => {
     const date = String(body.date || '');
     const level = String(body.level || '');
     const location = String(body.location || '').trim();
+    const time = String(body.time || '').trim();
     const title = String(body.title || '').trim();
 
     if (!content) return Response.json({ error: 'Content is required' }, { status: 400 });
-    if (cover && !URL_PATTERN.test(cover)) return Response.json({ error: 'Invalid cover URL' }, { status: 400 });
-    if (!DATE_PATTERN.test(date)) return Response.json({ error: 'Date must be YYYY-MM-DD' }, { status: 400 });
+    if (cover && !COVER_PATH_PATTERN.test(cover) && !URL_PATTERN.test(cover)) return Response.json({ error: 'Cover must be a URL or internal image path' }, { status: 400 });
+    if (!DATE_PATTERN.test(date)) return Response.json({ error: 'Date must be in YYYY-MM-DD format' }, { status: 400 });
     if (level && !LEVELS.some(entry => entry === level)) return Response.json({ error: 'Invalid level' }, { status: 400 });
     if (!location) return Response.json({ error: 'Location is required' }, { status: 400 });
+    if (!TIME_PATTERN.test(time)) return Response.json({ error: 'Time must be a 24-hour range like 14:00\u201317:00' }, { status: 400 });
     if (!title) return Response.json({ error: 'Title is required' }, { status: 400 });
 
     const id = date;
@@ -89,7 +91,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (events.find(entry => String(entry.date) === date && String(entry.id) !== previousId)) return Response.json({ error: 'An event already exists on this date' }, { status: 409 });
 
-    const data: Record<string, string> = { content, date, location, title };
+    const [start, end] = time.split(/\s*[-\u2013\u2014]\s*/);
+
+    const data: Record<string, string> = { content, date, location, time: `${start.padStart(5, '0')}\u2013${end.padStart(5, '0')}`, title };
 
     if (cover) data.cover = cover;
     if (level) data.level = level;
