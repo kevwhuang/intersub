@@ -78,7 +78,6 @@ const locationFilters = ['all', ...locations];
                 {events.length} {events.length === 1 ? 'event' : 'events'}
             </p>
         </div>
-
         <div class="events__grid" data-grid data-scroll data-scroll-stagger="0.08">
             {events.map((event) => {
                 const coverImage = getCoverImage(String(event.cover || ''));
@@ -134,10 +133,9 @@ const locationFilters = ['all', ...locations];
                 );
             })}
         </div>
-
         <div class="events__empty" data-empty hidden>
             <h2 class="events__empty-title" data-i18n="No events match those filters">No events match those filters</h2>
-            <p class="events__empty-text" data-i18n="Try widening your selection. New sessions are added throughout the season.">Try widening your selection. New sessions are added throughout the season.</p>
+            <p class="events__empty-text" data-i18n="Try widening your selection. New sessions are added regularly.">Try widening your selection. New sessions are added regularly.</p>
             <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
         </div>
     </div>
