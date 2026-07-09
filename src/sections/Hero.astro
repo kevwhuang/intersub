@@ -21,9 +21,9 @@ import hero from '@images/hero.webp';
     </div>
     <div class="hero__overlay absolute" aria-hidden="true" />
     <div class="hero__content shell relative">
-        <h1 class="hero__title" data-scroll>
-            <span class="hero__title-line"><span data-i18n="Your">Your</span> <span class="hero__accent" data-i18n="authority">authority</span></span>
-            <span class="hero__title-line"><span data-i18n="in">in</span> <span class="hero__accent" data-i18n="English">English</span></span>
+        <h1 class="hero__title" data-i18n-html="hero-title" data-scroll>
+            <span class="block">Your <span class="text-cobalt-bright">authority</span></span>
+            <span class="block">in <span class="text-cobalt-bright">English</span></span>
         </h1>
         <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.</p>
     </div>
@@ -34,10 +34,6 @@ import hero from '@images/hero.webp';
         align-items: center;
         background: var(--color-navy);
         min-height: 100vh;
-    }
-
-    .hero__accent {
-        color: var(--color-cobalt-bright);
     }
 
     .hero__background {
@@ -83,9 +79,5 @@ import hero from '@images/hero.webp';
         line-height: 1.03;
         margin: 0 0 28px;
         text-shadow: 0 2px 34px var(--color-black-50);
-    }
-
-    .hero__title-line {
-        display: block;
     }
 </style>
