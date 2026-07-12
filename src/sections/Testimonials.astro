@@ -12,7 +12,7 @@ const testimonials = await getTestimonials();
 >
     <div class="shell testimonials__inner">
         <p class="testimonials__eyebrow" data-i18n="From the people in the room" data-scroll>From the people in the room</p>
-        <div class="testimonials__carousel">
+        <div class="testimonials__carousel" data-scroll>
             {testimonials.map((testimonial, index) => (
                 <figure
                     class:list={['testimonials__slide', { 'testimonials__slide--active': index === 0 }]}
@@ -27,7 +27,7 @@ const testimonials = await getTestimonials();
                 </figure>
             ))}
         </div>
-        <div class="testimonials__dots flex gap-2 justify-center">
+        <div class="testimonials__dots flex gap-2 justify-center" data-scroll>
             {testimonials.map((_, index) => (
                 <button
                     class:list={['testimonials__dot', { 'testimonials__dot--active': index === 0 }]}

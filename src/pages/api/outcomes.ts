@@ -1,14 +1,14 @@
 import { getStore } from '@netlify/blobs';
 
 import { IS_DEV } from '@lib/constants';
+import { compareByNumericId, getOutcomes } from '@lib/store';
 import { deleteEntry, readCollection, writeEntry } from '@lib/local';
-import { getOutcomes } from '@lib/store';
 import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
 
 async function loadOutcomes(): Promise<Record<string, unknown>[]> {
-    if (IS_DEV) return readCollection('outcomes');
+    if (IS_DEV) return readCollection('outcomes').sort(compareByNumericId);
 
     return getOutcomes();
 }
@@ -30,12 +30,14 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     const outcomes = await loadOutcomes();
 
-    if (!outcomes.find(entry => String(entry.id) === String(id))) return Response.json({ error: 'Outcome not found' }, { status: 400 });
+    if (!outcomes.find(entry => String(entry.id) === String(id))) {
+        return Response.json({ error: 'Outcome not found' }, { status: 400 });
+    }
 
     if (IS_DEV) {
         deleteEntry('outcomes', id);
     } else {
-        await getStore({ consistency: 'strong', name: 'outcomes' }).setJSON(String(id), { deleted: true });
+        await getStore({ consistency: 'strong', name: 'outcomes' }).delete(String(id));
     }
 
     return Response.json({ deleted: true });
@@ -74,7 +76,9 @@ export const POST: APIRoute = async ({ request }) => {
 
     const outcomes = await loadOutcomes();
 
-    if (id && !outcomes.find(entry => String(entry.id) === id)) return Response.json({ error: 'Outcome not found' }, { status: 400 });
+    if (id && !outcomes.find(entry => String(entry.id) === id)) {
+        return Response.json({ error: 'Outcome not found' }, { status: 400 });
+    }
 
     if (!id) {
         const maxId = outcomes.reduce((max, entry) => {

@@ -22,13 +22,13 @@ export default class ErrorBoundary extends Component<{ children: React.ReactNode
                         Something went wrong
                     </h1>
                     <p style={{ color: STYLES.colorMuted, fontSize: 16, lineHeight: 1.6, margin: '0 0 32px' }}>
-                        An unexpected error occurred. Try refreshing the page or returning home.
+                        Try refreshing the page or returning home.
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-                        <button onClick={() => window.location.reload()} style={{ alignItems: 'center', background: COBALT, border: 'none', borderRadius: 10, color: STYLES.colorSurface, display: 'inline-flex', fontFamily: 'inherit', fontSize: 16, fontWeight: 600, padding: '15px 24px' }}>
+                        <button className="dashboard-button dashboard-button--primary" onClick={() => window.location.reload()} style={{ padding: '15px 24px' }} type="button">
                             Refresh
                         </button>
-                        <a href="/" style={{ alignItems: 'center', border: `1px solid ${STYLES.colorBorderHover}`, borderRadius: 10, color: STYLES.colorInk, display: 'inline-flex', fontFamily: 'inherit', fontSize: 16, fontWeight: 600, padding: '15px 24px', textDecoration: 'none' }}>
+                        <a className="dashboard-button dashboard-button--outline" href="/" style={{ alignItems: 'center', display: 'inline-flex', padding: '15px 24px', textDecoration: 'none' }}>
                             Go home
                         </a>
                     </div>

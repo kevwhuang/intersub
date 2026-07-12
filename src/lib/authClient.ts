@@ -33,7 +33,7 @@ const IS_LOCAL = import.meta.env.DEV
 let refreshPromise: Promise<StoredSession | null> | null = null;
 
 function clearAuthHash() {
-    history.replaceState(null, '', window.location.pathname + window.location.search);
+    history.replaceState(history.state, '', window.location.pathname + window.location.search);
 }
 
 function clearSession() {
@@ -110,6 +110,10 @@ async function refreshSession(): Promise<StoredSession | null> {
         if (response.ok) {
             const data = await response.json();
 
+            const current = loadSession();
+
+            if (!current || current.refreshToken !== stored.refreshToken) return current;
+
             storeSession(data, stored.email);
 
             return loadSession();
@@ -142,9 +146,13 @@ async function resolveSession(): Promise<{ email: string; token: string } | null
 
     const refreshed = await refreshPromise;
 
-    if (!refreshed) return null;
+    if (refreshed) return { email: refreshed.email, token: refreshed.accessToken };
 
-    return { email: refreshed.email, token: refreshed.accessToken };
+    const current = loadSession();
+
+    if (current && current.expiresAt > Date.now()) return { email: current.email, token: current.accessToken };
+
+    return null;
 }
 
 function storeSession(data: TokenResponse, email: string) {
@@ -240,6 +248,13 @@ export function useAuth() {
     function handleLogout() {
         clearSession();
         setError('');
+        setUser(null);
+    }
+
+    function handleSessionExpired() {
+        if (loadSession()) return;
+
+        setError('Session expired. Please sign in again.');
         setUser(null);
     }
 
@@ -367,5 +382,5 @@ export function useAuth() {
         initAuth();
     }, []);
 
-    return { error, getToken, handleCancelSetPassword, handleLogin, handleLogout, handleSetPassword, isLoading, isPending, isRecovery, user };
+    return { error, getToken, handleCancelSetPassword, handleLogin, handleLogout, handleSessionExpired, handleSetPassword, isLoading, isPending, isRecovery, user };
 }

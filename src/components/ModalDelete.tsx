@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { FONT_HEADING, STYLES } from '@lib/constants';
 
-export default function DeleteModal({ onCancel, onConfirm, title }: {
+export default function ModalDelete({ onCancel, onConfirm, title }: {
     onCancel: () => void;
     onConfirm: () => void;
     title: string;
@@ -55,7 +55,7 @@ export default function DeleteModal({ onCancel, onConfirm, title }: {
     return (
         <div style={{ alignItems: 'center', background: STYLES.overlayBackdrop, display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: 60 }}>
             <div aria-describedby="delete-modal-text" aria-labelledby="delete-modal-title" aria-modal="true" ref={dialogRef} role="dialog" style={{ background: STYLES.colorSurface, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowModal, maxWidth: 420, padding: 30, width: '100%' }}>
-                <h3 id="delete-modal-title" style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this item?</h3>
+                <h2 id="delete-modal-title" style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this item?</h2>
                 <p id="delete-modal-text" style={{ color: STYLES.colorMuted, fontSize: 16, lineHeight: 1.55, margin: '0 0 24px' }}>
                     &ldquo;
                     {title}

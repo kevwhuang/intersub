@@ -1,8 +1,8 @@
 ---
+import ErrorNotFound from '@sections/ErrorNotFound.astro';
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
-import NotFound from '@sections/NotFound.astro';
 
 export const prerender = false;
 ---
@@ -13,7 +13,7 @@ export const prerender = false;
 >
     <Navbar />
     <main class="flex flex-col flex-1">
-        <NotFound />
+        <ErrorNotFound />
     </main>
     <Footer />
 </Layout>

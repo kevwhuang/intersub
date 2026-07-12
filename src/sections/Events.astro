@@ -23,7 +23,7 @@ const locationFilters = ['all', ...locations];
 <section class="events__hero" aria-labelledby="events-title">
     <div class="shell">
         <h1 id="events-title" class="events__title" data-i18n="Events" data-scroll>Events</h1>
-        <p class="events__subtitle" data-i18n-html="events-subtitle" data-scroll>Our business English community regularly hosts seminars, hands-on workshops, and group discussions centered on practical workplace communication and industry topics. Through structured English improvement marathons and real-world business projects, we support members at every stage, helping them build their skills through consistent micro-learning, systematic development, and practical application in professional contexts.</p>
+        <p class="events__subtitle" data-i18n="Our business English community regularly hosts seminars, hands-on workshops, and group discussions centered on practical workplace communication and industry topics. Through structured English improvement marathons and real-world business projects, we support members at every stage, helping them build their skills through consistent micro-learning, systematic development, and practical application in professional contexts." data-scroll>Our business English community regularly hosts seminars, hands-on workshops, and group discussions centered on practical workplace communication and industry topics. Through structured English improvement marathons and real-world business projects, we support members at every stage, helping them build their skills through consistent micro-learning, systematic development, and practical application in professional contexts.</p>
     </div>
 </section>
 
@@ -107,7 +107,7 @@ const locationFilters = ['all', ...locations];
                             <h2 class="events__card-title" data-i18n={event.title}>{event.title}</h2>
                             {event.level && (
                                 <div class="events__card-badge mb-[14px]">
-                                    <span class={`tag tag--${String(event.level).toLowerCase()}`} data-i18n={meta.label}>{meta.label}</span>
+                                    <span class={`tag tag--${String(event.level).toLowerCase()}`} data-i18n={String(event.level)}>{event.level}</span>
                                 </div>
                             )}
                             <dl class="events__card-details">
@@ -198,6 +198,7 @@ const locationFilters = ['all', ...locations];
     .events__card-image {
         height: 100%;
         object-fit: cover;
+        object-position: left top;
         width: 100%;
     }
 
@@ -383,9 +384,10 @@ const locationFilters = ['all', ...locations];
             });
 
             if (countElement) {
+                const isChinese = document.documentElement.lang === 'zh';
                 const unit = translate(visibleCount === 1 ? 'event' : 'events');
 
-                countElement.textContent = `${visibleCount} ${unit}`;
+                countElement.textContent = isChinese ? `${visibleCount}${unit}` : `${visibleCount} ${unit}`;
             }
 
             if (gridElement) gridElement.style.display = visibleCount ? '' : 'none';

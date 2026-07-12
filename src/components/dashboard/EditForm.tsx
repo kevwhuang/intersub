@@ -19,6 +19,11 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
 
     const submitLabel = isNew ? `Create ${entity}` : 'Save changes';
 
+    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        onSave();
+    }
+
     function renderControl(field: EditFormField<Values>) {
         const describedBy = formErrors[field.key] ? `error-${entity}-${field.key}` : undefined;
         const inputClassName = formErrors[field.key] ? 'dashboard-input dashboard-input--error' : 'dashboard-input';
@@ -29,21 +34,23 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
 
         if (field.kind === 'select') {
             return (
-                <select className="dashboard-input" value={form[field.key]} onChange={handleChange} style={{ ...STYLES.inputBase, background: STYLES.colorSurface, padding: '11px 14px' }}>
-                    <option value="">None</option>
-                    {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
-                </select>
+                <div className="dashboard-select">
+                    <select className="dashboard-input" value={form[field.key]} onChange={handleChange} style={{ ...STYLES.inputBase, appearance: 'none', background: STYLES.colorSurface, padding: '11px 14px' }}>
+                        <option value="">None</option>
+                        {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                </div>
             );
         }
 
         if (field.kind === 'textarea') {
             return (
-                <textarea className={inputClassName} aria-describedby={describedBy} value={form[field.key]} onChange={handleChange} rows={field.rows} placeholder={field.placeholder} style={{ ...STYLES.inputBase, ...(field.mono ? { fontFamily: FONT_MONO, fontSize: 12 } : {}), lineHeight: 1.6, minHeight: field.minHeight ?? 140, resize: 'vertical' as const }} />
+                <textarea className={inputClassName} aria-describedby={describedBy} value={form[field.key]} onChange={handleChange} rows={field.rows} style={{ ...STYLES.inputBase, ...(field.mono ? { fontFamily: FONT_MONO, fontSize: 12 } : {}), lineHeight: 1.6, minHeight: field.minHeight ?? 140, resize: 'vertical' }} />
             );
         }
 
         return (
-            <input className={inputClassName} aria-describedby={describedBy} value={form[field.key]} onChange={handleChange} placeholder={field.placeholder} type={field.kind === 'date' ? 'date' : undefined} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { padding: '11px 14px' } : {}) }} />
+            <input className={inputClassName} aria-describedby={describedBy} value={form[field.key]} onChange={handleChange} type={field.kind === 'date' ? 'date' : undefined} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { padding: '11px 14px' } : {}) }} />
         );
     }
 
@@ -61,10 +68,7 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
                 {isNew ? `New ${entity}` : `Edit ${entity}`}
             </h1>
             <form
-                onSubmit={(event) => {
-                    event.preventDefault();
-                    onSave();
-                }}
+                onSubmit={handleSubmit}
                 style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: STYLES.borderRadiusLarge, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, calc(13.33px + 2.08vw), 40px)' }}
             >
                 {fieldRows.map(row => (
@@ -77,7 +81,7 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
                             )
                 ))}
                 <div style={{ borderTop: `1px solid ${STYLES.colorBorder}`, display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', gap: 10, marginTop: 4, paddingTop: 20 }}>
-                    <button className="dashboard-button dashboard-button--primary" disabled={isSaving} type="submit" style={{ alignItems: 'center', display: 'inline-flex', justifyContent: 'center', minHeight: 44, minWidth: isMobile ? undefined : 150 }}>
+                    <button className="dashboard-button dashboard-button--primary" aria-label={submitLabel} disabled={isSaving} style={{ alignItems: 'center', display: 'inline-flex', justifyContent: 'center', minHeight: 44, minWidth: isMobile ? undefined : 150 }} type="submit">
                         {isSaving ? <Spinner /> : submitLabel}
                     </button>
                     <button className="dashboard-button dashboard-button--outline" disabled={isSaving} type="button" onClick={onCancel}>

@@ -2,7 +2,6 @@ import { join } from 'node:path';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 
 import { COLLECTIONS, CONTENT_DIR } from '../src/lib/constants';
-import { slugify } from '../src/lib/utils';
 
 const BASE_URL = process.argv[2] || 'https://intersubstudio.com';
 
@@ -28,16 +27,9 @@ function writeCollection(collection: string, items: Record<string, unknown>[]) {
 
     for (let index = 0; index < items.length; index++) {
         const entry = { ...items[index] };
+        const filename = `${items[index].id ?? index + 1}.json`;
 
         delete entry.id;
-
-        let filename = `${index + 1}.json`;
-
-        if (collection === 'events' && entry.date) {
-            filename = `${entry.date}.json`;
-        } else if (collection === 'testimonials' && entry.name && entry.role) {
-            filename = `${slugify(String(entry.name))}-${slugify(String(entry.role))}.json`;
-        }
 
         const json = JSON.stringify(entry, Object.keys(entry).sort(), 4);
 

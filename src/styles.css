@@ -141,7 +141,7 @@
     background: var(--color-red);
     border-color: var(--color-red);
     color: var(--color-white);
-    transition: filter var(--duration-fast) ease;
+    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, filter var(--duration-fast) ease;
 }
 
 .dashboard-button--danger-solid:active {
@@ -149,7 +149,8 @@
 }
 
 .dashboard-button--danger-solid:hover {
-    filter: brightness(1.1);
+    background: var(--color-crimson);
+    border-color: var(--color-crimson);
 }
 
 .dashboard-button--ghost {
@@ -307,6 +308,23 @@
     background: color-mix(in srgb, var(--color-cobalt) 10%, var(--color-white));
 }
 
+.dashboard-select {
+    position: relative;
+}
+
+.dashboard-select::after {
+    border-bottom: 1.6px solid var(--color-slate-ghost);
+    border-right: 1.6px solid var(--color-slate-ghost);
+    content: '';
+    height: 7px;
+    pointer-events: none;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-75%) rotate(45deg);
+    width: 7px;
+}
+
 .input,
 .textarea {
     background: var(--color-white);
@@ -337,6 +355,12 @@
 .dashboard-input--error,
 .input--error,
 .textarea--error {
+    border-color: var(--color-rose-soft);
+}
+
+.dashboard-input--error:hover,
+.input--error:hover,
+.textarea--error:hover {
     border-color: var(--color-rose-soft);
 }
 
