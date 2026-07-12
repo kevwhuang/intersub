@@ -1,3 +1,4 @@
+import RowActions from '@components/dashboard/RowActions';
 import { FONT_MONO, STYLES } from '@lib/constants';
 import { formatDate, getLevelMeta } from '@lib/utils';
 
@@ -13,43 +14,39 @@ export default function EventRow({ entry, isMobile, onDelete, onEdit }: {
 
     if (isMobile) {
         return (
-            <div style={{ borderBottom: STYLES.colorRowBorder, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
+            <div style={{ borderBottom: STYLES.borderRow, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
                 <div>
                     <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{entry.title}</p>
-                    <div style={{ alignItems: 'center', color: STYLES.colorMuted, display: 'flex', flexWrap: 'wrap', fontSize: 12, gap: 8, marginTop: 6 }}>
-                        <span>{formatDate(entry.date)}</span>
+                    <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: '4px 0 0' }}>
+                        {formatDate(entry.date)}
                         {entry.time && (
                             <>
-                                <span aria-hidden="true">&middot;</span>
-                                <span>{entry.time}</span>
+                                {' '}
+                                &middot;
+                                {' '}
+                                {entry.time}
                             </>
                         )}
-                        <span aria-hidden="true">&middot;</span>
-                        <span>{entry.location}</span>
-                    </div>
+                        {' '}
+                        &middot;
+                        {' '}
+                        {entry.location}
+                    </p>
                 </div>
-                {meta && levelTagStyle && <span style={{ ...levelTagStyle, alignSelf: 'flex-start' }}>{meta.label}</span>}
-                <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="dashboard-button dashboard-button--outline" onClick={onEdit} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Edit</button>
-                    <button className="dashboard-button dashboard-button--danger" onClick={onDelete} style={{ ...STYLES.actionBase, flex: 1, padding: '14px 12px' }}>Delete</button>
-                </div>
+                {meta && levelTagStyle && <span style={{ ...levelTagStyle, alignSelf: 'flex-start' }}>{entry.level}</span>}
+                <RowActions isMobile={isMobile} onDelete={onDelete} onEdit={onEdit} />
             </div>
         );
     }
 
     return (
-        <div role="row" style={{ alignItems: 'center', borderBottom: STYLES.colorRowBorder, display: 'grid', gap: 16, gridTemplateColumns: STYLES.gridEvents, padding: '16px 22px' }}>
-            <div role="cell" style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{entry.title}</p>
-            </div>
-            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, whiteSpace: 'nowrap' }}>{formatDate(entry.date)}</span>
-            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, whiteSpace: 'nowrap' }}>{entry.time}</span>
-            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16 }}>{entry.location}</span>
-            <span role="cell">{meta && levelTagStyle && <span style={levelTagStyle}>{meta.label}</span>}</span>
-            <div role="cell" style={{ display: 'flex', gap: 6 }}>
-                <button className="dashboard-button dashboard-button--outline" onClick={onEdit} style={STYLES.actionBase}>Edit</button>
-                <button className="dashboard-button dashboard-button--danger" onClick={onDelete} style={STYLES.actionBase}>Delete</button>
-            </div>
+        <div role="row" style={{ alignItems: 'center', borderBottom: STYLES.borderRow, display: 'grid', gap: 16, gridTemplateColumns: STYLES.gridEvents, padding: '16px 22px' }}>
+            <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.title}</p>
+            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatDate(entry.date)}</span>
+            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.time}</span>
+            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.location}</span>
+            <span role="cell" style={{ overflow: 'hidden' }}>{meta && levelTagStyle && <span style={levelTagStyle}>{entry.level}</span>}</span>
+            <RowActions isMobile={isMobile} onDelete={onDelete} onEdit={onEdit} />
         </div>
     );
 }

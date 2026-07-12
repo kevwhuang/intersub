@@ -73,7 +73,9 @@ export function applyLanguage() {
         element.placeholder = isChinese && PLACEHOLDER_TRANSLATIONS[key] ? PLACEHOLDER_TRANSLATIONS[key] : key;
     });
 
-    if (!document.documentElement.dataset.titleOriginal) document.documentElement.dataset.titleOriginal = document.title;
+    if (!document.documentElement.dataset.titleOriginal) {
+        document.documentElement.dataset.titleOriginal = document.title;
+    }
 
     const originalTitle = document.documentElement.dataset.titleOriginal || document.title;
 

@@ -14,9 +14,9 @@ import hero from '@images/hero.webp';
             class="hero__background-image"
             alt=""
             priority
-            sizes="100vw"
+            sizes="(orientation: portrait) 134vh, 100vw"
             src={hero}
-            widths={[768, 1280, 1920]}
+            widths={[768, 1280, 1920, 2400]}
         />
     </div>
     <div class="hero__overlay absolute" aria-hidden="true" />
@@ -25,7 +25,7 @@ import hero from '@images/hero.webp';
             <span class="block">Your <span class="text-cobalt-bright">authority</span></span>
             <span class="block">in <span class="text-cobalt-bright">English</span></span>
         </h1>
-        <p class="hero__subtitle" data-i18n-html="hero-subtitle" data-scroll>We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.</p>
+        <p class="hero__subtitle" data-i18n="We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs." data-scroll>We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.</p>
     </div>
 </section>
 
@@ -66,7 +66,7 @@ import hero from '@images/hero.webp';
         font-size: clamp(16px, calc(14.67px + 0.42vw), 20px);
         line-height: 1.6;
         margin: 0;
-        max-width: 640px;
+        max-width: 560px;
         text-shadow: 0 1px 24px var(--color-black-50);
         text-wrap: pretty;
     }

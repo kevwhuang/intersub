@@ -3,7 +3,6 @@ import { getStore } from '@netlify/blobs';
 import { IS_DEV } from '@lib/constants';
 import { deleteEntry, readCollection, writeEntry } from '@lib/local';
 import { getTestimonials } from '@lib/store';
-import { slugify } from '@lib/utils';
 import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
@@ -12,6 +11,10 @@ async function loadTestimonials(): Promise<Record<string, unknown>[]> {
     if (IS_DEV) return readCollection('testimonials');
 
     return getTestimonials();
+}
+
+function slugify(text: string): string {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 export const prerender = false;
@@ -31,12 +34,14 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     const testimonials = await loadTestimonials();
 
-    if (!testimonials.find(entry => String(entry.id) === String(id))) return Response.json({ error: 'Testimonial not found' }, { status: 400 });
+    if (!testimonials.find(entry => String(entry.id) === String(id))) {
+        return Response.json({ error: 'Testimonial not found' }, { status: 400 });
+    }
 
     if (IS_DEV) {
         deleteEntry('testimonials', id);
     } else {
-        await getStore({ consistency: 'strong', name: 'testimonials' }).setJSON(String(id), { deleted: true });
+        await getStore({ consistency: 'strong', name: 'testimonials' }).delete(String(id));
     }
 
     return Response.json({ deleted: true });
@@ -79,12 +84,16 @@ export const POST: APIRoute = async ({ request }) => {
 
     let id = body.id ? String(body.id) : null;
 
-    if (id && !testimonials.find(entry => String(entry.id) === id)) return Response.json({ error: 'Testimonial not found' }, { status: 400 });
+    if (id && !testimonials.find(entry => String(entry.id) === id)) {
+        return Response.json({ error: 'Testimonial not found' }, { status: 400 });
+    }
 
     if (!id) {
         id = slugify(`${name}-${role}`) || String(Date.now());
 
-        if (testimonials.find(entry => String(entry.id) === id)) return Response.json({ error: 'A testimonial for this name and role already exists' }, { status: 409 });
+        if (testimonials.find(entry => String(entry.id) === id)) {
+            return Response.json({ error: 'A testimonial for this name and role already exists' }, { status: 409 });
+        }
     }
 
     if (IS_DEV) {

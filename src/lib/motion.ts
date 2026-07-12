@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const SCROLL_DURATION = 0.62;
+const SCROLL_DURATION = 0.6;
 const SCROLL_EASE = 'power3.out';
 const SCROLL_OFFSET = 26;
 
@@ -17,13 +17,11 @@ function initScrollAnimations() {
     }
 
     elements.forEach((element) => {
-        const delay = Number.parseFloat(element.dataset.scrollDelay || '0');
         const stagger = Number.parseFloat(element.dataset.scrollStagger || '0');
 
         const from: gsap.TweenVars = { opacity: 0, y: SCROLL_OFFSET };
 
         const to: gsap.TweenVars = {
-            delay,
             duration: SCROLL_DURATION,
             ease: SCROLL_EASE,
             opacity: 1,

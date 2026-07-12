@@ -6,6 +6,6 @@ test.describe('404 page', () => {
     });
 
     test('displays 404 heading', async ({ page }) => {
-        await expect(page.locator('.not-found__code')).toContainText('404');
+        await expect(page.locator('.error-not-found__code')).toContainText('404');
     });
 });

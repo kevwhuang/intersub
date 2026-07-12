@@ -1,69 +1,61 @@
 import { getCollection } from 'astro:content';
 import { getStore } from '@netlify/blobs';
 
-import { IS_DEV } from '@lib/constants';
+import { COLLECTIONS, IS_DEV } from '@lib/constants';
 
-async function loadCollection(name: 'events' | 'outcomes' | 'testimonials'): Promise<Record<string, unknown>[]> {
-    const entries = await getCollection(name as 'outcomes');
+type CollectionName = (typeof COLLECTIONS)[number];
 
-    const seed = entries.map((entry: { data: Record<string, unknown>; id: string }) => ({
-        id: entry.id,
-        ...entry.data,
-    }));
+export function compareByDateDescending(entryA: Record<string, unknown>, entryB: Record<string, unknown>): number {
+    return String(entryB.date ?? '').localeCompare(String(entryA.date ?? ''));
+}
 
-    if (IS_DEV) return seed;
+export function compareByNumericId(entryA: Record<string, unknown>, entryB: Record<string, unknown>): number {
+    return Number(entryA.id) - Number(entryB.id);
+}
+
+export async function getEvents(): Promise<Record<string, unknown>[]> {
+    const events = await loadCollection('events');
+
+    return events.sort(compareByDateDescending);
+}
+
+export async function getOutcomes(): Promise<Record<string, unknown>[]> {
+    const outcomes = await loadCollection('outcomes');
+
+    return outcomes.sort(compareByNumericId);
+}
+
+export async function getTestimonials(): Promise<Record<string, unknown>[]> {
+    return loadCollection('testimonials');
+}
+
+async function loadCollection(name: CollectionName): Promise<Record<string, unknown>[]> {
+    if (IS_DEV) return loadSeed(name);
 
     try {
         const store = getStore({ consistency: 'strong', name });
 
         const { blobs } = await store.list();
 
-        if (blobs.length > 0) {
-            const overrides = await Promise.all(
-                blobs.map(async (blob) => {
-                    const data = await store.get(blob.key, { type: 'json' });
+        const entries = await Promise.all(
+            blobs.map(async (blob) => {
+                const data = await store.get(blob.key, { type: 'json' });
 
-                    return { id: blob.key, ...data };
-                }),
-            );
+                return data ? [{ id: blob.key, ...data }] : [];
+            }),
+        );
 
-            return merge(seed, overrides);
-        }
+        return entries.flat();
     } catch {
-        return seed;
+        return loadSeed(name);
     }
-
-    return seed;
 }
 
-function merge(seed: Record<string, unknown>[], overrides: Record<string, unknown>[]): Record<string, unknown>[] {
-    const map = new Map<string, Record<string, unknown>>();
+async function loadSeed(name: CollectionName): Promise<Record<string, unknown>[]> {
+    const entries = await getCollection(name as 'outcomes');
 
-    for (const entry of seed) {
-        map.set(String(entry.id), entry);
-    }
-
-    for (const entry of overrides) {
-        if (entry.deleted) {
-            map.delete(String(entry.id));
-        } else {
-            map.set(String(entry.id), entry);
-        }
-    }
-
-    return [...map.values()];
-}
-
-export async function getEvents(): Promise<Record<string, unknown>[]> {
-    const events = await loadCollection('events');
-
-    return events.sort((entryA, entryB) => String(entryB.date ?? '').localeCompare(String(entryA.date ?? '')));
-}
-
-export async function getOutcomes(): Promise<Record<string, unknown>[]> {
-    return loadCollection('outcomes');
-}
-
-export async function getTestimonials(): Promise<Record<string, unknown>[]> {
-    return loadCollection('testimonials');
+    return entries.map((entry: { data: Record<string, unknown>; id: string }) => ({
+        id: entry.id,
+        ...entry.data,
+    }));
 }

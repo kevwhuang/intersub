@@ -3,6 +3,7 @@ export const COBALT = 'var(--color-cobalt)';
 export const COLLECTIONS = ['events', 'outcomes', 'testimonials'] as const;
 export const CONTENT_DIR = 'src/content';
 export const COVER_PATH_PATTERN = /^\/images\/events\/[\w-]+\.(jpe?g|png|webp)$/;
+export const EMAIL_MAX = 200;
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const FONT_HEADING = 'var(--font-heading)';
 export const FONT_MONO = 'var(--font-mono)';
@@ -18,32 +19,33 @@ export const ROUTES = [
     { href: '/events', label: 'Events' },
 ] as const;
 
+export const SIDEBAR_WIDTH = 240;
+
 export const STYLES = {
     actionBase: {
         borderRadius: 8,
         fontSize: 12,
         padding: '7px 12px',
+        width: 66,
     } as React.CSSProperties,
     border: '1px solid var(--color-silver-strong)',
-    borderMuted: '1px solid var(--color-silver-muted)',
     borderRadius: 10,
     borderRadiusLarge: 16,
     borderRadiusSmall: 9,
+    borderRow: '1px solid var(--color-silver-light)',
     colorBorder: 'var(--color-silver)',
     colorBorderHover: 'var(--color-silver-hover)',
     colorError: 'var(--color-red)',
     colorErrorBackground: 'var(--color-rose)',
-    colorErrorInk: 'var(--color-crimson)',
     colorGhost: 'var(--color-slate-ghost)',
     colorInk: 'var(--color-slate)',
     colorMuted: 'var(--color-slate-muted)',
-    colorRowBorder: '1px solid var(--color-silver-light)',
     colorSuccess: 'var(--color-teal)',
     colorSuccessBackground: 'var(--color-mint)',
     colorSurface: 'var(--color-white)',
     colorSurface90: 'var(--color-white-90)',
     colorSurfaceRaised: 'var(--color-snow)',
-    gridEvents: '1fr 120px 120px 120px 130px 114px',
+    gridEvents: '1fr 102px 92px 84px 84px 138px',
     headerBase: {
         alignItems: 'center',
         color: 'var(--color-slate-ghost)',
@@ -82,5 +84,6 @@ export const STYLES = {
 } as const;
 
 export const TIME_PATTERN = /^([01]?\d|2[0-3]):[0-5]\d\s*[-\u2013\u2014]\s*([01]?\d|2[0-3]):[0-5]\d$/;
-export const TIMEZONE = 'Asia/Shanghai';
+export const TOPBAR_HEIGHT = 60;
 export const URL_PATTERN = /^https?:\/\/.+/;
+export const WECHAT_MAX = 50;

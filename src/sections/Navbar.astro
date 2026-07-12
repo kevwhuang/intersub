@@ -67,6 +67,7 @@ import { ROUTES } from '@lib/constants';
     }
 
     .site-header__brand {
+        flex: none;
         gap: 12px;
         transition: opacity var(--duration-fast) ease;
     }
@@ -270,6 +271,7 @@ import { ROUTES } from '@lib/constants';
             display: flex;
         }
     }
+
 </style>
 
 <script>
@@ -359,7 +361,9 @@ import { ROUTES } from '@lib/constants';
             if (!menu?.classList.contains('site-nav__menu--open')) return;
             if (!(event.target instanceof Element)) return;
 
-            if (!event.target.closest('.site-header') || event.clientY >= menu.getBoundingClientRect().bottom) closeMenu();
+            if (!event.target.closest('.site-header') || event.clientY >= menu.getBoundingClientRect().bottom) {
+                closeMenu();
+            }
         }, { signal: controller.signal });
 
         window.matchMedia(MOBILE_QUERY).addEventListener('change', (event) => {

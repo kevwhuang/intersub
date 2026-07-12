@@ -2,6 +2,10 @@
 
 declare module 'eslint-plugin-jsx-a11y';
 
+type PanelKey = 'events' | 'outcomes' | 'testimonials';
+
+type SortDirection = 'asc' | 'desc';
+
 interface AdminEvent {
     content: string;
     cover?: string;
@@ -37,7 +41,6 @@ interface EditFormField<Values> {
     minHeight?: number;
     mono?: boolean;
     options?: readonly string[];
-    placeholder?: string;
     required?: boolean;
     rows?: number;
 }

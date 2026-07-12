@@ -1,8 +1,8 @@
 ---
+import ErrorServer from '@sections/ErrorServer.astro';
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
-import ServerError from '@sections/ServerError.astro';
 
 export const prerender = false;
 ---
@@ -13,7 +13,7 @@ export const prerender = false;
 >
     <Navbar />
     <main class="flex flex-col flex-1">
-        <ServerError />
+        <ErrorServer />
     </main>
     <Footer />
 </Layout>

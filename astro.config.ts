@@ -13,7 +13,7 @@ export default defineConfig({
     integrations: [
         react(),
         robots(),
-        sitemap({ lastmod: new Date() }),
+        sitemap({ filter: page => !page.includes('/admin'), lastmod: new Date() }),
     ],
     site: 'https://intersubstudio.com',
     vite: {

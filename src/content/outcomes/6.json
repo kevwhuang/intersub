@@ -1,10 +1,9 @@
 {
     "points": [
-        "Inclusive virtual standups that surface real blockers",
-        "Weekly updates people actually open and read",
-        "Cross-timezone handoffs stopped dropping context",
-        "Team engagement scores rose in the next quarterly survey"
+        "Translate tech into business language that sticks",
+        "Tailor content for boards, clients, and engineers, each in their own terms",
+        "Tech reviews passed in one round. Client: \"Now we get your edge.\""
     ],
-    "summary": "A team lead across three time zones was losing alignment. Async English was too vague to act on.",
-    "title": "Pharma · remote team leadership"
+    "summary": "Internal technical reviews were logically sound, but clients and executives couldn't follow the details.",
+    "title": "Robotics · structured communication for engineers"
 }

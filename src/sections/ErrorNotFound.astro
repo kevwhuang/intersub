@@ -3,21 +3,21 @@
 ---
 
 <section
-    class="not-found-error"
-    aria-labelledby="not-found-error-title"
+    class="error-not-found"
+    aria-labelledby="error-not-found-title"
 >
-    <div class="shell not-found__inner">
-        <p class="not-found__code" aria-hidden="true">404</p>
-        <h1 id="not-found-error-title" class="not-found__title" data-i18n="This page doesn't exist">This page doesn't exist</h1>
-        <p class="not-found__text" data-i18n="The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.">The link you followed may be outdated, or the page may have been moved. Here are some places to start instead.</p>
-        <div class="not-found__actions flex justify-center">
+    <div class="shell error-not-found__inner" data-scroll>
+        <p class="error-not-found__code" aria-hidden="true">404</p>
+        <h1 id="error-not-found-title" class="error-not-found__title" data-i18n="This page doesn't exist">This page doesn't exist</h1>
+        <p class="error-not-found__text" data-i18n="The link may be outdated or the page may have moved.">The link may be outdated or the page may have moved.</p>
+        <div class="error-not-found__actions flex justify-center">
             <a class="button" href="/"><span data-i18n="Go home">Go home</span></a>
         </div>
     </div>
 </section>
 
 <style>
-    .not-found-error {
+    .error-not-found {
         align-items: center;
         display: flex;
         justify-content: center;
@@ -26,7 +26,7 @@
         padding-top: calc(var(--header-height) + clamp(48px, calc(30.67px + 5.42vw), 100px));
     }
 
-    .not-found__code {
+    .error-not-found__code {
         color: color-mix(in srgb, var(--color-cobalt) 18%, var(--color-white));
         font-family: var(--font-heading);
         font-size: clamp(120px, calc(80px + 12.5vw), 240px);
@@ -37,19 +37,19 @@
         user-select: none;
     }
 
-    .not-found__inner {
+    .error-not-found__inner {
         max-width: 620px;
         text-align: center;
     }
 
-    .not-found__text {
+    .error-not-found__text {
         color: var(--color-slate-muted);
         font-size: 16px;
         line-height: 1.6;
         margin: 0 0 32px;
     }
 
-    .not-found__title {
+    .error-not-found__title {
         font-size: clamp(24px, calc(18.67px + 1.67vw), 40px);
         font-weight: 700;
         letter-spacing: -0.02em;

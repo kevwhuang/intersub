@@ -3,21 +3,21 @@
 ---
 
 <section
-    class="server-error"
-    aria-labelledby="server-error-title"
+    class="error-server"
+    aria-labelledby="error-server-title"
 >
-    <div class="shell server-error__inner">
-        <p class="server-error__code" aria-hidden="true">500</p>
-        <h1 id="server-error-title" class="server-error__title" data-i18n="Something went wrong">Something went wrong</h1>
-        <p class="server-error__text" data-i18n="An unexpected error occurred. Try refreshing the page or returning home.">An unexpected error occurred. Try refreshing the page or returning home.</p>
-        <div class="server-error__actions flex justify-center">
+    <div class="shell error-server__inner" data-scroll>
+        <p class="error-server__code" aria-hidden="true">500</p>
+        <h1 id="error-server-title" class="error-server__title" data-i18n="Something went wrong">Something went wrong</h1>
+        <p class="error-server__text" data-i18n="Try refreshing the page or returning home.">Try refreshing the page or returning home.</p>
+        <div class="error-server__actions flex justify-center">
             <a class="button" href="/"><span data-i18n="Go home">Go home</span></a>
         </div>
     </div>
 </section>
 
 <style>
-    .server-error {
+    .error-server {
         align-items: center;
         display: flex;
         justify-content: center;
@@ -26,7 +26,7 @@
         padding-top: calc(var(--header-height) + clamp(48px, calc(30.67px + 5.42vw), 100px));
     }
 
-    .server-error__code {
+    .error-server__code {
         color: color-mix(in srgb, var(--color-cobalt) 18%, var(--color-white));
         font-family: var(--font-heading);
         font-size: clamp(120px, calc(80px + 12.5vw), 240px);
@@ -37,19 +37,19 @@
         user-select: none;
     }
 
-    .server-error__inner {
+    .error-server__inner {
         max-width: 620px;
         text-align: center;
     }
 
-    .server-error__text {
+    .error-server__text {
         color: var(--color-slate-muted);
         font-size: 16px;
         line-height: 1.6;
         margin: 0 0 32px;
     }
 
-    .server-error__title {
+    .error-server__title {
         font-size: clamp(24px, calc(18.67px + 1.67vw), 40px);
         font-weight: 700;
         letter-spacing: -0.02em;
