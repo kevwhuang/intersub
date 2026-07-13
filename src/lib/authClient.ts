@@ -26,6 +26,7 @@ const EXPIRY_BUFFER = 60_000;
 const IDENTITY_URL = typeof window !== 'undefined'
     ? `${window.location.origin}/.netlify/identity`
     : '';
+
 const IS_LOCAL = import.meta.env.DEV
     && typeof window !== 'undefined'
     && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');

@@ -1,19 +1,21 @@
 ---
+import { Image } from 'astro:assets';
+
 import logoEn from '@images/logo_en.webp';
 import logoZh from '@images/logo_zh.webp';
 import { ROUTES } from '@lib/constants';
 ---
 
 <header class="site-header fixed">
-    <div class="shell site-header__inner flex items-center justify-between">
+    <div class="site-header__inner shell flex items-center justify-between">
         <a
             class="site-header__brand flex items-center no-underline select-none"
             aria-label="InterSub Home"
             data-i18n-aria="InterSub Home"
             href="/"
         >
-            <img class="site-header__wordmark" alt="InterSub" height="24" src={logoEn.src} />
-            <img class="site-header__wordmark" alt="言际阁" height="24" src={logoZh.src} />
+            <Image class="site-header__wordmark" alt="InterSub" densities={[1, 2]} height={24} lang="en" quality="max" src={logoEn} />
+            <Image class="site-header__wordmark" alt="言际阁" densities={[1, 2]} height={24} lang="zh" quality="max" src={logoZh} />
         </a>
         <nav
             class="site-nav flex items-center"
@@ -271,7 +273,6 @@ import { ROUTES } from '@lib/constants';
             display: flex;
         }
     }
-
 </style>
 
 <script>
@@ -343,15 +344,22 @@ import { ROUTES } from '@lib/constants';
 
             if (event.key !== 'Tab') return;
 
-            const links = menu.querySelectorAll<HTMLElement>('a');
+            const header = menu.closest('.site-header');
 
-            const first = links[0];
-            const last = links[links.length - 1];
+            if (!header) return;
 
-            if (event.shiftKey && document.activeElement === first) {
+            const focusables = Array.from(header.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+
+            if (!focusables.length) return;
+
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            const active = document.activeElement;
+
+            if (event.shiftKey && (active === first || !header.contains(active))) {
                 event.preventDefault();
                 last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
+            } else if (!event.shiftKey && (active === last || !header.contains(active))) {
                 event.preventDefault();
                 first.focus();
             }

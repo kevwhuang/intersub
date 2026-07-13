@@ -43,6 +43,34 @@ export default function PanelOutcomes({ editingOutcomeId, isMobile, isSaving, on
         );
     }
 
+    function renderRow(outcome: AdminOutcome) {
+        if (isMobile) {
+            return (
+                <div key={outcome.id} style={{ borderBottom: STYLES.borderRow, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
+                    <div>
+                        <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
+                        <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', paddingTop: 6, textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
+                        <span style={{ color: STYLES.colorGhost, display: 'block', fontFamily: FONT_MONO, fontSize: 12, paddingTop: 6 }}>
+                            {outcome.points.length}
+                            {' '}
+                            {outcome.points.length === 1 ? 'outcome' : 'outcomes'}
+                        </span>
+                    </div>
+                    <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(outcome.id)} onEdit={() => onStartEdit(outcome.id)} />
+                </div>
+            );
+        }
+
+        return (
+            <div key={outcome.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.borderRow, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '16px 22px' }}>
+                <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.title}</p>
+                <p role="cell" style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
+                <span role="cell" style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.points.length}</span>
+                <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(outcome.id)} onEdit={() => onStartEdit(outcome.id)} />
+            </div>
+        );
+    }
+
     return (
         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
             <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
@@ -58,7 +86,7 @@ export default function PanelOutcomes({ editingOutcomeId, isMobile, isSaving, on
                     +&ensp;New outcome
                 </button>
             </div>
-            <div aria-label={isMobile || !outcomes.length ? undefined : 'Outcomes'} role={isMobile || !outcomes.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+            <div aria-label={isMobile || !outcomes.length ? undefined : 'Outcomes'} role={isMobile || !outcomes.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }} tabIndex={0}>
                 {!isMobile && outcomes.length > 0 && (
                     <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '12px 22px' }}>
                         <span role="columnheader" style={STYLES.headerBase}>Title</span>
@@ -68,31 +96,7 @@ export default function PanelOutcomes({ editingOutcomeId, isMobile, isSaving, on
                     </div>
                 )}
                 {outcomes.length > 0
-                    ? outcomes.map(outcome => (
-                            isMobile
-                                ? (
-                                        <div key={outcome.id} style={{ borderBottom: STYLES.borderRow, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
-                                            <div>
-                                                <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{outcome.title}</p>
-                                                <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: '6px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
-                                                <span style={{ color: STYLES.colorGhost, display: 'block', fontFamily: FONT_MONO, fontSize: 12, marginTop: 6 }}>
-                                                    {outcome.points.length}
-                                                    {' '}
-                                                    {outcome.points.length === 1 ? 'outcome' : 'outcomes'}
-                                                </span>
-                                            </div>
-                                            <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(outcome.id)} onEdit={() => onStartEdit(outcome.id)} />
-                                        </div>
-                                    )
-                                : (
-                                        <div key={outcome.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.borderRow, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '16px 22px' }}>
-                                            <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.title}</p>
-                                            <p role="cell" style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.summary}</p>
-                                            <span role="cell" style={{ color: STYLES.colorGhost, fontFamily: FONT_MONO, fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outcome.points.length}</span>
-                                            <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(outcome.id)} onEdit={() => onStartEdit(outcome.id)} />
-                                        </div>
-                                    )
-                        ))
+                    ? outcomes.map(renderRow)
                     : <TableEmpty description="Add an outcome to highlight measurable client results on the site." title="No outcomes yet" />}
             </div>
         </div>

@@ -21,7 +21,7 @@ export default function FormField({ children, errorId, errorMessage, label, labe
                 {required && <span style={{ color: COBALT }}> *</span>}
             </span>
             {children}
-            {errorMessage && <p id={errorId} style={{ color: STYLES.colorError, fontSize: 12, margin: '8px 0 0' }}>{errorMessage}</p>}
+            {errorMessage && <p id={errorId} style={{ color: STYLES.colorError, fontSize: 12, margin: 0, paddingTop: 8 }}>{errorMessage}</p>}
         </label>
     );
 }

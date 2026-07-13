@@ -19,7 +19,7 @@ import { getToday } from '@lib/utils';
 import { useAuth } from '@lib/authClient';
 
 type DashboardAction
-    = | { payload: (state: DashboardState) => Partial<DashboardState>; type: 'FN' }
+    = { payload: (state: DashboardState) => Partial<DashboardState>; type: 'FN' }
         | { payload: Partial<DashboardState>; type: 'SET' };
 
 interface DashboardState {
@@ -114,6 +114,8 @@ function getInitialPanel(): PanelKey {
 function useDashboardState(getToken: () => Promise<string | null>, onSessionExpired: () => void) {
     const initialPanel = getInitialPanel();
 
+    const [isMobile, setIsMobile] = useState(false);
+
     const [state, dispatch] = useReducer(dashboardReducer, {
         activeLevel: 'all',
         activeLocation: 'all',
@@ -142,8 +144,6 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         testimonials: [],
         toast: null,
     } satisfies DashboardState);
-
-    const [isMobile, setIsMobile] = useState(false);
 
     const set = useCallback(
         (payload: Partial<DashboardState>) => dispatch({ payload, type: 'SET' }),
@@ -207,6 +207,10 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         set({ editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} });
     }
 
+    function handleDrawerEscape(event: KeyboardEvent) {
+        if (event.key === 'Escape' && isMobile && state.isDrawerOpen) set({ isDrawerOpen: false });
+    }
+
     async function handleSaveEvent() {
         if (!state.eventForm) return;
 
@@ -229,8 +233,8 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
             return;
         }
 
-        const isNew = state.editingEventId === 'new';
         const body: Record<string, string> = { ...state.eventForm };
+        const isNew = state.editingEventId === 'new';
 
         if (!isNew && state.editingEventId) body.id = state.editingEventId;
 
@@ -278,8 +282,8 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
             return;
         }
 
-        const isNew = state.editingTestimonialId === 'new';
         const body: Record<string, string> = { ...state.testimonialForm };
+        const isNew = state.editingTestimonialId === 'new';
 
         if (!isNew && state.editingTestimonialId) body.id = state.editingTestimonialId;
 
@@ -363,6 +367,11 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         });
     }
 
+    function handleViewportChange(event: MediaQueryListEvent) {
+        setIsMobile(event.matches);
+        set({ isDrawerOpen: !event.matches });
+    }
+
     function showToast(message: string, isError = false) {
         clearTimeout(toastTimer.current);
         set({ isToastError: isError, toast: message });
@@ -402,25 +411,16 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
 
         setIsMobile(mediaQuery.matches);
 
-        function handleChange(event: MediaQueryListEvent) {
-            setIsMobile(event.matches);
-            set({ isDrawerOpen: !event.matches });
-        }
+        mediaQuery.addEventListener('change', handleViewportChange);
 
-        mediaQuery.addEventListener('change', handleChange);
-
-        return () => mediaQuery.removeEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleViewportChange);
     }, [set]);
 
     useEffect(() => {
-        function handleDrawerEscape(event: KeyboardEvent) {
-            if (event.key === 'Escape' && isMobile) set({ isDrawerOpen: false });
-        }
-
         document.addEventListener('keydown', handleDrawerEscape);
 
         return () => document.removeEventListener('keydown', handleDrawerEscape);
-    }, [isMobile, set]);
+    }, [isMobile, set, state.isDrawerOpen]);
 
     useEffect(() => {
         return () => {
@@ -680,7 +680,7 @@ function DashboardInner() {
                         onNewEvent={handleStartNewEvent}
                         onTimingChange={value => set({ activeTiming: value })}
                     />
-                    <div aria-label={isMobile || !filteredEvents.length ? undefined : 'Events'} role={isMobile || !filteredEvents.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+                    <div aria-label={isMobile || !filteredEvents.length ? undefined : 'Events'} role={isMobile || !filteredEvents.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }} tabIndex={0}>
                         {!isMobile && filteredEvents.length > 0 && (
                             <EventTableHeader
                                 onSort={handleToggleSort}

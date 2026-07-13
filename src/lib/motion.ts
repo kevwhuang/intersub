@@ -17,9 +17,8 @@ function initScrollAnimations() {
     }
 
     elements.forEach((element) => {
-        const stagger = Number.parseFloat(element.dataset.scrollStagger || '0');
-
         const from: gsap.TweenVars = { opacity: 0, y: SCROLL_OFFSET };
+        const stagger = Number.parseFloat(element.dataset.scrollStagger || '0');
 
         const to: gsap.TweenVars = {
             duration: SCROLL_DURATION,
@@ -45,9 +44,9 @@ function initScrollAnimations() {
     });
 }
 
+gsap.registerPlugin(ScrollTrigger);
+
 export function initMotion() {
     ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     initScrollAnimations();
 }
-
-gsap.registerPlugin(ScrollTrigger);

@@ -177,15 +177,6 @@
     color: var(--color-slate);
 }
 
-.dashboard-button--muted {
-    color: var(--color-slate-ghost);
-    transition: color var(--duration-fast) ease;
-}
-
-.dashboard-button--muted:hover {
-    color: var(--color-slate);
-}
-
 .dashboard-button--hit {
     position: relative;
 }

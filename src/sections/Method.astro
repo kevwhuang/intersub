@@ -1,41 +1,37 @@
 ---
+import MethodCurve from '@components/MethodCurve.astro';
+
 const METHOD_BLOCKS = [
     {
         detail: '1:1 coaching, team workshops, and focused events. Every engagement starts from your real work.',
         label: 'What we do',
-        statement: 'Training built on the situations you actually face.',
+        statement: 'Customized training based on real scenarios and skill gaps',
         step: '1',
     },
     {
         detail: 'Practice on your real scenarios: actual emails, meeting agendas, deal calls. Activation-based drills, not textbook repetition. No theory. Just results.',
         label: 'How we work',
-        statement: 'Assess. Customize. Activate.',
+        statement: 'Six-step closed-loop from diagnosis to results',
         step: '2',
     },
     {
         detail: 'Those who command authority in Mandarin but lose it in English. Also, social strivers and overseas travelers.',
         label: 'Who we serve',
-        statement: 'Chinese adults and professionals where unclear English costs deals and credibility.',
+        statement: 'For adult plateau learners, focusing on instant response and fluency',
         step: '3',
     },
     {
-        detail: 'Emails that persuade. Calls that close. Practical results, not theoretical progress.',
+        detail: 'Emails that persuade. Calls that close. What you practice today, you use tomorrow.',
         label: 'What changes',
-        statement: 'You stop translating. You start using.',
+        statement: 'Thinking in English, speaking on instinct',
         step: '4',
     },
 ] as const;
 ---
 
 <section class="method" aria-label="Our method" data-i18n-aria="Our method">
-    <div class="shell method__inner">
-        <svg class="method__curve" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 300 1000">
-            <path class="method__curve-path" d="M 30 60 C 30 170, 200 170, 200 280 S 30 390, 30 500 S 200 610, 200 720 S 30 830, 30 960" />
-            <circle class="method__curve-dot" cx="30" cy="60" r="4" />
-            <circle class="method__curve-dot" cx="200" cy="280" r="4" />
-            <circle class="method__curve-dot" cx="30" cy="500" r="4" />
-            <circle class="method__curve-dot" cx="200" cy="720" r="4" />
-        </svg>
+    <div class="method__inner shell">
+        <MethodCurve />
         {METHOD_BLOCKS.map((block, index) => (
             <div class:list={['method__block', { 'method__block--indent': index % 2 === 1 }]} data-scroll>
                 <div class="method__label">
@@ -59,7 +55,7 @@ const METHOD_BLOCKS = [
     }
 
     .method__block {
-        align-items: start;
+        align-items: center;
         display: grid;
         gap: clamp(20px, calc(5.33px + 4.58vw), 64px);
         grid-template-columns: 0.72fr 1.28fr;
@@ -68,27 +64,6 @@ const METHOD_BLOCKS = [
 
     .method__block--indent {
         padding-left: clamp(0px, calc(-60px + 18.75vw), 180px);
-    }
-
-    .method__curve {
-        height: 100%;
-        left: 0;
-        pointer-events: none;
-        position: absolute;
-        top: 0;
-        width: clamp(100px, calc(53.33px + 14.58vw), 240px);
-    }
-
-    .method__curve-dot {
-        fill: color-mix(in srgb, var(--color-cobalt) 40%, var(--color-silver-hover));
-    }
-
-    .method__curve-path {
-        fill: none;
-        opacity: 0.7;
-        stroke: color-mix(in srgb, var(--color-cobalt) 25%, var(--color-silver-hover));
-        stroke-linecap: round;
-        stroke-width: 1.5;
     }
 
     .method__detail {
@@ -150,10 +125,6 @@ const METHOD_BLOCKS = [
 
         .method__block--indent {
             padding-left: 0;
-        }
-
-        .method__curve {
-            display: none;
         }
 
         .method__label {

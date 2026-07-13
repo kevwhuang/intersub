@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 
 import { LEVELS } from '@lib/constants';
 import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
-import { getCoverImage, resolveCover } from '@lib/covers';
+import { getCoverImage, resolveCover } from '@lib/images';
 import { getEvents } from '@lib/store';
 
 const LEVEL_FILTERS = ['all', ...LEVELS] as const;
@@ -82,7 +82,7 @@ const locationFilters = ['all', ...locations];
             {events.map((event) => {
                 const coverImage = getCoverImage(String(event.cover || ''));
                 const initials = getInitials(event.title);
-                const meta = getLevelMeta(event.level);
+                const meta = getLevelMeta(String(event.level || ''));
 
                 return (
                     <a
@@ -101,10 +101,10 @@ const locationFilters = ['all', ...locations];
                                 ? coverImage
                                     ? <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1250]} />
                                     : <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(String(event.cover))} />
-                                : <span class="events__card-initials">{initials}</span>}
+                                : <span class="events__card-initials" aria-hidden="true">{initials}</span>}
                         </div>
                         <div class="events__card-body">
-                            <h2 class="events__card-title" data-i18n={event.title}>{event.title}</h2>
+                            <h2 class="events__card-title">{event.title}</h2>
                             {event.level && (
                                 <div class="events__card-badge mb-[14px]">
                                     <span class={`tag tag--${String(event.level).toLowerCase()}`} data-i18n={String(event.level)}>{event.level}</span>
@@ -212,6 +212,7 @@ const locationFilters = ['all', ...locations];
 
     .events__card-key {
         color: var(--color-slate-ghost);
+        flex-shrink: 0;
         font-size: 12px;
     }
 

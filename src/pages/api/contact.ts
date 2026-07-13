@@ -53,7 +53,7 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
         return Response.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    let body: Record<string, string>;
+    let body: Record<string, unknown>;
 
     try {
         body = await request.json();
@@ -63,21 +63,24 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
 
     if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
 
-    const { email, message, name, wechat } = body;
+    const email = String(body.email ?? '').trim();
+    const message = String(body.message ?? '').trim();
+    const name = String(body.name ?? '').trim();
+    const wechat = String(body.wechat ?? '').trim();
 
-    if (!name?.trim() || name.trim().length > NAME_MAX) {
+    if (!name || name.length > NAME_MAX) {
         return Response.json({ error: `Name is required (max ${NAME_MAX} characters)` }, { status: 400 });
     }
 
-    if (!wechat?.trim() || /\s/.test(wechat.trim()) || wechat.trim().length > WECHAT_MAX) {
+    if (!wechat || /\s/.test(wechat) || wechat.length > WECHAT_MAX) {
         return Response.json({ error: `WeChat is required, no spaces (max ${WECHAT_MAX} characters)` }, { status: 400 });
     }
 
-    if (email?.trim() && (!EMAIL_PATTERN.test(email.trim()) || email.trim().length > EMAIL_MAX)) {
+    if (email && (!EMAIL_PATTERN.test(email) || email.length > EMAIL_MAX)) {
         return Response.json({ error: `Please enter a valid email (max ${EMAIL_MAX} characters)` }, { status: 400 });
     }
 
-    if (!message?.trim() || message.trim().length > MESSAGE_MAX) {
+    if (!message || message.length > MESSAGE_MAX) {
         return Response.json({ error: `Message is required (max ${MESSAGE_MAX} characters)` }, { status: 400 });
     }
 
@@ -108,7 +111,7 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
 
     const emailRow = escaped.email
         ? `<tr>
-                <td style="color: #6e7482; font-size: 16px; padding: 6px 12px 6px 0; vertical-align: top; white-space: nowrap">Email</td>
+                <td style="color: #4a515e; font-size: 16px; padding: 6px 12px 6px 0; vertical-align: top; white-space: nowrap">Email</td>
                 <td style="color: #14161c; font-size: 16px; padding: 6px 0; word-break: break-word"><a href="mailto:${escaped.email}" style="color: #2a52e0; text-decoration: none">${escaped.email}</a></td>
             </tr>`
         : '';

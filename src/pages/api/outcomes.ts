@@ -31,7 +31,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     const outcomes = await loadOutcomes();
 
     if (!outcomes.find(entry => String(entry.id) === String(id))) {
-        return Response.json({ error: 'Outcome not found' }, { status: 400 });
+        return Response.json({ error: 'Outcome not found' }, { status: 404 });
     }
 
     if (IS_DEV) {
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
     const outcomes = await loadOutcomes();
 
     if (id && !outcomes.find(entry => String(entry.id) === id)) {
-        return Response.json({ error: 'Outcome not found' }, { status: 400 });
+        return Response.json({ error: 'Outcome not found' }, { status: 404 });
     }
 
     if (!id) {

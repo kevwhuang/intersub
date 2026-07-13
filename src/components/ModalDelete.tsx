@@ -9,38 +9,42 @@ export default function ModalDelete({ onCancel, onConfirm, title }: {
 }) {
     const dialogRef = useRef<HTMLDivElement>(null);
 
+    function handleKeyDown(event: KeyboardEvent) {
+        const dialog = dialogRef.current;
+
+        if (event.key === 'Escape') {
+            onCancel();
+
+            return;
+        }
+
+        if (event.key !== 'Tab' || !dialog) return;
+
+        const buttons = dialog.querySelectorAll<HTMLButtonElement>('button');
+
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    function handleMouseDown(event: MouseEvent) {
+        const dialog = dialogRef.current;
+
+        if (dialog && event.target instanceof Node && !dialog.contains(event.target)) onCancel();
+    }
+
     useEffect(() => {
         const dialog = dialogRef.current;
         const previousElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
         dialog?.querySelector<HTMLButtonElement>('button')?.focus();
-
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key === 'Escape') {
-                onCancel();
-
-                return;
-            }
-
-            if (event.key !== 'Tab' || !dialog) return;
-
-            const buttons = dialog.querySelectorAll<HTMLButtonElement>('button');
-
-            const first = buttons[0];
-            const last = buttons[buttons.length - 1];
-
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
-        }
-
-        function handleMouseDown(event: MouseEvent) {
-            if (dialog && event.target instanceof Node && !dialog.contains(event.target)) onCancel();
-        }
 
         document.addEventListener('keydown', handleKeyDown);
         document.addEventListener('mousedown', handleMouseDown);

@@ -5,30 +5,6 @@ import { COLLECTIONS, IS_DEV } from '@lib/constants';
 
 type CollectionName = (typeof COLLECTIONS)[number];
 
-export function compareByDateDescending(entryA: Record<string, unknown>, entryB: Record<string, unknown>): number {
-    return String(entryB.date ?? '').localeCompare(String(entryA.date ?? ''));
-}
-
-export function compareByNumericId(entryA: Record<string, unknown>, entryB: Record<string, unknown>): number {
-    return Number(entryA.id) - Number(entryB.id);
-}
-
-export async function getEvents(): Promise<Record<string, unknown>[]> {
-    const events = await loadCollection('events');
-
-    return events.sort(compareByDateDescending);
-}
-
-export async function getOutcomes(): Promise<Record<string, unknown>[]> {
-    const outcomes = await loadCollection('outcomes');
-
-    return outcomes.sort(compareByNumericId);
-}
-
-export async function getTestimonials(): Promise<Record<string, unknown>[]> {
-    return loadCollection('testimonials');
-}
-
 async function loadCollection(name: CollectionName): Promise<Record<string, unknown>[]> {
     if (IS_DEV) return loadSeed(name);
 
@@ -58,4 +34,28 @@ async function loadSeed(name: CollectionName): Promise<Record<string, unknown>[]
         id: entry.id,
         ...entry.data,
     }));
+}
+
+export function compareByDateDescending(entryA: Record<string, unknown>, entryB: Record<string, unknown>): number {
+    return String(entryB.date ?? '').localeCompare(String(entryA.date ?? ''));
+}
+
+export function compareByNumericId(entryA: Record<string, unknown>, entryB: Record<string, unknown>): number {
+    return Number(entryA.id) - Number(entryB.id);
+}
+
+export async function getEvents(): Promise<Record<string, unknown>[]> {
+    const events = await loadCollection('events');
+
+    return events.sort(compareByDateDescending);
+}
+
+export async function getOutcomes(): Promise<Record<string, unknown>[]> {
+    const outcomes = await loadCollection('outcomes');
+
+    return outcomes.sort(compareByNumericId);
+}
+
+export async function getTestimonials(): Promise<Record<string, unknown>[]> {
+    return loadCollection('testimonials');
 }

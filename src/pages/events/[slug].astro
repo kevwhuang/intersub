@@ -5,7 +5,7 @@ import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
 import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
-import { getCoverImage, resolveCover } from '@lib/covers';
+import { getCoverImage, resolveCover } from '@lib/images';
 import { getEvents } from '@lib/store';
 
 interface ContentBlock {
@@ -62,7 +62,7 @@ export const prerender = false;
 ---
 
 <Layout
-    description={`${title}. ${level ? `${level} level. ` : 'Open to all levels. '}Business English event with live practice and coaching on workplace communication.`}
+    description={`${title}: a Business English event with live practice and coaching in real workplace communication. ${level ? `${level} level.` : 'Open to all levels.'}`}
     title={`${title} \u2014 InterSub`}
 >
     <Navbar />
@@ -70,10 +70,10 @@ export const prerender = false;
         <article class="event-detail">
             <div class="shell">
                 <a class="event-detail__back" href="/events">
-                    <span>&larr;</span>
+                    <span aria-hidden="true">&larr;</span>
                     <span data-i18n="All events">All events</span>
                 </a>
-                <h1 class="event-detail__title" data-i18n={title} data-scroll>{title}</h1>
+                <h1 class="event-detail__title" data-scroll>{title}</h1>
                 <dl class="event-detail__meta" data-scroll>
                     <div>
                         <dt class="event-detail__meta-label" data-i18n="Date">Date</dt>
@@ -105,9 +105,9 @@ export const prerender = false;
                         ? <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1250]} />
                         : cover
                             ? <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />
-                            : <span class="event-detail__cover-initials">{initials}</span>}
+                            : <span class="event-detail__cover-initials" aria-hidden="true">{initials}</span>}
                 </div>
-                <div class="prose event-detail__content" data-scroll>
+                <div class="event-detail__content prose" data-scroll>
                     {groupedBlocks.map((group) => {
                         if (group.type === 'h') return <h2>{group.items[0]}</h2>;
                         if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;

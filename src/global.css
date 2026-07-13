@@ -41,7 +41,7 @@
     --color-slate-dim: #4a4e57;
     --color-slate-edge: #2a2d35;
     --color-slate-faint: #545a66;
-    --color-slate-ghost: #6e7482;
+    --color-slate-ghost: #6c7280;
     --color-slate-light: #8a8f9c;
     --color-slate-mid: #1b1e25;
     --color-slate-muted: #4a515e;
@@ -113,10 +113,6 @@ html {
     opacity: 0;
 }
 
-[role="button"] {
-    cursor: pointer;
-}
-
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -124,6 +120,7 @@ html {
         animation-duration: 0.01s !important;
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
+        transition-delay: 0s !important;
         transition-duration: 0.01s !important;
     }
 }

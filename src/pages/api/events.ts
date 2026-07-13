@@ -11,6 +11,7 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function isCalendarDate(date: string): boolean {
     const [year, month, day] = date.split('-').map(Number);
+
     const parsed = new Date(Date.UTC(year, month - 1, day));
 
     return parsed.getUTCDate() === day && parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1;
@@ -40,7 +41,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     const events = await loadEvents();
 
     if (!events.find(entry => String(entry.id) === String(id))) {
-        return Response.json({ error: 'Event not found' }, { status: 400 });
+        return Response.json({ error: 'Event not found' }, { status: 404 });
     }
 
     if (IS_DEV) {
@@ -105,7 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
     const events = await loadEvents();
 
     if (previousId && !events.find(entry => String(entry.id) === previousId)) {
-        return Response.json({ error: 'Event not found' }, { status: 400 });
+        return Response.json({ error: 'Event not found' }, { status: 404 });
     }
 
     if (events.find(entry => String(entry.date) === date && String(entry.id) !== previousId)) {

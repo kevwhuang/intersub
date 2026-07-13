@@ -12,37 +12,57 @@ import { ClientRouter } from 'astro:transitions';
 
 import '@/global.css';
 import '@/styles.css';
+import { translateDescription, translateTitle } from '@lib/i18n';
 
 interface Props {
     description: string;
+    noindex?: boolean;
     title: string;
 }
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
-const { description, title } = Astro.props;
+const cookieLang = Astro.cookies.get('lang')?.value;
+const preferredLang = Astro.request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
+const { description, noindex, title } = Astro.props;
+
+const isChinese = cookieLang === 'zh' || (cookieLang !== 'en' && preferredLang.startsWith('zh'));
+
+const htmlLang = isChinese ? 'zh' : 'en';
+const localizedDescription = translateDescription(description, isChinese);
+const localizedSiteName = translateTitle('InterSub', isChinese);
+const localizedTitle = translateTitle(title, isChinese);
+const ogLocale = isChinese ? 'zh_CN' : 'en_US';
+const ogLocaleAlternate = isChinese ? 'en_US' : 'zh_CN';
+
+Astro.response.headers.set('Content-Language', htmlLang);
+Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={htmlLang}>
     <head>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1" name="viewport" />
-        <title>{title}</title>
-        <meta content={description} name="description" />
+        <title>{localizedTitle}</title>
+        <meta content={title} name="title-en" />
+        <meta content={localizedDescription} name="description" />
         <meta content="Kevin Huang" name="author" />
         <meta content="#ffffff" name="theme-color" />
+        <meta content={noindex ? 'noindex, nofollow' : 'index, follow'} name="robots" />
         <link href={canonicalUrl} rel="canonical" />
         <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
         <link href="/favicon.ico" rel="icon" type="image/x-icon" />
-        <meta content={title} property="og:title" />
-        <meta content={description} property="og:description" />
+        <meta content={localizedTitle} property="og:title" />
+        <meta content={localizedDescription} property="og:description" />
         <meta content={`${Astro.site}og.png`} property="og:image" />
         <meta content={canonicalUrl} property="og:url" />
-        <meta content="InterSub" property="og:site_name" />
+        <meta content={localizedSiteName} property="og:site_name" />
         <meta content="website" property="og:type" />
+        <meta content={ogLocale} property="og:locale" />
+        <meta content={ogLocaleAlternate} property="og:locale:alternate" />
         <meta content="summary_large_image" name="twitter:card" />
-        <meta content={title} name="twitter:title" />
-        <meta content={description} name="twitter:description" />
+        <meta content={localizedTitle} name="twitter:title" />
+        <meta content={localizedDescription} name="twitter:description" />
         <meta content={`${Astro.site}og.png`} name="twitter:image" />
         <script
             is:inline
@@ -53,7 +73,8 @@ const { description, title } = Astro.props;
                     '@type': 'Person',
                     'name': 'Kevin Huang',
                 },
-                'name': 'InterSub',
+                'inLanguage': htmlLang,
+                'name': localizedSiteName,
                 'url': Astro.site,
             })}
             type="application/ld+json"
