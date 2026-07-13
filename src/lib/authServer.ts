@@ -1,7 +1,7 @@
 import { IS_DEV } from '@lib/constants';
 
 const IDENTITY_TIMEOUT = 10_000;
-const IDENTITY_URL = import.meta.env.IDENTITY_URL ?? '';
+const IDENTITY_URL = import.meta.env.IDENTITY_URL;
 
 export async function verifyAuth(request: Request): Promise<boolean> {
     if (IS_DEV) return true;

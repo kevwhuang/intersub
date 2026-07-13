@@ -23,8 +23,26 @@ export default function Sidebar({ activePanel, isDrawerOpen, isMobile, onCloseDr
         ? { background: STYLES.colorSurface, borderRight: STYLES.border, bottom: 0, boxShadow: isDrawerOpen ? STYLES.shadowSidebar : 'none', display: 'flex', flexDirection: 'column', left: 0, overflow: 'auto', position: 'fixed', top: TOPBAR_HEIGHT, transform: isDrawerOpen ? 'translateX(0)' : 'translateX(-110%)', transition: isDrawerOpen ? 'transform var(--duration-fast) ease' : 'transform var(--duration-fast) ease, visibility 0s ease var(--duration-fast)', visibility: isDrawerOpen ? 'visible' : 'hidden', width: SIDEBAR_WIDTH, zIndex: 35 }
         : { alignSelf: 'flex-start', background: STYLES.colorSurface, borderRight: STYLES.border, display: 'flex', flex: 'none', flexDirection: 'column', height: `calc(100vh - ${TOPBAR_HEIGHT}px)`, marginLeft: isDrawerOpen ? 0 : -SIDEBAR_WIDTH, overflow: 'auto', position: 'sticky', top: TOPBAR_HEIGHT, transition: isDrawerOpen ? 'margin-left var(--duration-fast) ease' : 'margin-left var(--duration-fast) ease, visibility 0s ease var(--duration-fast)', visibility: isDrawerOpen ? 'visible' : 'hidden', width: SIDEBAR_WIDTH };
 
+    function handleKeyDown(event: KeyboardEvent) {
+        if (event.key !== 'Tab' || !asideRef.current) return;
+
+        const targets = asideRef.current.querySelectorAll<HTMLElement>('a, button');
+
+        const first = targets[0];
+        const last = targets[targets.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
     function handleSelect(key: PanelKey) {
         onSelectPanel(key);
+
         if (isMobile) onCloseDrawer();
     }
 
@@ -34,23 +52,6 @@ export default function Sidebar({ activePanel, isDrawerOpen, isMobile, onCloseDr
         const previousElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
         requestAnimationFrame(() => requestAnimationFrame(() => asideRef.current?.querySelector<HTMLElement>('a, button')?.focus()));
-
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key !== 'Tab' || !asideRef.current) return;
-
-            const targets = asideRef.current.querySelectorAll<HTMLElement>('a, button');
-
-            const first = targets[0];
-            const last = targets[targets.length - 1];
-
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
-        }
 
         document.addEventListener('keydown', handleKeyDown);
 

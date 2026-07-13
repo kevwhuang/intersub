@@ -17,7 +17,7 @@ export default function EventRow({ entry, isMobile, onDelete, onEdit }: {
             <div style={{ borderBottom: STYLES.borderRow, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
                 <div>
                     <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{entry.title}</p>
-                    <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: '4px 0 0' }}>
+                    <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, paddingTop: 4 }}>
                         {formatDate(entry.date)}
                         {entry.time && (
                             <>

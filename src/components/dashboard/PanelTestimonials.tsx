@@ -48,6 +48,41 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
         );
     }
 
+    function renderRow(testimonial: AdminTestimonial) {
+        if (isMobile) {
+            return (
+                <div key={testimonial.id} style={{ borderBottom: STYLES.borderRow, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
+                    <div>
+                        <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{testimonial.name}</p>
+                        <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, paddingTop: 4 }}>
+                            {testimonial.role}
+                            {' '}
+                            &middot;
+                            {' '}
+                            {testimonial.industry}
+                        </p>
+                        <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', paddingTop: 6, textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {testimonial.quote}
+                        </p>
+                    </div>
+                    <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(testimonial.id)} onEdit={() => onStartEdit(testimonial.id)} />
+                </div>
+            );
+        }
+
+        return (
+            <div key={testimonial.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.borderRow, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '16px 22px' }}>
+                <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testimonial.name}</p>
+                <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testimonial.role}</span>
+                <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testimonial.industry}</span>
+                <p role="cell" style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {testimonial.quote}
+                </p>
+                <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(testimonial.id)} onEdit={() => onStartEdit(testimonial.id)} />
+            </div>
+        );
+    }
+
     return (
         <div style={{ margin: '0 auto', maxWidth: 1280 }}>
             <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
@@ -63,7 +98,7 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
                     +&ensp;New testimonial
                 </button>
             </div>
-            <div aria-label={isMobile || !testimonials.length ? undefined : 'Testimonials'} role={isMobile || !testimonials.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }}>
+            <div aria-label={isMobile || !testimonials.length ? undefined : 'Testimonials'} role={isMobile || !testimonials.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }} tabIndex={0}>
                 {!isMobile && testimonials.length > 0 && (
                     <div role="row" style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, borderBottom: `1px solid ${STYLES.colorBorder}`, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '12px 22px' }}>
                         <TableSortButton field="name" label="Name" onSort={onSort} sortDirection={sortDirection} sortKey={sortKey} />
@@ -74,38 +109,7 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
                     </div>
                 )}
                 {testimonials.length > 0
-                    ? testimonials.map(testimonial => (
-                            isMobile
-                                ? (
-                                        <div key={testimonial.id} style={{ borderBottom: STYLES.borderRow, display: 'flex', flexDirection: 'column', gap: 10, padding: '16px 14px' }}>
-                                            <div>
-                                                <p style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0 }}>{testimonial.name}</p>
-                                                <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: '4px 0 0' }}>
-                                                    {testimonial.role}
-                                                    {' '}
-                                                    &middot;
-                                                    {' '}
-                                                    {testimonial.industry}
-                                                </p>
-                                                <p style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: '6px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                    {testimonial.quote}
-                                                </p>
-                                            </div>
-                                            <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(testimonial.id)} onEdit={() => onStartEdit(testimonial.id)} />
-                                        </div>
-                                    )
-                                : (
-                                        <div key={testimonial.id} role="row" style={{ alignItems: 'center', borderBottom: STYLES.borderRow, display: 'grid', gap: 16, gridTemplateColumns: GRID_TEMPLATE, padding: '16px 22px' }}>
-                                            <p role="cell" style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testimonial.name}</p>
-                                            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testimonial.role}</span>
-                                            <span role="cell" style={{ color: STYLES.colorMuted, fontSize: 16, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testimonial.industry}</span>
-                                            <p role="cell" style={{ color: STYLES.colorMuted, fontSize: 12, lineHeight: 1.4, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                {testimonial.quote}
-                                            </p>
-                                            <RowActions isMobile={isMobile} onDelete={() => onRequestDelete(testimonial.id)} onEdit={() => onStartEdit(testimonial.id)} />
-                                        </div>
-                                    )
-                        ))
+                    ? testimonials.map(renderRow)
                     : <TableEmpty description="Add a testimonial to feature client feedback on the site." title="No testimonials yet" />}
             </div>
         </div>

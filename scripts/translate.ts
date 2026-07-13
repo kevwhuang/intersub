@@ -9,9 +9,6 @@ interface FieldConfig {
 }
 
 const FIELD_CONFIGS: Record<string, FieldConfig[]> = {
-    events: [
-        { isArray: false, name: 'title' },
-    ],
     outcomes: [
         { isArray: true, name: 'points' },
         { isArray: false, name: 'summary' },

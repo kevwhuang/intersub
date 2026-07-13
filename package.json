@@ -1,6 +1,6 @@
 {
     "name": "intersub",
-    "version": "26.7.13",
+    "version": "26.7.14",
     "type": "module",
     "author": "Kevin Huang",
     "scripts": {
@@ -18,7 +18,7 @@
         "@fontsource/ibm-plex-mono": "^5.2.7",
         "@fontsource/space-grotesk": "^5.2.10",
         "@netlify/blobs": "^10.7.9",
-        "@supabase/supabase-js": "^2.110.2",
+        "@supabase/supabase-js": "^2.110.4",
         "@tailwindcss/vite": "^4.3.2",
         "astro": "^6.4.8",
         "astro-robots-txt": "^1.0.0",
@@ -37,7 +37,7 @@
         "eslint-plugin-astro": "^1.7.0",
         "eslint-plugin-jsx-a11y": "^6.10.2",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.63.0",
+        "typescript-eslint": "^8.64.0",
         "vitest": "^4.1.10"
     }
 }

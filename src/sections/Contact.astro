@@ -12,14 +12,14 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
     <div class="contact__ring contact__ring--3" aria-hidden="true" />
     <div class="contact__ring contact__ring--4" aria-hidden="true" />
     <div class="contact__ring contact__ring--5" aria-hidden="true" />
-    <div class="shell contact__inner">
+    <div class="contact__inner shell">
         <div data-scroll>
             <h2 id="contact-title" class="contact__title" data-i18n="Get in touch">Get in touch</h2>
             <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We'll reply with a tailored recommendation.">Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We'll reply with a tailored recommendation.</p>
         </div>
         <div class="contact__success" hidden>
-            <h3 class="contact__success-title" data-i18n="Thank you, message sent.">Thank you, message sent.</h3>
-            <p class="contact__success-text" data-i18n="We've received your note and will be in touch at the email you provided. A copy was routed to intersjt@outlook.com.">We've received your note and will be in touch at the email you provided. A copy was routed to intersjt@outlook.com.</p>
+            <h3 class="contact__success-title" data-i18n="Thank you message sent">Thank you message sent</h3>
+            <p class="contact__success-text" data-i18n="We've received your note and will be in touch at the email you provided.">We've received your note and will be in touch at the email you provided.</p>
             <button class="button button--outline contact__reset" data-i18n="Send another" type="button">Send another</button>
         </div>
         <form class="contact__form flex flex-col gap-5 text-left" data-scroll novalidate>
@@ -96,7 +96,8 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
     .contact__error {
         color: var(--color-red);
         font-size: 12px;
-        margin: 8px 0 0;
+        margin: 0;
+        padding-top: 8px;
     }
 
     .contact__inner {

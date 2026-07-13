@@ -17,7 +17,11 @@ const TIMEZONE = 'Asia/Shanghai';
 export function formatDate(dateString: string): string {
     if (!dateString) return '';
 
-    return parseDate(dateString).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    const date = parseDate(dateString);
+
+    if (Number.isNaN(date.getTime())) return dateString;
+
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function getInitials(title: string): string {

@@ -37,8 +37,8 @@ Sort declaration blocks lexicographically within each tier, pseudos follow their
 ## Properties
 
 - Sort properties lexicographically
-- Vendor prefixes last
-- `px` for all fixed measurements
+- No manual vendor prefixes
+- `px` or `rem` for fixed measurements, one dialect per repo
 
 ## Naming
 
@@ -81,7 +81,6 @@ Sort declaration blocks lexicographically within each tier, pseudos follow their
 ## Tailwind
 
 - Prefer Tailwind over custom CSS
-- Inline styles only for runtime-computed values
 
 Sort classes lexicographically within each tier:
 

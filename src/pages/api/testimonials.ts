@@ -35,7 +35,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     const testimonials = await loadTestimonials();
 
     if (!testimonials.find(entry => String(entry.id) === String(id))) {
-        return Response.json({ error: 'Testimonial not found' }, { status: 400 });
+        return Response.json({ error: 'Testimonial not found' }, { status: 404 });
     }
 
     if (IS_DEV) {
@@ -85,7 +85,7 @@ export const POST: APIRoute = async ({ request }) => {
     let id = body.id ? String(body.id) : null;
 
     if (id && !testimonials.find(entry => String(entry.id) === id)) {
-        return Response.json({ error: 'Testimonial not found' }, { status: 400 });
+        return Response.json({ error: 'Testimonial not found' }, { status: 404 });
     }
 
     if (!id) {
