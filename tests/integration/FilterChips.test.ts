@@ -6,12 +6,12 @@ import FilterChips from '../../src/components/dashboard/FilterChips';
 
 import type { ReactElement, ReactNode } from 'react';
 
-type ChipProps = {
+type FilterChipsProps = Parameters<typeof FilterChips>[0];
+
+interface ChipProps {
     children?: ReactNode;
     onClick?: () => void;
-};
-
-type FilterChipsProps = Parameters<typeof FilterChips>[0];
+}
 
 function buildProps(overrides: Partial<FilterChipsProps> = {}): FilterChipsProps {
     return {
@@ -33,6 +33,7 @@ function collectButtons(node: ReactNode): ReactElement<ChipProps>[] {
     if (!isValidElement(node)) return [];
 
     const element = node as ReactElement<ChipProps>;
+
     const nested = collectButtons(element.props.children);
 
     return element.type === 'button' ? [element, ...nested] : nested;
@@ -98,6 +99,7 @@ describe('FilterChips', () => {
 
     test('wires every chip group and the new event button to its handler', () => {
         const props = buildProps();
+
         const buttons = collectButtons(FilterChips(props));
 
         expect(buttons).toHaveLength(11);

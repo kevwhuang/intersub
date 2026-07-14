@@ -11,7 +11,7 @@ interface FocusTarget {
 
 const FALLBACK_META = {
     background: 'var(--color-silver)',
-    cover: 'var(--color-pearl)',
+    cover: 'var(--color-silver-light)',
     foreground: 'var(--color-slate-muted)',
     ink: 'var(--color-slate-muted)',
 } as const;
@@ -43,19 +43,15 @@ const LEVEL_EXPECTATIONS = {
     },
 } as const;
 
-function buildContainer(targets: FocusTarget[]) {
-    return {
-        contains: (node: unknown) => targets.includes(node as FocusTarget),
-        querySelectorAll: vi.fn(() => targets),
-    };
-}
-
 function buildFocusTarget(): FocusTarget {
     return { focus: vi.fn() };
 }
 
 function runTrapTabKey(shiftKey: boolean, targets: FocusTarget[], activeElement: unknown) {
-    const container = buildContainer(targets);
+    const container = {
+        contains: (node: unknown) => targets.includes(node as FocusTarget),
+        querySelectorAll: vi.fn(() => targets),
+    };
     const event = { preventDefault: vi.fn(), shiftKey };
 
     vi.stubGlobal('document', { activeElement });

@@ -4,13 +4,13 @@ import { join } from 'node:path';
 
 import { deleteEntry, readCollection, writeEntry } from '../../src/lib/local';
 
-vi.mock('node:fs');
-
 const ENTRY_HEAD = { date: '2026-06-15', id: '2026-06-15' } as const;
 const ENTRY_TAIL = { location: 'Shanghai', title: 'Sample Event' } as const;
 const SORTED_JSON = '{\n    "date": "2026-06-15",\n    "location": "Shanghai",\n    "title": "Sample Event"\n}';
 
 const contentRoot = join(process.cwd(), 'src/content');
+
+vi.mock('node:fs');
 
 beforeEach(() => {
     vi.resetAllMocks();

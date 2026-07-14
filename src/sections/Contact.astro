@@ -107,6 +107,10 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         padding-top: 8px;
     }
 
+    .contact__form {
+        scroll-margin-top: 26px;
+    }
+
     .contact__inner {
         max-width: 620px;
         position: relative;
@@ -196,7 +200,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         font-size: clamp(28px, calc(21.33px + 2.08vw), 48px);
         font-weight: 700;
         letter-spacing: -0.02em;
-        margin: 0 0 16px;
+        margin: 0 0 18px;
     }
 
     @media (max-width: 1024px) {
@@ -348,6 +352,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         if (eventTitle && refs.messageInput) {
             refs.messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
             history.replaceState(history.state, '', window.location.pathname + window.location.hash);
+            requestAnimationFrame(() => refs.form.scrollIntoView());
         }
 
         refs.nameInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });

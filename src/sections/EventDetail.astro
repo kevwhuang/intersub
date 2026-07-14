@@ -91,11 +91,9 @@ for (const block of rawBlocks) {
             data-scroll
             style={`background:${meta.cover};color:${meta.ink}`}
         >
-            {coverImage
-                ? <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1250]} />
-                : cover
-                    ? <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />
-                    : <span class="event-detail__cover-initials" aria-hidden="true">{initials}</span>}
+            {coverImage && <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1250]} />}
+            {!coverImage && cover && <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />}
+            {!coverImage && !cover && <span class="event-detail__cover-initials" aria-hidden="true">{initials}</span>}
         </div>
         <div
             class="event-detail__content prose"
@@ -104,6 +102,7 @@ for (const block of rawBlocks) {
             {groupedBlocks.map((group) => {
                 if (group.type === 'h') return <h2>{group.items[0]}</h2>;
                 if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
+
                 return <p>{group.items[0]}</p>;
             })}
         </div>
@@ -152,6 +151,7 @@ for (const block of rawBlocks) {
         margin-bottom: 28px;
         text-decoration: none;
         transition:
+            box-shadow var(--duration-fast) ease,
             color var(--duration-fast) ease,
             opacity var(--duration-fast) ease;
     }

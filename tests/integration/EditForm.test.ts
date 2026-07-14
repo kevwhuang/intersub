@@ -6,8 +6,6 @@ import EditForm from '../../src/components/dashboard/EditForm';
 import eventJune from '../../src/content/events/2026-06-15.json';
 import { LEVELS } from '../../src/lib/constants';
 
-type EventFormData = typeof eventJune;
-
 const EMPTY_FORM: EventFormData = { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' };
 
 const EVENT_FIELD_ROWS: EditFormField<EventFormData>[][] = [
@@ -21,7 +19,7 @@ const EVENT_FIELD_ROWS: EditFormField<EventFormData>[][] = [
         { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
     ],
     [{ errorMessage: 'Cover must be a URL or internal image path.', key: 'cover', kind: 'input', label: 'Cover' }],
-    [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, mono: true, required: true, rows: 9 }],
+    [{ errorMessage: 'Content is required.', isMonospace: true, key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
 ];
 
 function renderForm(overrides: Record<string, unknown> = {}) {
@@ -116,8 +114,9 @@ describe('EditForm', () => {
         const desktop = renderForm();
         const mobile = renderForm({ isMobile: true });
 
-        expect(desktop).toContain('grid-template-columns:1fr 1fr');
-        expect(mobile).not.toContain('grid-template-columns:1fr 1fr');
+        expect(desktop).toContain('grid-template-columns:minmax(0, 1fr) minmax(0, 1fr)');
+        expect(mobile).not.toContain('grid-template-columns:minmax(0, 1fr) minmax(0, 1fr)');
+        expect(mobile).toContain('grid-template-columns:minmax(0, 1fr)');
     });
 
     test('disables all actions and shows a spinner while saving', () => {

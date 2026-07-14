@@ -6,26 +6,15 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 import Outcomes from '../../src/sections/Outcomes.astro';
 
-interface Outcome {
-    id: string;
-    points: string[];
-    summary: string;
-    title: string;
-}
-
 const OUTCOMES_DIR = fileURLToPath(new URL('../../src/content/outcomes', import.meta.url));
 
 const outcomes = readdirSync(OUTCOMES_DIR)
     .filter(file => file.endsWith('.json'))
     .map(file => ({
         id: file.replace('.json', ''),
-        ...JSON.parse(readFileSync(join(OUTCOMES_DIR, file), 'utf-8')) as Omit<Outcome, 'id'>,
+        ...JSON.parse(readFileSync(join(OUTCOMES_DIR, file), 'utf-8')) as Omit<AdminOutcome, 'id'>,
     }))
     .sort((entryA, entryB) => Number(entryA.id) - Number(entryB.id));
-
-function escapeAttribute(value: string): string {
-    return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-}
 
 function escapeText(value: string): string {
     return value
@@ -45,11 +34,11 @@ describe('Outcomes', () => {
         html = await container.renderToString(Outcomes);
     });
 
-    test('renders one block per outcome sorted by numeric id', () => {
+    test('renders one card per outcome sorted by numeric id', () => {
         const titles = [...html.matchAll(/<h3 class="outcomes__card-title" data-i18n="([^"]*)"/g)].map(match => match[1]);
 
         expect(html.split('class="outcomes__card"').length - 1).toBe(outcomes.length);
-        expect(titles).toEqual(outcomes.map(outcome => escapeAttribute(outcome.title)));
+        expect(titles).toEqual(outcomes.map(outcome => outcome.title.replace(/&/g, '&amp;').replace(/"/g, '&quot;')));
     });
 
     test('renders each title and summary', () => {

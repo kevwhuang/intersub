@@ -13,10 +13,6 @@ async function loadTestimonials(): Promise<AdminTestimonial[]> {
     return getTestimonials();
 }
 
-function slugify(text: string): string {
-    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ request }) => {
@@ -34,7 +30,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     const testimonials = await loadTestimonials();
 
-    if (!testimonials.find(entry => String(entry.id) === String(id))) {
+    if (!testimonials.some(entry => String(entry.id) === String(id))) {
         return Response.json({ error: 'Testimonial not found' }, { status: 404 });
     }
 
@@ -78,22 +74,24 @@ export const POST: APIRoute = async ({ request }) => {
     if (!quote) return Response.json({ error: 'Quote is required' }, { status: 400 });
     if (!role) return Response.json({ error: 'Role is required' }, { status: 400 });
 
-    const data: Record<string, string> = { industry, name, quote, role };
+    const data = { industry, name, quote, role };
 
     const testimonials = await loadTestimonials();
 
     let id = body.id ? String(body.id) : null;
 
-    if (id && !testimonials.find(entry => String(entry.id) === id)) {
+    if (id && !testimonials.some(entry => String(entry.id) === id)) {
         return Response.json({ error: 'Testimonial not found' }, { status: 404 });
     }
 
-    if (!id) {
-        id = slugify(`${name}-${role}`) || String(Date.now());
+    if (testimonials.some(entry => entry.name === name && entry.role === role && String(entry.id) !== id)) {
+        return Response.json({ error: 'A testimonial for this name and role already exists' }, { status: 409 });
+    }
 
-        if (testimonials.find(entry => String(entry.id) === id)) {
-            return Response.json({ error: 'A testimonial for this name and role already exists' }, { status: 409 });
-        }
+    if (!id) {
+        const slug = `${name}-${role}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+        id = slug && !testimonials.some(entry => String(entry.id) === slug) ? slug : `${slug || 'testimonial'}-${Date.now()}`;
     }
 
     if (IS_DEV) {

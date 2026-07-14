@@ -40,7 +40,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     const events = await loadEvents();
 
-    if (!events.find(entry => String(entry.id) === String(id))) {
+    if (!events.some(entry => String(entry.id) === String(id))) {
         return Response.json({ error: 'Event not found' }, { status: 404 });
     }
 
@@ -92,7 +92,7 @@ export const POST: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Date must be a valid date in YYYY-MM-DD format' }, { status: 400 });
     }
 
-    if (level && !LEVELS.some(entry => entry === level)) {
+    if (level && !LEVELS.some(allowedLevel => allowedLevel === level)) {
         return Response.json({ error: 'Level is invalid' }, { status: 400 });
     }
 
@@ -105,11 +105,11 @@ export const POST: APIRoute = async ({ request }) => {
 
     const events = await loadEvents();
 
-    if (previousId && !events.find(entry => String(entry.id) === previousId)) {
+    if (previousId && !events.some(entry => String(entry.id) === previousId)) {
         return Response.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    if (events.find(entry => String(entry.date) === date && String(entry.id) !== previousId)) {
+    if (events.some(entry => String(entry.date) === date && String(entry.id) !== previousId)) {
         return Response.json({ error: 'An event already exists on this date' }, { status: 409 });
     }
 

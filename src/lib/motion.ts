@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 const SCROLL_DURATION = 0.6;
 const SCROLL_EASE = 'power3.out';
 const SCROLL_OFFSET = 26;
+const SCROLL_START = 'top 85%';
 
 function initScrollAnimations() {
     const elements = document.querySelectorAll<HTMLElement>('[data-scroll]');
@@ -25,7 +26,7 @@ function initScrollAnimations() {
             ease: SCROLL_EASE,
             opacity: 1,
             scrollTrigger: {
-                start: 'top 85%',
+                start: SCROLL_START,
                 trigger: element,
             },
             y: 0,

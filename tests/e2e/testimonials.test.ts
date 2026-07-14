@@ -5,8 +5,6 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 import type { Page } from '@playwright/test';
 
-type Translations = Record<string, string>;
-
 interface Testimonial {
     industry: string;
     name: string;
@@ -19,6 +17,7 @@ const ACTIVE_SLIDE = /testimonials__slide--active/;
 const CONTENT_DIR = fileURLToPath(new URL('../../src/content', import.meta.url));
 const POLL = { timeout: 10_000 };
 const ROTATE_INTERVAL = 5_200;
+
 const ROTATE_TICK = ROTATE_INTERVAL + 100;
 
 const testimonialTranslations = loadTranslations('testimonials.json');
@@ -41,9 +40,9 @@ function loadTranslations(file: string) {
 }
 
 function waitForPageInit(page: Page) {
-    const inlineOpacity = () => page.locator('.testimonials__eyebrow').evaluate(element => element.style.opacity);
+    const getInlineOpacity = () => page.locator('.testimonials__eyebrow').evaluate(element => element.style.opacity);
 
-    return expect.poll(inlineOpacity, POLL).toBe('1');
+    return expect.poll(getInlineOpacity, POLL).toBe('1');
 }
 
 test.beforeEach(async ({ page }) => {

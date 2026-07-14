@@ -6,10 +6,6 @@ import RowActions from '../../src/components/dashboard/RowActions';
 
 import type { ReactElement } from 'react';
 
-type ButtonProps = {
-    onClick: () => void;
-};
-
 function renderActions(isMobile: boolean) {
     return renderToStaticMarkup(createElement(RowActions, { isMobile, onDelete: vi.fn(), onEdit: vi.fn() }));
 }
@@ -28,7 +24,7 @@ describe('RowActions', () => {
         const html = renderActions(false);
 
         expect(html).toContain('role="cell"');
-        expect(html).toContain('padding:7px 12px');
+        expect(html).toContain('padding:8px 12px');
         expect(html).toContain('width:66px');
     });
 
@@ -43,7 +39,9 @@ describe('RowActions', () => {
     test('wires the buttons to their handlers', () => {
         const handleDelete = vi.fn();
         const handleEdit = vi.fn();
+
         const tree = RowActions({ isMobile: false, onDelete: handleDelete, onEdit: handleEdit });
+
         const [editButton, deleteButton] = tree.props.children as ReactElement<ButtonProps>[];
 
         editButton.props.onClick();

@@ -270,3 +270,73 @@ test.describe('synthetic filters', () => {
         expect(mutations).toEqual([]);
     });
 });
+
+test.describe('stale fetch race', () => {
+    test('discards a stale refetch that resolves after a newer one', async ({ page }) => {
+        const freshEvent = { ...shanghaiEvent, title: 'Fresh Refetch Title' };
+        const staleEvent = { ...shanghaiEvent, title: 'Stale Refetch Title' };
+
+        let eventsCalls = 0;
+        let releaseStale = () => {};
+        let staleServed = false;
+
+        const staleGate = new Promise<void>((resolve) => {
+            releaseStale = resolve;
+        });
+
+        await page.route('**/api/**', async (route) => {
+            const request = route.request();
+
+            const method = request.method();
+            const { pathname } = new URL(request.url());
+
+            if (method !== 'GET') {
+                await route.fulfill({ json: {} });
+
+                return;
+            }
+
+            if (pathname !== '/api/events') {
+                await route.fulfill({ json: [] });
+
+                return;
+            }
+
+            eventsCalls += 1;
+
+            if (eventsCalls === 1) {
+                await route.fulfill({ json: SYNTHETIC_EVENTS });
+
+                return;
+            }
+
+            if (eventsCalls === 2) {
+                await staleGate;
+                await route.fulfill({ json: [staleEvent] });
+                staleServed = true;
+
+                return;
+            }
+
+            await route.fulfill({ json: [freshEvent] });
+        });
+
+        await page.goto('/admin');
+        await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
+
+        await openFirstEventEdit(page);
+        await page.getByRole('button', { name: 'Save changes' }).click();
+        await expect(page.getByRole('heading', { name: 'Edit event' })).toBeHidden();
+
+        await openFirstEventEdit(page);
+        await page.getByRole('button', { name: 'Save changes' }).click();
+        await expect(getEventsTable(page).getByText('Fresh Refetch Title')).toBeVisible();
+
+        releaseStale();
+
+        await expect.poll(() => staleServed).toBe(true);
+        await expect(getEventsTable(page).getByText('Fresh Refetch Title')).toBeVisible();
+        await expect(getEventsTable(page).getByText('Stale Refetch Title')).toHaveCount(0);
+        expect(eventsCalls).toBe(3);
+    });
+});

@@ -63,10 +63,6 @@ function loadCollection(collection: string) {
         });
 }
 
-function slugify(text: string) {
-    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
 describe('events', () => {
     test('every entry has required non-empty string fields', () => {
         expect(events.length).toBeGreaterThan(0);
@@ -103,6 +99,7 @@ describe('events', () => {
             if (!('cover' in data)) continue;
 
             const cover = String(data.cover);
+
             const isExternal = URL_PATTERN.test(cover);
             const isInternal = COVER_PATH_PATTERN.test(cover);
 
@@ -158,7 +155,7 @@ describe('testimonials', () => {
     });
 
     test('id equals the slugified name and role', () => {
-        for (const { data, stem } of testimonials) expect(stem).toBe(slugify(`${data.name}-${data.role}`));
+        for (const { data, stem } of testimonials) expect(stem).toBe(`${data.name}-${data.role}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
     });
 });
 

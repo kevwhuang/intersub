@@ -21,13 +21,6 @@ interface IdentityReply {
     status: number;
 }
 
-interface StoredSession {
-    accessToken: string;
-    email: string;
-    expiresAt: number;
-    refreshToken: string;
-}
-
 const ADMIN_EMAIL = 'admin@intersub.com';
 const AUTH_KEY = 'intersub_auth';
 const CONFIRMED_EMAIL = 'confirmed@intersub.com';
@@ -200,7 +193,9 @@ test.describe('login screen', () => {
 
     test('shows an invalid-credentials error when the password grant returns 401', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') return { json: { error: 'invalid_grant' }, status: 401 };
+            if (call.method === 'POST' && call.path === '/token') {
+                return { json: { error: 'invalid_grant' }, status: 401 };
+            }
 
             return null;
         });
@@ -222,7 +217,9 @@ test.describe('login screen', () => {
 
     test('shows a generic error when the password grant returns 500', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
+            if (call.method === 'POST' && call.path === '/token') {
+                return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
+            }
 
             return null;
         });
@@ -316,7 +313,9 @@ test.describe('stored sessions', () => {
 
     test('clears the session and shows login when the refresh grant returns 401', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') return { json: { error: 'invalid_grant' }, status: 401 };
+            if (call.method === 'POST' && call.path === '/token') {
+                return { json: { error: 'invalid_grant' }, status: 401 };
+            }
 
             return null;
         });
@@ -416,7 +415,9 @@ test.describe('refresh races', () => {
 test.describe('confirmation flow', () => {
     test('a valid confirmation token verifies a signup and signs in without the set-password screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: CONFIRMED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: CONFIRMED_EMAIL }, status: 200 };
+            }
 
             return null;
         });
@@ -442,7 +443,9 @@ test.describe('confirmation flow', () => {
 
     test('an invalid confirmation token shows an error on the login screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 404, msg: 'Confirmation token not found' }, status: 404 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { code: 404, msg: 'Confirmation token not found' }, status: 404 };
+            }
 
             return null;
         });
@@ -460,7 +463,9 @@ test.describe('confirmation flow', () => {
 test.describe('recovery flow', () => {
     test('a valid recovery token opens the set-password screen and strips the hash', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            }
 
             return null;
         });
@@ -485,7 +490,9 @@ test.describe('recovery flow', () => {
 
     test('rejects passwords shorter than 8 or longer than 20 characters without identity traffic', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            }
 
             return null;
         });
@@ -513,7 +520,9 @@ test.describe('recovery flow', () => {
 
     test('a valid password completes recovery through the identity user endpoint', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            }
 
             if (call.method === 'PUT' && call.path === '/user') return { json: {}, status: 200 };
 
@@ -534,9 +543,13 @@ test.describe('recovery flow', () => {
 
     test('a failed password update shows an error and keeps the set-password screen open', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            }
 
-            if (call.method === 'PUT' && call.path === '/user') return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
+            if (call.method === 'PUT' && call.path === '/user') {
+                return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
+            }
 
             return null;
         });
@@ -553,9 +566,13 @@ test.describe('recovery flow', () => {
 
     test('an expired session during set-password returns to login with a session error', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') return { json: { error: 'invalid_grant' }, status: 401 };
+            if (call.method === 'POST' && call.path === '/token') {
+                return { json: { error: 'invalid_grant' }, status: 401 };
+            }
 
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            }
 
             return null;
         });
@@ -583,7 +600,9 @@ test.describe('recovery flow', () => {
 
     test('an invalid recovery token shows an error on the login screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 404, msg: 'Recovery token not found' }, status: 404 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { code: 404, msg: 'Recovery token not found' }, status: 404 };
+            }
 
             return null;
         });
@@ -599,7 +618,9 @@ test.describe('recovery flow', () => {
 
     test('cancel returns to the dashboard when recovery already signed in', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
+            }
 
             return null;
         });
@@ -645,7 +666,9 @@ test.describe('invite flow', () => {
         const mock = await mockIdentity(page, (call) => {
             if (call.method !== 'POST' || call.path !== '/verify') return null;
 
-            if (call.body.includes('"password"')) return { json: { ...TOKEN_RESPONSE, email: INVITED_EMAIL }, status: 200 };
+            if (call.body.includes('"password"')) {
+                return { json: { ...TOKEN_RESPONSE, email: INVITED_EMAIL }, status: 200 };
+            }
 
             return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
         });
@@ -672,7 +695,9 @@ test.describe('invite flow', () => {
 
     test('an invite probe returning 404 shows an invalid-link error instead of the set-password screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 404, msg: 'Invite token not found' }, status: 404 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { code: 404, msg: 'Invite token not found' }, status: 404 };
+            }
 
             return null;
         });
@@ -689,7 +714,9 @@ test.describe('invite flow', () => {
 
     test('cancel with a pending invite returns to the sign-in screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
+            if (call.method === 'POST' && call.path === '/verify') {
+                return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
+            }
 
             return null;
         });
@@ -710,6 +737,7 @@ test.describe('invite flow', () => {
 test.describe('session expiry during save', () => {
     test('a failed refresh at save time bounces to login, clears the session, and sends no mutation', async ({ baseURL, page }) => {
         const writes = await blockApiWrites(page);
+
         const mock = await mockIdentity(page, (call) => {
             if (call.method !== 'POST' || call.path !== '/token') return null;
 
@@ -738,6 +766,7 @@ test.describe('session expiry during save', () => {
 
     test('a refresh outage at save time keeps the session and the edit form without a bounce', async ({ baseURL, page }) => {
         const writes = await blockApiWrites(page);
+
         const mock = await mockIdentity(page, (call) => {
             if (call.method !== 'POST' || call.path !== '/token') return null;
 
@@ -770,6 +799,7 @@ test.describe('session expiry during save', () => {
 
     test('an expired session while offline shows the offline toast instead of a login bounce', async ({ baseURL, context, page }) => {
         const writes = await blockApiWrites(page);
+
         const mock = await mockIdentity(page, (call) => {
             if (call.method !== 'POST' || call.path !== '/token') return null;
 

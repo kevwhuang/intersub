@@ -75,6 +75,7 @@ describe('compareByNumericId', () => {
 describe('getEvents', () => {
     test('returns every event sorted date-descending with filename-stem ids', async () => {
         const events = await getEvents();
+
         const expectedIds = listIds('events')
             .map(id => ({ date: readDate('events', id), id }))
             .sort((entryA, entryB) => entryB.date.localeCompare(entryA.date))
@@ -115,6 +116,7 @@ describe('loadCollection', () => {
             'first-client': { name: 'Ada', role: 'CTO' },
             'second-client': { name: 'Lin', role: 'Director' },
         });
+
         const production = await importProductionStore(() => store);
 
         await expect(production.getTestimonials()).resolves.toEqual([
@@ -131,6 +133,7 @@ describe('loadCollection', () => {
             broken: null,
             intact: { name: 'Kept' },
         });
+
         const production = await importProductionStore(() => store);
 
         await expect(production.getTestimonials()).resolves.toEqual([{ id: 'intact', name: 'Kept' }]);
@@ -142,7 +145,9 @@ describe('loadCollection', () => {
             latest: { date: '2026-06-15' },
             middle: { date: '2026-03-01' },
         });
+
         const production = await importProductionStore(() => store);
+
         const blobEvents = await production.getEvents();
 
         expect(blobEvents.map(event => event.id)).toEqual(['latest', 'middle', 'earliest']);
@@ -152,6 +157,7 @@ describe('loadCollection', () => {
         const production = await importProductionStore(() => {
             throw new Error('blobs unavailable');
         });
+
         const seeded = await production.getOutcomes();
         const expectedIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
 
@@ -160,6 +166,7 @@ describe('loadCollection', () => {
 
     test('opens the store with strong consistency and the collection name', async () => {
         const getStoreStub = vi.fn(() => buildStore({}));
+
         const production = await importProductionStore(getStoreStub);
 
         await production.getOutcomes();

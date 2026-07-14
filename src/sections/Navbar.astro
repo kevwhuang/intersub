@@ -7,7 +7,7 @@ import { ROUTES } from '@lib/constants';
 ---
 
 <header class="site-header fixed">
-    <div class="site-header__inner shell flex items-center justify-between">
+    <div class="shell site-header__inner flex items-center justify-between">
         <a
             class="site-header__brand flex items-center no-underline select-none"
             aria-label="InterSub Home"
@@ -75,9 +75,12 @@ import { ROUTES } from '@lib/constants';
     }
 
     .site-header__brand {
+        border-radius: 4px;
         flex: none;
         gap: 12px;
-        transition: opacity var(--duration-fast) ease;
+        transition:
+            box-shadow var(--duration-fast) ease,
+            opacity var(--duration-fast) ease;
     }
 
     .site-header__brand:active {
@@ -85,7 +88,6 @@ import { ROUTES } from '@lib/constants';
     }
 
     .site-header__brand:focus-visible {
-        border-radius: 4px;
         box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
@@ -113,7 +115,6 @@ import { ROUTES } from '@lib/constants';
         border: 1px solid var(--color-silver-muted);
         border-radius: 7px;
         color: var(--color-slate-faint);
-        font-family: var(--font-sans);
         font-size: 12px;
         font-weight: 600;
         min-width: 44px;
@@ -122,6 +123,7 @@ import { ROUTES } from '@lib/constants';
         text-align: center;
         transition:
             border-color var(--duration-fast) ease,
+            box-shadow var(--duration-fast) ease,
             color var(--duration-fast) ease,
             opacity var(--duration-fast) ease;
     }
@@ -156,6 +158,7 @@ import { ROUTES } from '@lib/constants';
         text-decoration: none;
         transition:
             background var(--duration-fast) ease,
+            box-shadow var(--duration-fast) ease,
             color var(--duration-fast) ease,
             opacity var(--duration-fast) ease;
     }
@@ -198,6 +201,7 @@ import { ROUTES } from '@lib/constants';
         position: relative;
         transition:
             border-color var(--duration-fast) ease,
+            box-shadow var(--duration-fast) ease,
             color var(--duration-fast) ease,
             opacity var(--duration-fast) ease;
         width: 36px;
@@ -320,7 +324,7 @@ import { ROUTES } from '@lib/constants';
         if (shouldRestoreFocus) toggle?.focus();
     }
 
-    function handleKeydown(event: KeyboardEvent) {
+    function handleKeyDown(event: KeyboardEvent) {
         if (!menu?.classList.contains('site-nav__menu--open')) return;
 
         if (event.key === 'Escape') {
@@ -347,7 +351,7 @@ import { ROUTES } from '@lib/constants';
         requestAnimationFrame(() => requestAnimationFrame(() => menu?.classList.remove('site-nav__menu--instant')));
     }
 
-    function handleMousedown(event: MouseEvent) {
+    function handleMouseDown(event: MouseEvent) {
         if (!menu?.classList.contains('site-nav__menu--open')) return;
         if (!(event.target instanceof Element)) return;
 
@@ -388,8 +392,8 @@ import { ROUTES } from '@lib/constants';
             }
         }, { signal: controller.signal });
 
-        document.addEventListener('keydown', handleKeydown, { signal: controller.signal });
-        document.addEventListener('mousedown', handleMousedown, { signal: controller.signal });
+        document.addEventListener('keydown', handleKeyDown, { signal: controller.signal });
+        document.addEventListener('mousedown', handleMouseDown, { signal: controller.signal });
         window.matchMedia(MOBILE_QUERY).addEventListener('change', handleMediaChange, { signal: controller.signal });
         document.querySelector('[data-lang-toggle]')?.addEventListener('click', toggleLanguage, { signal: controller.signal });
     }

@@ -20,12 +20,15 @@ interface BlobStoreStub {
 const EVENT_ID = '2026-06-15';
 const SENTINEL_ID = '1990-01-01';
 const SENTINEL_RENAMED_ID = '1990-01-02';
+
 const SENTINEL_IDS = [SENTINEL_ID, SENTINEL_RENAMED_ID];
 const SENTINEL_TIME = '09:00\u201311:00';
 const UPDATED_TITLE = 'Updated Sentinel Event';
 
 const eventsDir = join(process.cwd(), 'src/content/events');
+
 const eventPath = join(eventsDir, `${EVENT_ID}.json`);
+
 const existingEvent: Record<string, unknown> = JSON.parse(readFileSync(eventPath, 'utf-8'));
 
 const sentinelEvent = {
@@ -50,14 +53,6 @@ function buildBlobStore(payloads: Record<string, Record<string, unknown>>): Blob
             payloads[key] = value;
         }),
     };
-}
-
-function committedFiles(): string[] {
-    return execSync('git ls-files src/content/events', { encoding: 'utf-8' })
-        .split('\n')
-        .map(line => basename(line))
-        .filter(file => file.endsWith('.json'))
-        .sort();
 }
 
 function createContext(method: string, body?: string): RouteContext {
@@ -94,6 +89,14 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     return import('../../src/pages/api/events');
 }
 
+function listCommittedFiles(): string[] {
+    return execSync('git ls-files src/content/events', { encoding: 'utf-8' })
+        .split('\n')
+        .map(line => basename(line))
+        .filter(file => file.endsWith('.json'))
+        .sort();
+}
+
 async function postJson(body: Record<string, unknown>): Promise<Response> {
     return POST(createContext('POST', JSON.stringify(body)));
 }
@@ -115,7 +118,7 @@ function snapshotTree(): Record<string, string> {
 }
 
 beforeAll(() => {
-    committedNames = committedFiles();
+    committedNames = listCommittedFiles();
 
     for (const file of readdirSync(eventsDir)) {
         if (file.endsWith('.json') && !committedNames.includes(file)) rmSync(join(eventsDir, file), { force: true });
@@ -134,6 +137,7 @@ afterAll(() => {
 describe('DELETE', () => {
     test('rejects a malformed body', async () => {
         const response = await DELETE(createContext('DELETE', '{'));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -142,6 +146,7 @@ describe('DELETE', () => {
 
     test('rejects a missing id', async () => {
         const response = await DELETE(createContext('DELETE', JSON.stringify({})));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -150,6 +155,7 @@ describe('DELETE', () => {
 
     test('rejects an unknown id', async () => {
         const response = await DELETE(createContext('DELETE', JSON.stringify({ id: '1999-01-01' })));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
@@ -160,6 +166,7 @@ describe('DELETE', () => {
 describe('GET', () => {
     test('returns all events sorted by date descending', async () => {
         const response = await GET(createContext('GET'));
+
         const events: Record<string, unknown>[] = await response.json();
 
         const dates = events.map(entry => String(entry.date));
@@ -187,6 +194,7 @@ describe('POST', () => {
         const before = readFileSync(eventPath, 'utf-8');
 
         const response = await postJson({ ...existingEvent, id: EVENT_ID });
+
         const result: Record<string, unknown> = await response.json();
 
         const after = readFileSync(eventPath, 'utf-8');
@@ -198,6 +206,7 @@ describe('POST', () => {
 
     test('normalizes the time range to an en dash', async () => {
         const response = await postJson({ ...existingEvent, id: EVENT_ID });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
@@ -206,6 +215,7 @@ describe('POST', () => {
 
     test('rejects a malformed body', async () => {
         const response = await POST(createContext('POST', '{'));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -214,6 +224,7 @@ describe('POST', () => {
 
     test('rejects a blank content', async () => {
         const response = await postJson({ ...existingEvent, content: '' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -222,6 +233,7 @@ describe('POST', () => {
 
     test('rejects an invalid cover path', async () => {
         const response = await postJson({ ...existingEvent, cover: 'images/bad.bmp' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -230,6 +242,7 @@ describe('POST', () => {
 
     test('rejects a blank date', async () => {
         const response = await postJson({ ...existingEvent, date: '' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -238,6 +251,7 @@ describe('POST', () => {
 
     test('rejects an invalid date format', async () => {
         const response = await postJson({ ...existingEvent, date: '15-06-2026' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -246,6 +260,7 @@ describe('POST', () => {
 
     test('rejects an impossible calendar date', async () => {
         const response = await postJson({ ...existingEvent, date: '2026-02-30' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -254,6 +269,7 @@ describe('POST', () => {
 
     test('rejects an unknown level', async () => {
         const response = await postJson({ ...existingEvent, level: 'Expert' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -262,6 +278,7 @@ describe('POST', () => {
 
     test('rejects a blank location', async () => {
         const response = await postJson({ ...existingEvent, location: '' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -270,6 +287,7 @@ describe('POST', () => {
 
     test('rejects an invalid time format', async () => {
         const response = await postJson({ ...existingEvent, time: '7pm to 9pm' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -278,6 +296,7 @@ describe('POST', () => {
 
     test('rejects a blank title', async () => {
         const response = await postJson({ ...existingEvent, title: '' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -286,6 +305,7 @@ describe('POST', () => {
 
     test('rejects an unknown previous id', async () => {
         const response = await postJson({ ...existingEvent, id: '1999-01-01' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
@@ -294,6 +314,7 @@ describe('POST', () => {
 
     test('rejects a duplicate date without an id', async () => {
         const response = await postJson({ ...existingEvent });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(409);
@@ -305,9 +326,11 @@ describe('lifecycle', () => {
     test('creates a sentinel event with a normalized time', async () => {
         try {
             const response = await postJson(sentinelEvent);
+
             const result: Record<string, unknown> = await response.json();
 
             const bytes = readFileSync(join(eventsDir, `${SENTINEL_ID}.json`), 'utf-8');
+
             const expected = JSON.stringify({
                 content: sentinelEvent.content,
                 date: sentinelEvent.date,
@@ -317,6 +340,7 @@ describe('lifecycle', () => {
             }, null, 4);
 
             const listResponse = await GET(createContext('GET'));
+
             const events: Record<string, unknown>[] = await listResponse.json();
 
             expect(response.status).toBe(200);
@@ -334,6 +358,7 @@ describe('lifecycle', () => {
             await createSentinel();
 
             const response = await postJson({ ...sentinelEvent, date: SENTINEL_RENAMED_ID, id: SENTINEL_ID });
+
             const result: Record<string, unknown> = await response.json();
 
             expect(response.status).toBe(200);
@@ -350,6 +375,7 @@ describe('lifecycle', () => {
             await createSentinel();
 
             const response = await postJson({ ...sentinelEvent, id: SENTINEL_ID, title: UPDATED_TITLE });
+
             const result: Record<string, unknown> = await response.json();
 
             const stored: Record<string, unknown> = JSON.parse(readFileSync(join(eventsDir, `${SENTINEL_ID}.json`), 'utf-8'));
@@ -368,9 +394,11 @@ describe('lifecycle', () => {
             await createSentinel();
 
             const response = await deleteJson(SENTINEL_ID);
+
             const result: Record<string, unknown> = await response.json();
 
             const repeat = await deleteJson(SENTINEL_ID);
+
             const repeatResult: Record<string, unknown> = await repeat.json();
 
             expect(response.status).toBe(200);
@@ -403,10 +431,13 @@ describe('production blobs', () => {
 
     test('creates an event through the blob store without touching the content tree', async () => {
         const store = buildBlobStore({});
+
         const getStoreStub = vi.fn(() => store);
+
         const routes = await importProductionRoutes(getStoreStub);
 
         const response = await routes.POST(createContext('POST', JSON.stringify(sentinelEvent)));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
@@ -424,9 +455,11 @@ describe('production blobs', () => {
 
     test('renames an event by writing the new key and deleting the previous one', async () => {
         const store = buildBlobStore({ [SENTINEL_ID]: { ...sentinelEvent } });
+
         const routes = await importProductionRoutes(() => store);
 
         const response = await routes.POST(createContext('POST', JSON.stringify({ ...sentinelEvent, date: SENTINEL_RENAMED_ID, id: SENTINEL_ID })));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
@@ -444,10 +477,13 @@ describe('production blobs', () => {
 
     test('deletes an event from the blob store by its string id', async () => {
         const store = buildBlobStore({ [SENTINEL_ID]: { ...sentinelEvent } });
+
         const getStoreStub = vi.fn(() => store);
+
         const routes = await importProductionRoutes(getStoreStub);
 
         const response = await routes.DELETE(createContext('DELETE', JSON.stringify({ id: SENTINEL_ID })));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
@@ -462,9 +498,11 @@ describe('production blobs', () => {
             latest: { date: '1990-06-15' },
             middle: { date: '1990-03-01' },
         });
+
         const routes = await importProductionRoutes(() => store);
 
         const response = await routes.GET(createContext('GET'));
+
         const events: Record<string, unknown>[] = await response.json();
 
         expect(response.status).toBe(200);

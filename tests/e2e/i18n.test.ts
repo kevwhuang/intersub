@@ -5,8 +5,6 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 import type { Page } from '@playwright/test';
 
-type Translations = Record<string, string>;
-
 interface EventEntry {
     date: string;
     title: string;
@@ -166,6 +164,7 @@ test.describe('i18n', () => {
 test.describe('language negotiation', () => {
     test('serves chinese pre-hydration when accept-language prefers chinese', async ({ request }) => {
         const response = await request.get('/', { headers: { 'accept-language': ZH_ACCEPT_LANGUAGE } });
+
         const served = await response.text();
 
         expect(served).toContain('<html lang="zh">');
@@ -173,6 +172,7 @@ test.describe('language negotiation', () => {
 
     test('keeps english pre-hydration when the lang cookie is en despite a chinese accept-language', async ({ request }) => {
         const response = await request.get('/', { headers: { 'accept-language': ZH_ACCEPT_LANGUAGE, 'cookie': 'lang=en' } });
+
         const served = await response.text();
 
         expect(served).toContain('<html lang="en">');

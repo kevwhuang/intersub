@@ -3,8 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
-type Translations = Record<string, string>;
-
 interface EventEntry {
     date: string;
     title: string;
@@ -15,6 +13,7 @@ const CUSTOM_TITLE = 'Custom Session & Salon';
 const SLUG = '2026-06-15';
 
 const event = JSON.parse(readFileSync(join(CONTENT_DIR, 'events', `${SLUG}.json`), 'utf-8')) as EventEntry;
+
 const registerHref = `/?event=${encodeURIComponent(event.title)}#contact`;
 const uiTranslations = JSON.parse(readFileSync(join(CONTENT_DIR, 'translations', 'ui.json'), 'utf-8')) as Translations;
 

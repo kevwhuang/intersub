@@ -30,7 +30,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     const outcomes = await loadOutcomes();
 
-    if (!outcomes.find(entry => String(entry.id) === String(id))) {
+    if (!outcomes.some(entry => String(entry.id) === String(id))) {
         return Response.json({ error: 'Outcome not found' }, { status: 404 });
     }
 
@@ -64,7 +64,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
 
-    const points = Array.isArray(body.points) ? body.points.map(entry => String(entry).trim()).filter(Boolean) : [];
+    const points = Array.isArray(body.points) ? body.points.map(point => String(point).trim()).filter(Boolean) : [];
     const summary = String(body.summary || '').trim();
     const title = String(body.title || '').trim();
 
@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const outcomes = await loadOutcomes();
 
-    if (id && !outcomes.find(entry => String(entry.id) === id)) {
+    if (id && !outcomes.some(entry => String(entry.id) === id)) {
         return Response.json({ error: 'Outcome not found' }, { status: 404 });
     }
 
@@ -90,7 +90,7 @@ export const POST: APIRoute = async ({ request }) => {
         id = String(maxId + 1);
     }
 
-    const data: Record<string, string | string[]> = { points, summary, title };
+    const data = { points, summary, title };
 
     if (IS_DEV) {
         writeEntry('outcomes', id, data);

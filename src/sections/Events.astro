@@ -32,7 +32,10 @@ const locationFilters = ['all', ...locations];
     data-i18n-aria="Event catalog"
 >
     <div class="shell">
-        <div class="events__toolbar">
+        <div
+            class="events__toolbar"
+            data-scroll
+        >
             <div class="events__filters flex flex-col gap-5">
                 <div>
                     <p class="events__filter-label" data-i18n="When">When</p>
@@ -111,11 +114,9 @@ const locationFilters = ['all', ...locations];
                             class="events__card-cover"
                             style={`background:${meta.cover};color:${meta.ink}`}
                         >
-                            {event.cover
-                                ? coverImage
-                                    ? <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1250]} />
-                                    : <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(event.cover)} />
-                                : <span class="events__card-initials" aria-hidden="true">{initials}</span>}
+                            {event.cover && coverImage && <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1250]} />}
+                            {event.cover && !coverImage && <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(event.cover)} />}
+                            {!event.cover && <span class="events__card-initials" aria-hidden="true">{initials}</span>}
                         </div>
                         <div class="events__card-body">
                             <h2 class="events__card-title">{event.title}</h2>

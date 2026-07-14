@@ -4,7 +4,15 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import ModalDelete from '../../src/components/ModalDelete';
 
+const deletingHtml = renderToStaticMarkup(createElement(ModalDelete, {
+    isDeleting: true,
+    onCancel: vi.fn(),
+    onConfirm: vi.fn(),
+    title: 'From Expansion to Integration',
+}));
+
 const html = renderToStaticMarkup(createElement(ModalDelete, {
+    isDeleting: false,
     onCancel: vi.fn(),
     onConfirm: vi.fn(),
     title: 'From Expansion to Integration',
@@ -39,5 +47,12 @@ describe('ModalDelete', () => {
         expect(html).toContain('position:fixed');
         expect(html).toContain('z-index:60');
         expect(html).toContain('background:var(--color-slate-45)');
+    });
+
+    test('disables both actions and swaps the delete label for a spinner while deleting', () => {
+        expect(deletingHtml.split('disabled=""').length - 1).toBe(2);
+        expect(deletingHtml).toContain('dashboard__spin');
+        expect(deletingHtml).not.toContain('>Delete</button>');
+        expect(html).not.toContain('disabled=""');
     });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { COBALT, FOCUSABLE_SELECTOR, FONT_HEADING, SIDEBAR_WIDTH, STYLES, TOPBAR_HEIGHT, Z_INDEX } from '@lib/constants';
+import { COBALT, FOCUSABLE_SELECTOR, FONT_HEADING, STYLES, TOPBAR_HEIGHT, Z_INDEX } from '@lib/constants';
 import { trapTabKey } from '@lib/utils';
 
 const NAV_ITEMS = [
@@ -8,6 +8,8 @@ const NAV_ITEMS = [
     { key: 'outcomes', label: 'Outcomes' },
     { key: 'testimonials', label: 'Testimonials' },
 ] as const;
+
+const SIDEBAR_WIDTH = 240;
 
 export default function Sidebar({ activePanel, isDrawerOpen, isMobile, onCloseDrawer, onLogout, onSelectPanel, userEmail }: {
     activePanel: PanelKey;
@@ -21,7 +23,7 @@ export default function Sidebar({ activePanel, isDrawerOpen, isMobile, onCloseDr
     const asideRef = useRef<HTMLElement>(null);
 
     const sidebarStyle: React.CSSProperties = isMobile
-        ? { background: STYLES.colorSurface, borderRight: STYLES.border, bottom: 0, boxShadow: isDrawerOpen ? STYLES.shadowSidebar : 'none', display: 'flex', flexDirection: 'column', left: 0, overflow: 'auto', position: 'fixed', top: TOPBAR_HEIGHT, transform: isDrawerOpen ? 'translateX(0)' : 'translateX(-110%)', transition: isDrawerOpen ? 'transform var(--duration-fast) ease' : 'transform var(--duration-fast) ease, visibility 0s ease var(--duration-fast)', visibility: isDrawerOpen ? 'visible' : 'hidden', width: SIDEBAR_WIDTH, zIndex: Z_INDEX.sidebar }
+        ? { background: STYLES.colorSurface, borderRight: STYLES.border, bottom: 0, boxShadow: isDrawerOpen ? STYLES.shadowSidebar : 'none', display: 'flex', flexDirection: 'column', left: 0, overflow: 'auto', position: 'fixed', top: TOPBAR_HEIGHT, transform: isDrawerOpen ? 'translateX(0)' : 'translateX(-110%)', transition: isDrawerOpen ? 'box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease' : 'box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease, visibility 0s ease var(--duration-fast)', visibility: isDrawerOpen ? 'visible' : 'hidden', width: SIDEBAR_WIDTH, zIndex: Z_INDEX.sidebar }
         : { alignSelf: 'flex-start', background: STYLES.colorSurface, borderRight: STYLES.border, display: 'flex', flex: 'none', flexDirection: 'column', height: `calc(100vh - ${TOPBAR_HEIGHT}px)`, marginLeft: isDrawerOpen ? 0 : -SIDEBAR_WIDTH, overflow: 'auto', position: 'sticky', top: TOPBAR_HEIGHT, transition: isDrawerOpen ? 'margin-left var(--duration-fast) ease' : 'margin-left var(--duration-fast) ease, visibility 0s ease var(--duration-fast)', visibility: isDrawerOpen ? 'visible' : 'hidden', width: SIDEBAR_WIDTH };
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -69,24 +71,27 @@ export default function Sidebar({ activePanel, isDrawerOpen, isMobile, onCloseDr
             </a>
             <nav
                 aria-label="Admin navigation"
-                style={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 4, padding: '14px 12px' }}
+                style={{ flex: 1, padding: '14px 12px' }}
             >
-                {NAV_ITEMS.map((item) => {
-                    const isActive = item.key === activePanel;
+                <ul style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {NAV_ITEMS.map((item) => {
+                        const isActive = item.key === activePanel;
 
-                    return (
-                        <button
-                            className={isActive ? 'dashboard-nav dashboard-nav--active' : 'dashboard-nav'}
-                            aria-current={isActive ? 'page' : undefined}
-                            key={item.key}
-                            onClick={() => handleSelect(item.key)}
-                            style={{ alignItems: 'center', border: 'none', borderRadius: STYLES.borderRadiusSmall, display: 'flex', fontSize: 16, fontWeight: 600, overflow: 'hidden', padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', width: '100%' }}
-                            type="button"
-                        >
-                            {item.label}
-                        </button>
-                    );
-                })}
+                        return (
+                            <li key={item.key}>
+                                <button
+                                    className={isActive ? 'dashboard-nav dashboard-nav--active' : 'dashboard-nav'}
+                                    aria-current={isActive ? 'page' : undefined}
+                                    onClick={() => handleSelect(item.key)}
+                                    style={{ alignItems: 'center', border: 'none', borderRadius: STYLES.borderRadiusSmall, display: 'flex', fontSize: 16, fontWeight: 600, overflow: 'hidden', padding: '10px 12px', textAlign: 'left', whiteSpace: 'nowrap', width: '100%' }}
+                                    type="button"
+                                >
+                                    {item.label}
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
             </nav>
             <div style={{ borderTop: STYLES.borderDivider, padding: '14px 12px' }}>
                 <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 12px' }}>

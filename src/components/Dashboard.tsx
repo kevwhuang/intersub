@@ -97,6 +97,10 @@ function mergeFormFields<FormValues>(form: FormValues, errors: Record<string, bo
     };
 }
 
+function scrollToTop() {
+    window.scrollTo(0, 0);
+}
+
 function useDashboardState(getToken: () => Promise<string | null>, isAuthenticated: boolean, onSessionExpired: () => void) {
     const initialPanel = getInitialPanel();
     const [isMobile, setIsMobile] = useState(false);
@@ -193,14 +197,17 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
     function handleCancelEventEdit() {
         set({ editingEventId: null, eventForm: null, eventFormErrors: {} });
+        scrollToTop();
     }
 
     function handleCancelOutcomeEdit() {
         set({ editingOutcomeId: null, outcomeForm: null, outcomeFormErrors: {} });
+        scrollToTop();
     }
 
     function handleCancelTestimonialEdit() {
         set({ editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} });
+        scrollToTop();
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -209,6 +216,8 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
     async function handleSaveEvent() {
         if (!state.eventForm) return;
+
+        scrollToTop();
 
         const errors: Record<string, boolean> = {};
 
@@ -240,6 +249,8 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
     async function handleSaveOutcome() {
         if (!state.outcomeForm) return;
 
+        scrollToTop();
+
         const errors: Record<string, boolean> = {};
 
         if (!state.outcomeForm.title.trim()) errors.title = true;
@@ -265,6 +276,8 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
     async function handleSaveTestimonial() {
         if (!state.testimonialForm) return;
 
+        scrollToTop();
+
         const errors: Record<string, boolean> = {};
 
         if (!state.testimonialForm.industry.trim()) errors.industry = true;
@@ -289,41 +302,48 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
     function handleStartEventEdit(id: string) {
         const entry = state.events.find(entry => entry.id === id);
 
-        if (entry) {
-            set({
-                editingEventId: id,
-                eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, time: entry.time || '', title: entry.title },
-                eventFormErrors: {},
-            });
-        }
+        if (!entry) return;
+
+        set({
+            editingEventId: id,
+            eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, time: entry.time || '', title: entry.title },
+            eventFormErrors: {},
+        });
+
+        scrollToTop();
     }
 
     function handleStartNewEvent() {
         set({ editingEventId: 'new', eventForm: { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' }, eventFormErrors: {} });
+        scrollToTop();
     }
 
     function handleStartNewOutcome() {
         set({ editingOutcomeId: 'new', outcomeForm: { points: '', summary: '', title: '' }, outcomeFormErrors: {} });
+        scrollToTop();
     }
 
     function handleStartNewTestimonial() {
         set({ editingTestimonialId: 'new', testimonialForm: { industry: '', name: '', quote: '', role: '' }, testimonialFormErrors: {} });
+        scrollToTop();
     }
 
     function handleStartOutcomeEdit(id: string) {
         const outcome = state.outcomes.find(outcome => outcome.id === id);
 
-        if (outcome) {
-            set({ editingOutcomeId: id, outcomeForm: { points: outcome.points.join('\n'), summary: outcome.summary, title: outcome.title }, outcomeFormErrors: {} });
-        }
+        if (!outcome) return;
+
+        set({ editingOutcomeId: id, outcomeForm: { points: outcome.points.join('\n'), summary: outcome.summary, title: outcome.title }, outcomeFormErrors: {} });
+        scrollToTop();
     }
 
     function handleStartTestimonialEdit(id: string) {
         const testimonial = state.testimonials.find(testimonial => testimonial.id === id);
 
-        if (testimonial) {
-            set({ editingTestimonialId: id, testimonialForm: { industry: testimonial.industry, name: testimonial.name, quote: testimonial.quote, role: testimonial.role }, testimonialFormErrors: {} });
-        }
+        if (!testimonial) return;
+
+        set({ editingTestimonialId: id, testimonialForm: { industry: testimonial.industry, name: testimonial.name, quote: testimonial.quote, role: testimonial.role }, testimonialFormErrors: {} });
+        scrollToTop();
     }
 
     function handleToggleDrawer() {
@@ -699,7 +719,7 @@ function DashboardInner() {
                 <div
                     aria-live="polite"
                     role="status"
-                    style={{ alignItems: 'center', animation: 'dashboard__toast-in var(--duration-slow) ease both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, justifyContent: 'center', left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px 24px', position: 'fixed', textAlign: 'center', transform: 'translateX(-50%)', zIndex: Z_INDEX.toast }}
+                    style={{ alignItems: 'center', animation: 'dashboard__toast-in var(--duration-slow) ease-out both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, justifyContent: 'center', left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px 24px', position: 'fixed', textAlign: 'center', transform: 'translateX(-50%)', zIndex: Z_INDEX.toast }}
                 >
                     {state.toast}
                 </div>

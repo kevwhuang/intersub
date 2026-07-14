@@ -12,7 +12,7 @@ test.describe('index page', () => {
         await page.goto('/');
     });
 
-    test('loads with correct title', async ({ page }) => {
+    test('loads with the intersub title', async ({ page }) => {
         await expect(page).toHaveTitle('InterSub');
     });
 

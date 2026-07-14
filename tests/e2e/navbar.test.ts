@@ -69,7 +69,7 @@ test.describe('navbar navigation', () => {
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');
         await expect(page.locator('[data-lang-toggle]')).toHaveText('EN');
 
-        await page.locator('[data-nav-menu]').getByRole('link', { name: '\u6D3B\u52A8' }).click();
+        await page.locator('[data-nav-menu]').getByRole('link', { name: '活动' }).click();
 
         await expect(page).toHaveURL('/events');
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');

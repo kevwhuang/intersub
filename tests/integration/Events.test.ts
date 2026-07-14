@@ -8,17 +8,6 @@ import Events from '../../src/sections/Events.astro';
 import { LEVELS } from '../../src/lib/constants';
 import { formatDate } from '../../src/lib/utils';
 
-interface EventEntry {
-    content: string;
-    cover?: string;
-    date: string;
-    id: string;
-    level?: string;
-    location: string;
-    time: string;
-    title: string;
-}
-
 const EVENTS_DIR = fileURLToPath(new URL('../../src/content/events', import.meta.url));
 const FILTER_GROUPS = ['When', 'Where', 'Who'] as const;
 const LEVEL_FILTERS = ['all', ...LEVELS] as const;
@@ -29,7 +18,7 @@ const events = readdirSync(EVENTS_DIR)
     .filter(file => file.endsWith('.json'))
     .map(file => ({
         id: file.replace('.json', ''),
-        ...JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')) as Omit<EventEntry, 'id'>,
+        ...JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')) as Omit<AdminEvent, 'id'>,
     }))
     .sort((entryA, entryB) => entryB.date.localeCompare(entryA.date));
 

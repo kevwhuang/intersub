@@ -22,62 +22,69 @@ export default function FilterChips({ activeLevel, activeLocation, activeTiming,
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <div>
                     <p style={GROUP_LABEL_STYLE}>When</p>
-                    <div style={GROUP_STYLE}>
+                    <ul style={GROUP_STYLE}>
                         {TIMINGS.map(timing => (
-                            <button
-                                className={getChipClassName(activeTiming === timing.value)}
-                                key={timing.value}
-                                onClick={() => onTimingChange(timing.value)}
-                                type="button"
-                            >
-                                {timing.label}
-                            </button>
+                            <li key={timing.value}>
+                                <button
+                                    className={getChipClassName(activeTiming === timing.value)}
+                                    onClick={() => onTimingChange(timing.value)}
+                                    type="button"
+                                >
+                                    {timing.label}
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
                 <div>
                     <p style={GROUP_LABEL_STYLE}>Where</p>
-                    <div style={GROUP_STYLE}>
-                        <button
-                            className={getChipClassName(activeLocation === 'all')}
-                            onClick={() => onLocationChange('all')}
-                            type="button"
-                        >
-                            Everywhere
-                        </button>
-                        {locations.map(location => (
+                    <ul style={GROUP_STYLE}>
+                        <li>
                             <button
-                                className={getChipClassName(activeLocation === location)}
-                                key={location}
-                                onClick={() => onLocationChange(location)}
+                                className={getChipClassName(activeLocation === 'all')}
+                                onClick={() => onLocationChange('all')}
                                 type="button"
                             >
-                                {location}
+                                Everywhere
                             </button>
+                        </li>
+                        {locations.map(location => (
+                            <li key={location}>
+                                <button
+                                    className={getChipClassName(activeLocation === location)}
+                                    onClick={() => onLocationChange(location)}
+                                    type="button"
+                                >
+                                    {location}
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
                 <div>
                     <p style={GROUP_LABEL_STYLE}>Who</p>
-                    <div style={GROUP_STYLE}>
-                        <button
-                            className={getChipClassName(activeLevel === 'all')}
-                            onClick={() => onLevelChange('all')}
-                            type="button"
-                        >
-                            Everyone
-                        </button>
-                        {LEVELS.map(level => (
+                    <ul style={GROUP_STYLE}>
+                        <li>
                             <button
-                                className={getChipClassName(activeLevel === level)}
-                                key={level}
-                                onClick={() => onLevelChange(level)}
+                                className={getChipClassName(activeLevel === 'all')}
+                                onClick={() => onLevelChange('all')}
                                 type="button"
                             >
-                                {level}
+                                Everyone
                             </button>
+                        </li>
+                        {LEVELS.map(level => (
+                            <li key={level}>
+                                <button
+                                    className={getChipClassName(activeLevel === level)}
+                                    onClick={() => onLevelChange(level)}
+                                    type="button"
+                                >
+                                    {level}
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             </div>
             <button

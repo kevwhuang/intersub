@@ -16,7 +16,7 @@ export default function TableSortButton({ field, label, onSort, sortDirection, s
     function getSortArrow() {
         if (sortKey !== field) return '';
 
-        return sortDirection === 'asc' ? ' ↑' : ' ↓';
+        return sortDirection === 'asc' ? ' \u2191' : ' \u2193';
     }
 
     return (

@@ -103,6 +103,7 @@ describe('Layout', () => {
 
     test('embeds valid json-ld describing the site', () => {
         const match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+
         const jsonLd = match ? JSON.parse(match[1]) : null;
 
         expect(jsonLd).not.toBeNull();

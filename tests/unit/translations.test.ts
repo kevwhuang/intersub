@@ -14,6 +14,7 @@ const UNICODE_ESCAPE_PATTERN = /\\u([\da-f]{4})/gi;
 const contentRoot = join(process.cwd(), 'src/content');
 const pagesRoot = join(process.cwd(), 'src/pages');
 const srcRoot = join(process.cwd(), 'src');
+
 const translationsRoot = join(contentRoot, 'translations');
 
 const events = loadCollection('events');
@@ -28,11 +29,13 @@ const translationFiles = readdirSync(translationsRoot).filter(file => file.endsW
 const uiTranslations = loadTranslation('ui.json');
 
 const sourceFiles = walk(srcRoot);
+
 const astroFiles = sourceFiles.filter(file => file.endsWith('.astro'));
 const sourceText = normalize(sourceFiles.map(file => readFileSync(file, 'utf-8')).join('\n'));
 
 const adminPage = join(pagesRoot, 'admin.astro');
 const pageFiles = astroFiles.filter(file => file.startsWith(pagesRoot));
+
 const publicPages = pageFiles.filter(file => file !== adminPage);
 
 const pageDescriptions = extractLayoutProps(publicPages, DESCRIPTION_PROP_PATTERN);
@@ -167,7 +170,7 @@ describe('titles', () => {
         }
     });
 
-    test('every key matches a public page or event detail title', () => {
+    test('every key matches a public page title', () => {
         const expected = new Set(pageTitles);
 
         for (const key of Object.keys(titleTranslations)) {
