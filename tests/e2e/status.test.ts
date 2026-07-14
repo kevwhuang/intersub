@@ -1,17 +1,17 @@
 import { expect, test } from '@playwright/test';
-import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { readdirSync } from 'node:fs';
 
-const CONTENT_DIR = fileURLToPath(new URL('../../src/content', import.meta.url));
 const PAGE_PATHS = ['/', '/events', '/events/2026-06-15', '/admin'] as const;
+
+const contentRoot = join(process.cwd(), 'src/content');
 
 const eventIds = listIds('events').sort((idA, idB) => idB.localeCompare(idA));
 const outcomeIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
 const testimonialIds = listIds('testimonials').sort();
 
 function listIds(collection: string) {
-    return readdirSync(join(CONTENT_DIR, collection))
+    return readdirSync(join(contentRoot, collection))
         .filter(file => file.endsWith('.json'))
         .map(file => file.replace(/\.json$/, ''));
 }

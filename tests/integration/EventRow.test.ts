@@ -25,24 +25,22 @@ describe('EventRow', () => {
         const html = renderRow(EVENT_WITH_LEVEL);
 
         expect(html).toContain('>Better Face Inside Your Face</p>');
-        expect(html).toContain('>Jun 15, 2026</span>');
+        expect(html).toContain('<time dateTime="2026-06-15">Jun 15, 2026</time>');
         expect(html).toContain('>19:00\u201321:00</span>');
         expect(html).toContain('>Shanghai</span>');
     });
 
-    test('tags the level with its palette colors', () => {
+    test('tags the level with its palette class', () => {
         const html = renderRow(EVENT_WITH_LEVEL);
 
-        expect(html).toContain('>Advanced</span>');
-        expect(html).toContain('background:var(--color-rose)');
-        expect(html).toContain('color:var(--color-crimson)');
-        expect(html).toContain('text-transform:uppercase');
+        expect(html).toContain('<span class="tag tag--advanced">Advanced</span>');
+        expect(html.split('class="tag').length - 1).toBe(1);
     });
 
     test('omits the level tag when the entry has none', () => {
         const html = renderRow(EVENT_WITHOUT_LEVEL);
 
-        expect(html).not.toContain('text-transform:uppercase');
+        expect(html).not.toContain('class="tag');
         expect(html).not.toContain('>Advanced</span>');
     });
 
@@ -58,7 +56,7 @@ describe('EventRow', () => {
         const html = renderRow(EVENT_WITH_LEVEL, true);
 
         expect(html).not.toContain('role="row"');
-        expect(html).toContain('Jun 15, 2026 \u00B7 19:00\u201321:00 \u00B7 Shanghai');
+        expect(html).toContain('<time dateTime="2026-06-15">Jun 15, 2026</time> <span aria-hidden="true">\u00B7</span> 19:00\u201321:00 <span aria-hidden="true">\u00B7</span> Shanghai');
         expect(html).toContain('>Better Face Inside Your Face</p>');
         expect(html).toContain('>Advanced</span>');
     });

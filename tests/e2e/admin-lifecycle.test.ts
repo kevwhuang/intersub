@@ -1,6 +1,6 @@
 import { basename, join } from 'node:path';
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, rmSync, unlinkSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 
@@ -13,6 +13,9 @@ const OUTCOME_SENTINEL = {
 } as const;
 
 const OUTCOME_UPDATED_SUMMARY = 'Sentinel outcome summary after editing.';
+const RELOAD_POLL = 100;
+const RELOAD_QUIET = 1_500;
+const RELOAD_TIMEOUT = 8_000;
 
 const SENTINEL = {
     content: 'Sentinel lifecycle content for dashboard testing.',
@@ -79,6 +82,22 @@ async function removeTestimonialSentinel(request: APIRequestContext) {
     expect([200, 404]).toContain(response.status());
 }
 
+async function settleAfterWrite(page: Page) {
+    const deadline = Date.now() + RELOAD_TIMEOUT;
+
+    let lastLoad = Date.now();
+
+    function handleLoad() {
+        lastLoad = Date.now();
+    }
+
+    page.on('load', handleLoad);
+
+    while (Date.now() < deadline && Date.now() - lastLoad < RELOAD_QUIET) await page.waitForTimeout(RELOAD_POLL);
+
+    page.off('load', handleLoad);
+}
+
 function snapshotCommitted(directory: string, ids: string[]) {
     for (const id of ids) {
         const filepath = join(directory, `${id}.json`);
@@ -108,13 +127,13 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ request }) => {
     await removeSentinel(request);
     await removeTestimonialSentinel(request);
+    sweepCollection(eventsDir, committedEventIds);
     sweepCollection(outcomesDir, committedOutcomeIds);
     sweepCollection(testimonialsDir, committedTestimonialIds);
 });
 
 test.afterAll(() => {
-    if (existsSync(sentinelPath)) unlinkSync(sentinelPath);
-
+    sweepCollection(eventsDir, committedEventIds);
     sweepCollection(outcomesDir, committedOutcomeIds);
     sweepCollection(testimonialsDir, committedTestimonialIds);
 });
@@ -136,9 +155,11 @@ test.describe('event lifecycle', () => {
             await page.getByLabel('Content').fill(SENTINEL.content);
             await page.getByRole('button', { name: 'Create event' }).click();
 
-            const toast = page.getByRole('status');
+            await expect(getPanelRow(page, 'Events', SENTINEL.title)).toHaveCount(1);
+            await settleAfterWrite(page);
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
+            await page.reload();
+            await expect(getPanelRow(page, 'Events', SENTINEL.title)).toHaveCount(1);
 
             const cells = getPanelRow(page, 'Events', SENTINEL.title).getByRole('cell');
 
@@ -147,9 +168,6 @@ test.describe('event lifecycle', () => {
             await expect(cells.nth(2)).toHaveText(SENTINEL.timeLabel);
             await expect(cells.nth(3)).toHaveText(SENTINEL.location);
             await expect(cells.nth(4)).toHaveText(SENTINEL.level);
-
-            await page.reload();
-            await expect(getPanelRow(page, 'Events', SENTINEL.title)).toHaveCount(1);
 
             const persisted: { id: string; time: string; title: string }[]
                 = await (await request.get('/api/events')).json();
@@ -167,9 +185,16 @@ test.describe('event lifecycle', () => {
             await page.getByLabel('Title').fill(UPDATED_TITLE);
             await page.getByRole('button', { name: 'Save changes' }).click();
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
             await expect(getPanelRow(page, 'Events', UPDATED_TITLE)).toHaveCount(1);
             await expect(getPanelRow(page, 'Events', SENTINEL.title)).toHaveCount(0);
+            await settleAfterWrite(page);
+
+            await page.reload();
+            await expect(getPanelRow(page, 'Events', UPDATED_TITLE)).toHaveCount(1);
+
+            const renamed: { id: string; title: string }[] = await (await request.get('/api/events')).json();
+
+            expect(renamed.find(event => event.id === SENTINEL_ID)?.title).toBe(UPDATED_TITLE);
 
             await getPanelRow(page, 'Events', UPDATED_TITLE).getByRole('button', { name: 'Delete' }).click();
 
@@ -179,8 +204,8 @@ test.describe('event lifecycle', () => {
             await expect(dialog.getByText(UPDATED_TITLE)).toBeVisible();
             await dialog.getByRole('button', { name: 'Delete' }).click();
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
             await expect(getPanelRow(page, 'Events', UPDATED_TITLE)).toHaveCount(0);
+            await settleAfterWrite(page);
 
             await page.reload();
             await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
@@ -247,21 +272,13 @@ test.describe('outcome lifecycle', () => {
             await page.getByLabel('Title').fill(OUTCOME_SENTINEL.title);
             await page.getByLabel('Summary').fill(OUTCOME_SENTINEL.summary);
             await page.getByLabel('Outcomes').fill(OUTCOME_SENTINEL.points.join('\n'));
-
             await page.getByRole('button', { name: 'Create outcome' }).click();
 
-            const toast = page.getByRole('status');
+            await expect(getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title)).toHaveCount(1);
+            await settleAfterWrite(page);
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
-
-            const outcomes: { id: string; title: string }[] = await (await request.get('/api/outcomes')).json();
-            const created = outcomes.find(outcome => outcome.title === OUTCOME_SENTINEL.title);
-
-            expect(created).toBeDefined();
-
-            if (!created) return;
-
-            const outcomePath = join(outcomesDir, `${created.id}.json`);
+            await page.reload();
+            await expect(getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title)).toHaveCount(1);
 
             const cells = getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title).getByRole('cell');
 
@@ -269,10 +286,18 @@ test.describe('outcome lifecycle', () => {
             await expect(cells.nth(1)).toHaveText(OUTCOME_SENTINEL.summary);
             await expect(cells.nth(2)).toHaveText(String(OUTCOME_SENTINEL.points.length));
 
-            const persisted: { id: string; points: string[] }[] = await (await request.get('/api/outcomes')).json();
-            const entry = persisted.find(outcome => outcome.id === created.id);
+            const persisted: { id: string; points: string[]; title: string }[]
+                = await (await request.get('/api/outcomes')).json();
 
-            expect(entry?.points).toEqual(OUTCOME_SENTINEL.points);
+            const created = persisted.find(outcome => outcome.title === OUTCOME_SENTINEL.title);
+
+            expect(created).toBeDefined();
+
+            if (!created) return;
+
+            const outcomePath = join(outcomesDir, `${created.id}.json`);
+
+            expect(created.points).toEqual(OUTCOME_SENTINEL.points);
             expect(existsSync(outcomePath)).toBe(true);
 
             await getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title).getByRole('button', { name: 'Edit' }).click();
@@ -283,7 +308,10 @@ test.describe('outcome lifecycle', () => {
             await page.getByLabel('Summary').fill(OUTCOME_UPDATED_SUMMARY);
             await page.getByRole('button', { name: 'Save changes' }).click();
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
+            await expect(getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title).getByRole('cell').nth(1)).toHaveText(OUTCOME_UPDATED_SUMMARY);
+            await settleAfterWrite(page);
+
+            await page.reload();
             await expect(getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title).getByRole('cell').nth(1)).toHaveText(OUTCOME_UPDATED_SUMMARY);
 
             await getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title).getByRole('button', { name: 'Delete' }).click();
@@ -294,8 +322,8 @@ test.describe('outcome lifecycle', () => {
             await expect(dialog.getByText(OUTCOME_SENTINEL.title)).toBeVisible();
             await dialog.getByRole('button', { name: 'Delete' }).click();
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
             await expect(getPanelRow(page, 'Outcomes', OUTCOME_SENTINEL.title)).toHaveCount(0);
+            await settleAfterWrite(page);
 
             await page.reload();
             await expect(page.getByRole('heading', { level: 1, name: 'Outcomes' })).toBeVisible();
@@ -341,9 +369,11 @@ test.describe('testimonial lifecycle', () => {
             await page.getByLabel('Quote').fill(TESTIMONIAL_SENTINEL.quote);
             await page.getByRole('button', { name: 'Create testimonial' }).click();
 
-            const toast = page.getByRole('status');
+            await expect(getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name)).toHaveCount(1);
+            await settleAfterWrite(page);
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
+            await page.reload();
+            await expect(getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name)).toHaveCount(1);
 
             const cells = getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name).getByRole('cell');
 
@@ -366,7 +396,10 @@ test.describe('testimonial lifecycle', () => {
             await page.getByLabel('Quote').fill(TESTIMONIAL_UPDATED_QUOTE);
             await page.getByRole('button', { name: 'Save changes' }).click();
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
+            await expect(getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name).getByRole('cell').nth(3)).toHaveText(TESTIMONIAL_UPDATED_QUOTE);
+            await settleAfterWrite(page);
+
+            await page.reload();
             await expect(getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name).getByRole('cell').nth(3)).toHaveText(TESTIMONIAL_UPDATED_QUOTE);
 
             await getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name).getByRole('button', { name: 'Delete' }).click();
@@ -377,8 +410,8 @@ test.describe('testimonial lifecycle', () => {
             await expect(dialog.getByText(TESTIMONIAL_SENTINEL.name)).toBeVisible();
             await dialog.getByRole('button', { name: 'Delete' }).click();
 
-            await expect(toast).toBeHidden({ timeout: 5_000 });
             await expect(getPanelRow(page, 'Testimonials', TESTIMONIAL_SENTINEL.name)).toHaveCount(0);
+            await settleAfterWrite(page);
 
             await page.reload();
             await expect(page.getByRole('heading', { level: 1, name: 'Testimonials' })).toBeVisible();

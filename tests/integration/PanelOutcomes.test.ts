@@ -21,12 +21,15 @@ function renderPanel(overrides: Partial<PanelProps> = {}) {
         onCancelEdit: vi.fn(),
         onRequestDelete: vi.fn(),
         onSave: vi.fn(),
+        onSort: vi.fn(),
         onStartEdit: vi.fn(),
         onStartNew: vi.fn(),
         onUpdate: vi.fn(),
         outcomeForm: null,
         outcomeFormErrors: {},
         outcomes: OUTCOMES,
+        sortDirection: 'asc',
+        sortKey: 'title',
         ...overrides,
     }));
 }
@@ -47,15 +50,26 @@ describe('PanelOutcomes', () => {
         expect(html).not.toContain('1 outcomes');
     });
 
-    test('renders a table with column headers on desktop', () => {
+    test('renders a table with sortable column headers on desktop', () => {
         const html = renderPanel();
 
         expect(html).toContain('aria-label="Outcomes"');
         expect(html).toContain('role="table"');
-        expect(html).toContain('>Title</span>');
-        expect(html).toContain('>Summary</span>');
+        expect(html).toContain('>Title \u2191</button>');
+        expect(html).toContain('>Summary</button>');
+        expect(html).toContain('>Outcomes</span>');
         expect(html).toContain('>Actions</span>');
         expect(html.split('role="columnheader"').length - 1).toBe(4);
+        expect(html.split('dashboard-button--ghost').length - 1).toBe(2);
+    });
+
+    test('marks only the sorted column with an aria-sort direction', () => {
+        const html = renderPanel({ sortDirection: 'desc', sortKey: 'summary' });
+
+        expect(html).toContain('>Summary \u2193</button>');
+        expect(html).toContain('>Title</button>');
+        expect(html.split('aria-sort="descending"').length - 1).toBe(1);
+        expect(html.split('aria-sort="none"').length - 1).toBe(1);
     });
 
     test('renders one row per outcome plus the header row', () => {
@@ -86,8 +100,8 @@ describe('PanelOutcomes', () => {
     test('shows the empty state when there are no outcomes', () => {
         const html = renderPanel({ outcomes: [] });
 
-        expect(html).toContain('No outcomes yet');
-        expect(html).toContain('Add an outcome to highlight measurable client results on the site.');
+        expect(html).toContain('No outcomes found');
+        expect(html).toContain('Try a different search, or add a new outcome.');
         expect(html).not.toContain('role="table"');
     });
 

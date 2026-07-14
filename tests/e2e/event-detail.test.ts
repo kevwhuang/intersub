@@ -3,8 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
-import { formatDate } from '../../src/lib/utils';
-
 type Translations = Record<string, string>;
 
 interface ContentBlock {
@@ -35,8 +33,12 @@ const who = event.level ?? 'Everyone';
 const headings = blocks.filter(block => block.type === 'h').map(block => block.content);
 const listGroupCount = blocks.filter((block, index) => block.type === 'li' && blocks[index - 1]?.type !== 'li').length;
 const listItems = blocks.filter(block => block.type === 'li').map(block => block.content);
-const metaValues = [formatDate(event.date), ...event.time ? [event.time] : [], event.location, who];
+const metaValues = [formatDateEn(event.date), ...event.time ? [event.time] : [], event.location, who];
 const paragraphs = blocks.filter(block => block.type === 'p').map(block => block.content);
+
+function formatDateEn(date: string) {
+    return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 function formatDateZh(date: string) {
     const [year, month, day] = date.split('-').map(Number);

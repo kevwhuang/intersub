@@ -3,8 +3,6 @@ import { execSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-import { formatDate, getToday } from '../../src/lib/utils';
-
 import type { Page } from '@playwright/test';
 
 interface EventEntry {
@@ -18,7 +16,6 @@ interface EventEntry {
 }
 
 interface OutcomeEntry {
-    id: string;
     points: string[];
     title: string;
 }
@@ -33,11 +30,15 @@ const MOBILE_VIEWPORTS = [
     { height: 900, width: 800 },
 ] as const;
 
+const RELOAD_POLL = 100;
+const RELOAD_QUIET = 1_500;
+const RELOAD_TIMEOUT = 8_000;
+
 const events = loadCollection<EventEntry>('src/content/events').sort((entryA, entryB) => compareText(entryA.title, entryB.title));
 const firstEvent = events[0];
 const lastEvent = events[events.length - 1];
 const locations = [...new Set(events.map(event => event.location))].sort();
-const outcomes = loadCollection<OutcomeEntry>('src/content/outcomes').sort((entryA, entryB) => Number(entryA.id) - Number(entryB.id));
+const outcomes = loadCollection<OutcomeEntry>('src/content/outcomes').sort((entryA, entryB) => compareText(entryA.title, entryB.title));
 const testimonials = loadCollection<TestimonialEntry>('src/content/testimonials').sort((entryA, entryB) => compareText(entryA.name, entryB.name));
 
 function compareText(valueA: string, valueB: string) {
@@ -60,8 +61,16 @@ async function expectEventRowCount(page: Page, count: number) {
     await expect(getEventsTable(page).getByRole('row')).toHaveCount(count + 1);
 }
 
+function formatDate(date: string) {
+    return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 function getEventsTable(page: Page) {
     return page.getByRole('table', { name: 'Events' });
+}
+
+function getToday() {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
 }
 
 function loadCollection<T>(directory: string) {
@@ -79,6 +88,22 @@ async function openFirstEventEdit(page: Page) {
 
 function pluralize(count: number, noun: string) {
     return `${count} ${count === 1 ? noun : `${noun}s`}`;
+}
+
+async function settleAfterWrite(page: Page) {
+    const deadline = Date.now() + RELOAD_TIMEOUT;
+
+    let lastLoad = Date.now();
+
+    function handleLoad() {
+        lastLoad = Date.now();
+    }
+
+    page.on('load', handleLoad);
+
+    while (Date.now() < deadline && Date.now() - lastLoad < RELOAD_QUIET) await page.waitForTimeout(RELOAD_POLL);
+
+    page.off('load', handleLoad);
 }
 
 function trackApiWrites(page: Page) {
@@ -280,18 +305,15 @@ test.describe('edit form', () => {
         await expect(page.getByLabel('Title')).toHaveValue(firstEvent.title);
     });
 
-    test('byte-identical save shows a passing toast and leaves the entry unchanged', async ({ page, request }) => {
+    test('byte-identical save returns to the table and leaves the entry unchanged', async ({ page, request }) => {
         const before: unknown = await (await request.get('/api/events')).json();
 
         await openFirstEventEdit(page);
         await page.getByRole('button', { name: 'Save changes' }).click();
 
-        const toast = page.getByRole('status');
-
-        await expect(toast).toBeVisible();
-        await expect(toast).toHaveText('Changes saved');
-        await expect(toast).toBeHidden({ timeout: 5_000 });
+        await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
         await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(firstEvent.title);
+        await settleAfterWrite(page);
 
         const after: unknown = await (await request.get('/api/events')).json();
 

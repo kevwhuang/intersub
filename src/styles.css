@@ -11,7 +11,9 @@
     gap: 8px;
     padding: 15px 24px;
     text-decoration: none;
-    transition: background var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        box-shadow var(--duration-fast) ease;
 }
 
 .button:active {
@@ -38,7 +40,9 @@
     background: none;
     border: 1px solid var(--color-silver-hover);
     color: var(--color-slate);
-    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        border-color var(--duration-fast) ease;
 }
 
 .button--outline:active {
@@ -71,7 +75,11 @@
     font-weight: 600;
     padding: 8px 15px;
     position: relative;
-    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        border-color var(--duration-fast) ease,
+        color var(--duration-fast) ease,
+        opacity var(--duration-fast) ease;
 }
 
 .chip:active {
@@ -137,7 +145,9 @@
     background: none;
     border: 1px solid var(--color-rose);
     color: var(--color-crimson);
-    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        border-color var(--duration-fast) ease;
 }
 
 .dashboard-button--danger:active {
@@ -167,7 +177,10 @@
     background: var(--color-red);
     border-color: var(--color-red);
     color: var(--color-white);
-    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, filter var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        border-color var(--duration-fast) ease,
+        filter var(--duration-fast) ease;
 }
 
 .dashboard-button--danger-solid:active {
@@ -182,7 +195,9 @@
 .dashboard-button--ghost {
     background: none;
     border: none;
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        color var(--duration-fast) ease;
 }
 
 .dashboard-button--ghost:active {
@@ -217,7 +232,9 @@
     background: none;
     border: 1px solid var(--color-silver-hover);
     color: var(--color-slate);
-    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        border-color var(--duration-fast) ease;
 }
 
 .dashboard-button--outline:active {
@@ -275,13 +292,17 @@
     border: 1px solid var(--color-silver-muted);
     font-family: inherit;
     outline: none;
-    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    transition:
+        border-color var(--duration-fast) ease,
+        box-shadow var(--duration-fast) ease;
 }
 
 .dashboard-link {
     color: var(--color-slate-ghost);
     text-decoration: none;
-    transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+    transition:
+        color var(--duration-fast) ease,
+        opacity var(--duration-fast) ease;
 }
 
 .dashboard-link:active {
@@ -310,7 +331,9 @@
 .dashboard-nav {
     color: var(--color-slate-soft);
     font-family: inherit;
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+    transition:
+        background var(--duration-fast) ease,
+        color var(--duration-fast) ease;
 }
 
 .dashboard-nav:active {
@@ -362,7 +385,9 @@
     font-size: 16px;
     outline: none;
     padding: 13px 15px;
-    transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    transition:
+        border-color var(--duration-fast) ease,
+        box-shadow var(--duration-fast) ease;
     width: 100%;
 }
 

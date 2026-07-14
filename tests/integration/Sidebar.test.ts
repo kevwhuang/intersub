@@ -25,16 +25,16 @@ describe('Sidebar', () => {
 
         expect(html).toContain('aria-label="Admin sidebar"');
         expect(html).toContain('aria-label="Admin navigation"');
-        expect(html).toContain('<span>Events</span>');
-        expect(html).toContain('<span>Outcomes</span>');
-        expect(html).toContain('<span>Testimonials</span>');
+        expect(html).toContain('>Events</button>');
+        expect(html).toContain('>Outcomes</button>');
+        expect(html).toContain('>Testimonials</button>');
         expect(html.split('class="dashboard-nav').length - 1).toBe(3);
     });
 
     test('highlights the active panel with a class and aria-current', () => {
         const html = renderSidebar();
 
-        expect(html).toMatch(/class="dashboard-nav dashboard-nav--active" aria-current="page"[^>]*><span>Events<\/span>/);
+        expect(html).toMatch(/class="dashboard-nav dashboard-nav--active" aria-current="page"[^>]*>Events<\/button>/);
         expect(html.split('dashboard-nav--active').length - 1).toBe(1);
         expect(html.split('aria-current="page"').length - 1).toBe(1);
     });
@@ -42,8 +42,8 @@ describe('Sidebar', () => {
     test('moves the highlight when another panel is active', () => {
         const html = renderSidebar({ activePanel: 'testimonials' });
 
-        expect(html).toMatch(/class="dashboard-nav dashboard-nav--active" aria-current="page"[^>]*><span>Testimonials<\/span>/);
-        expect(html).not.toMatch(/dashboard-nav--active"[^>]*aria-current="page"[^>]*><span>Events<\/span>/);
+        expect(html).toMatch(/class="dashboard-nav dashboard-nav--active" aria-current="page"[^>]*>Testimonials<\/button>/);
+        expect(html).not.toMatch(/dashboard-nav--active"[^>]*aria-current="page"[^>]*>Events<\/button>/);
     });
 
     test('links back to the public site', () => {

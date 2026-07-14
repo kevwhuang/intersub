@@ -120,7 +120,10 @@ import { ROUTES } from '@lib/constants';
         padding: 6px;
         position: relative;
         text-align: center;
-        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+        transition:
+            border-color var(--duration-fast) ease,
+            color var(--duration-fast) ease,
+            opacity var(--duration-fast) ease;
     }
 
     .site-nav__language:active {
@@ -151,7 +154,10 @@ import { ROUTES } from '@lib/constants';
         font-weight: 600;
         padding: 8px 14px;
         text-decoration: none;
-        transition: background var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+        transition:
+            background var(--duration-fast) ease,
+            color var(--duration-fast) ease,
+            opacity var(--duration-fast) ease;
     }
 
     .site-nav__link:active {
@@ -190,7 +196,10 @@ import { ROUTES } from '@lib/constants';
         display: none;
         height: 30px;
         position: relative;
-        transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+        transition:
+            border-color var(--duration-fast) ease,
+            color var(--duration-fast) ease,
+            opacity var(--duration-fast) ease;
         width: 36px;
     }
 
@@ -216,7 +225,9 @@ import { ROUTES } from '@lib/constants';
 
     .site-nav__toggle-bar {
         background: currentColor;
-        box-shadow: 0 -5px 0 currentColor, 0 5px 0 currentColor;
+        box-shadow:
+            0 -5px 0 currentColor,
+            0 5px 0 currentColor;
         display: block;
         height: 1.6px;
         width: 14px;
@@ -234,7 +245,9 @@ import { ROUTES } from '@lib/constants';
             inset: var(--header-height) 0 0;
             opacity: 0;
             position: fixed;
-            transition: opacity var(--duration-fast) ease, visibility 0s ease var(--duration-fast);
+            transition:
+                opacity var(--duration-fast) ease,
+                visibility 0s ease var(--duration-fast);
             visibility: hidden;
             z-index: -1;
         }
@@ -262,7 +275,9 @@ import { ROUTES } from '@lib/constants';
             position: fixed;
             right: 0;
             top: var(--header-height);
-            transition: opacity var(--duration-fast) ease, visibility 0s ease var(--duration-fast);
+            transition:
+                opacity var(--duration-fast) ease,
+                visibility 0s ease var(--duration-fast);
             visibility: hidden;
         }
 
@@ -341,6 +356,7 @@ import { ROUTES } from '@lib/constants';
 
     function initNavbar() {
         if (controller) controller.abort();
+
         controller = new AbortController();
 
         const currentPath = window.location.pathname.replace(/\/$/, '') || '/';

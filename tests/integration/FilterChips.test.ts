@@ -21,7 +21,7 @@ function buildProps(overrides: Partial<FilterChipsProps> = {}): FilterChipsProps
         locations: ['Shanghai'],
         onLevelChange: vi.fn(),
         onLocationChange: vi.fn(),
-        onNewEvent: vi.fn(),
+        onStartNew: vi.fn(),
         onTimingChange: vi.fn(),
         ...overrides,
     };
@@ -55,38 +55,38 @@ describe('FilterChips', () => {
     test('renders timing chips with all selected by default', () => {
         const html = renderChips();
 
-        expect(html).toContain('<button class="chip chip--active">All</button>');
-        expect(html).toContain('<button class="chip">Upcoming</button>');
-        expect(html).toContain('<button class="chip">Past</button>');
+        expect(html).toContain('<button class="chip chip--active" type="button">All</button>');
+        expect(html).toContain('<button class="chip" type="button">Upcoming</button>');
+        expect(html).toContain('<button class="chip" type="button">Past</button>');
     });
 
     test('renders location chips from the locations prop', () => {
         const html = renderChips();
 
-        expect(html).toContain('<button class="chip chip--active">Everywhere</button>');
-        expect(html).toContain('<button class="chip">Shanghai</button>');
+        expect(html).toContain('<button class="chip chip--active" type="button">Everywhere</button>');
+        expect(html).toContain('<button class="chip" type="button">Shanghai</button>');
     });
 
     test('renders a chip for every level', () => {
         const html = renderChips();
 
-        expect(html).toContain('<button class="chip chip--active">Everyone</button>');
-        expect(html).toContain('<button class="chip">Beginner</button>');
-        expect(html).toContain('<button class="chip">Intermediate</button>');
-        expect(html).toContain('<button class="chip">Advanced</button>');
-        expect(html).toContain('<button class="chip">Cohort</button>');
+        expect(html).toContain('<button class="chip chip--active" type="button">Everyone</button>');
+        expect(html).toContain('<button class="chip" type="button">Beginner</button>');
+        expect(html).toContain('<button class="chip" type="button">Intermediate</button>');
+        expect(html).toContain('<button class="chip" type="button">Advanced</button>');
+        expect(html).toContain('<button class="chip" type="button">Cohort</button>');
     });
 
     test('highlights one active chip per group', () => {
         const html = renderChips({ activeLevel: 'Advanced', activeLocation: 'Shanghai', activeTiming: 'past' });
 
         expect(html.split('chip--active').length - 1).toBe(3);
-        expect(html).toContain('<button class="chip chip--active">Past</button>');
-        expect(html).toContain('<button class="chip chip--active">Shanghai</button>');
-        expect(html).toContain('<button class="chip chip--active">Advanced</button>');
-        expect(html).toContain('<button class="chip">All</button>');
-        expect(html).toContain('<button class="chip">Everywhere</button>');
-        expect(html).toContain('<button class="chip">Everyone</button>');
+        expect(html).toContain('<button class="chip chip--active" type="button">Past</button>');
+        expect(html).toContain('<button class="chip chip--active" type="button">Shanghai</button>');
+        expect(html).toContain('<button class="chip chip--active" type="button">Advanced</button>');
+        expect(html).toContain('<button class="chip" type="button">All</button>');
+        expect(html).toContain('<button class="chip" type="button">Everywhere</button>');
+        expect(html).toContain('<button class="chip" type="button">Everyone</button>');
     });
 
     test('renders the new event action', () => {
@@ -110,6 +110,6 @@ describe('FilterChips', () => {
         expect(props.onTimingChange).toHaveBeenCalledWith('upcoming');
         expect(props.onLocationChange).toHaveBeenCalledWith('Shanghai');
         expect(props.onLevelChange).toHaveBeenCalledWith('Beginner');
-        expect(props.onNewEvent).toHaveBeenCalledTimes(1);
+        expect(props.onStartNew).toHaveBeenCalledTimes(1);
     });
 });

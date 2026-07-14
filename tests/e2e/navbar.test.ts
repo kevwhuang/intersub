@@ -125,6 +125,15 @@ test.describe('navbar mobile menu', () => {
 
         await toggle.click();
 
+        await expect(links.first()).toBeVisible();
+        await expect(toggle).toBeFocused();
+
+        await page.keyboard.press('Tab');
+
+        await expect(brand).toBeFocused();
+
+        await page.keyboard.press('Tab');
+
         await expect(links.first()).toBeFocused();
 
         await page.keyboard.press('Tab');
@@ -139,7 +148,13 @@ test.describe('navbar mobile menu', () => {
 
         await expect(toggle).toBeFocused();
 
-        await page.keyboard.press('Tab');
+        await page.keyboard.press('Shift+Tab');
+
+        await expect(language).toBeFocused();
+
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Shift+Tab');
 
         await expect(brand).toBeFocused();
 
@@ -153,6 +168,11 @@ test.describe('navbar mobile menu', () => {
         const toggle = page.locator('[data-nav-toggle]');
 
         await toggle.click();
+
+        await expect(menu.locator('a').first()).toBeVisible();
+
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
 
         await expect(menu.locator('a').first()).toBeFocused();
 

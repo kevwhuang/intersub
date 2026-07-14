@@ -168,7 +168,11 @@ const locationFilters = ['all', ...locations];
         flex-direction: column;
         overflow: hidden;
         text-decoration: none;
-        transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
+        transition:
+            border-color var(--duration-fast) ease,
+            box-shadow var(--duration-fast) ease,
+            opacity var(--duration-fast) ease,
+            transform var(--duration-fast) ease;
     }
 
     .events__card:active {
@@ -383,6 +387,7 @@ const locationFilters = ['all', ...locations];
 
     function initEventFilters() {
         if (controller) controller.abort();
+
         controller = new AbortController();
 
         const root = document.querySelector<HTMLElement>('[data-events]');

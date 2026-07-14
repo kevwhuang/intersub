@@ -14,9 +14,10 @@ describe('Hero', () => {
         html = await container.renderToString(Hero);
     });
 
-    test('labels the section for assistive tech with an i18n hook', () => {
-        expect(html).toContain('aria-label="InterSub, a business English communication studio."');
-        expect(html).toContain('data-i18n-aria="InterSub, a business English communication studio."');
+    test('labels the section by its headline for assistive tech', () => {
+        expect(html).toContain('<section class="hero grid isolate overflow-hidden relative" aria-labelledby="hero-title"');
+        expect(html).toMatch(/<h1 id="hero-title"/);
+        expect(html.split('id="hero-title"').length - 1).toBe(1);
     });
 
     test('renders the hero background image eagerly', () => {

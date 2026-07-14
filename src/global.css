@@ -53,9 +53,18 @@
     --color-white: #ffffff;
     --color-white-90: #ffffffe6;
     --color-white-95: #fffffff2;
-    --font-heading: 'Space Grotesk', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-    --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-heading:
+        'Space Grotesk',
+        system-ui,
+        sans-serif;
+    --font-mono:
+        'IBM Plex Mono',
+        ui-monospace,
+        monospace;
+    --font-sans:
+        'Hanken Grotesk',
+        system-ui,
+        sans-serif;
 }
 
 :root {

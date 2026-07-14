@@ -29,7 +29,7 @@ describe('ScreenLogin', () => {
     test('renders the email field', () => {
         const html = renderScreen();
 
-        expect(html).toContain('>Email</span>');
+        expect(html).toContain('>Email<span');
         expect(html).toContain('type="email"');
         expect(html).toContain('autoComplete="email"');
         expect(html).toContain('placeholder="you@example.com"');
@@ -38,7 +38,7 @@ describe('ScreenLogin', () => {
     test('renders the password field', () => {
         const html = renderScreen();
 
-        expect(html).toContain('>Password</span>');
+        expect(html).toContain('>Password<span');
         expect(html).toContain('type="password"');
         expect(html).toContain('autoComplete="current-password"');
         expect(html).toContain(`placeholder="${'\u2022'.repeat(8)}"`);

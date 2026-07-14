@@ -6,16 +6,25 @@ import {
     COVER_PATH_PATTERN,
     EMAIL_MAX,
     EMAIL_PATTERN,
+    ERROR_GENERIC,
+    ERROR_RATE_LIMITED,
+    FOCUSABLE_SELECTOR,
     LEVELS,
     MESSAGE_MAX,
     NAME_MAX,
     PASSWORD_MAX,
     PASSWORD_MIN,
     ROUTES,
+    STYLES,
     TIME_PATTERN,
+    TIMINGS,
+    TOUCH_TARGET,
     URL_PATTERN,
     WECHAT_MAX,
+    Z_INDEX,
 } from '../../src/lib/constants';
+
+const ACTIONS_COLUMN = '138px';
 
 const INVALID_COVER_PATHS = [
     '/images/team/cover.webp',
@@ -144,6 +153,12 @@ describe('EMAIL_PATTERN', () => {
     });
 });
 
+describe('FOCUSABLE_SELECTOR', () => {
+    test('targets anchors and buttons', () => {
+        expect(FOCUSABLE_SELECTOR).toBe('a, button');
+    });
+});
+
 describe('LEVELS', () => {
     test('lists the four levels in display order', () => {
         expect(LEVELS).toEqual(['Beginner', 'Intermediate', 'Advanced', 'Cohort']);
@@ -159,6 +174,34 @@ describe('ROUTES', () => {
     });
 });
 
+describe('STYLES', () => {
+    test('sizes each panel grid to its column count', () => {
+        expect(STYLES.gridEvents.split(' ')).toHaveLength(6);
+        expect(STYLES.gridOutcomes.split(' ')).toHaveLength(4);
+        expect(STYLES.gridTestimonials.split(' ')).toHaveLength(5);
+    });
+
+    test('ends every panel grid with the shared actions column', () => {
+        expect(STYLES.gridEvents.endsWith(ACTIONS_COLUMN)).toBe(true);
+        expect(STYLES.gridOutcomes.endsWith(ACTIONS_COLUMN)).toBe(true);
+        expect(STYLES.gridTestimonials.endsWith(ACTIONS_COLUMN)).toBe(true);
+    });
+
+    test('lays out rows and headers as grids with a shared gap', () => {
+        expect(STYLES.rowBase.display).toBe('grid');
+        expect(STYLES.tableHeadBase.display).toBe('grid');
+        expect(STYLES.rowBase.gap).toBe(STYLES.tableHeadBase.gap);
+    });
+
+    test('truncates cell text with a single-line ellipsis', () => {
+        for (const cell of [STYLES.cellNote, STYLES.cellText, STYLES.cellTitle]) {
+            expect(cell.overflow).toBe('hidden');
+            expect(cell.textOverflow).toBe('ellipsis');
+            expect(cell.whiteSpace).toBe('nowrap');
+        }
+    });
+});
+
 describe('TIME_PATTERN', () => {
     test('accepts 24-hour ranges with hyphen, en dash, or em dash', () => {
         for (const time of VALID_TIMES) expect(time).toMatch(TIME_PATTERN);
@@ -169,6 +212,22 @@ describe('TIME_PATTERN', () => {
     });
 });
 
+describe('TIMINGS', () => {
+    test('lists the three timing filters in display order', () => {
+        expect(TIMINGS).toEqual([
+            { label: 'All', value: 'all' },
+            { label: 'Upcoming', value: 'upcoming' },
+            { label: 'Past', value: 'past' },
+        ]);
+    });
+});
+
+describe('TOUCH_TARGET', () => {
+    test('is 48px, above the 44px accessibility minimum', () => {
+        expect(TOUCH_TARGET).toBe(48);
+    });
+});
+
 describe('URL_PATTERN', () => {
     test('accepts http and https urls', () => {
         for (const url of VALID_URLS) expect(url).toMatch(URL_PATTERN);
@@ -176,6 +235,26 @@ describe('URL_PATTERN', () => {
 
     test('rejects other schemes and bare hosts', () => {
         for (const url of INVALID_URLS) expect(url).not.toMatch(URL_PATTERN);
+    });
+});
+
+describe('Z_INDEX', () => {
+    test('lists the five stacking layers', () => {
+        expect(Z_INDEX).toEqual({ modal: 60, overlay: 30, sidebar: 35, toast: 50, topBar: 40 });
+    });
+
+    test('layers modal above toast above top bar above sidebar above overlay', () => {
+        expect(Z_INDEX.modal).toBeGreaterThan(Z_INDEX.toast);
+        expect(Z_INDEX.toast).toBeGreaterThan(Z_INDEX.topBar);
+        expect(Z_INDEX.topBar).toBeGreaterThan(Z_INDEX.sidebar);
+        expect(Z_INDEX.sidebar).toBeGreaterThan(Z_INDEX.overlay);
+    });
+});
+
+describe('error messages', () => {
+    test('are complete user-facing sentences', () => {
+        expect(ERROR_GENERIC).toBe('Something went wrong. Please try again.');
+        expect(ERROR_RATE_LIMITED).toBe('Too many requests. Please try again later.');
     });
 });
 

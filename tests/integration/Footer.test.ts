@@ -25,22 +25,23 @@ describe('Footer', () => {
         expect(html).toContain('data-i18n-aria="Site footer"');
     });
 
-    test('renders both wordmarks as plain lazy images, not astro-optimized output', () => {
-        const wordmarks = html.match(/<img class="site-footer__wordmark"[^>]*>/g) ?? [];
+    test('renders both wordmarks as optimized lazy images with retina srcsets', () => {
+        const wordmarks = html.match(/<img [^>]*class="site-footer__wordmark">/g) ?? [];
 
         expect(wordmarks).toHaveLength(2);
         expect(html).not.toContain('<picture');
 
         for (const wordmark of wordmarks) {
+            expect(wordmark).toContain('data-image-component="true"');
             expect(wordmark).toContain('decoding="async"');
             expect(wordmark).toContain('height="32"');
             expect(wordmark).toContain('loading="lazy"');
-            expect(wordmark).not.toContain('data-image-component');
-            expect(wordmark).not.toContain('srcset');
+            expect(wordmark).toContain('q=100');
+            expect(wordmark).toMatch(/srcset="[^"]* 2x"/);
         }
 
-        expect(html).toMatch(/<img[^>]*alt="InterSub"[^>]*logo_en\.webp/);
-        expect(html).toMatch(/<img[^>]*alt="言际阁"[^>]*logo_zh\.webp/);
+        expect(html).toMatch(/<img[^>]*logo_en\.webp[^>]*alt="InterSub"[^>]*lang="en"/);
+        expect(html).toMatch(/<img[^>]*logo_zh\.webp[^>]*alt="言际阁"[^>]*lang="zh"/);
     });
 
     test('renders a directory link for every route', () => {

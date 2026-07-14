@@ -6,7 +6,7 @@
     "scripts": {
         "build": "astro build",
         "dev": "astro dev",
-        "lint": "tsc && eslint",
+        "lint": "astro check && tsc && eslint",
         "start": "netlify dev",
         "test": "vitest run && playwright test"
     },
@@ -28,6 +28,7 @@
         "tailwindcss": "^4.3.2"
     },
     "devDependencies": {
+        "@astrojs/check": "^0.9.9",
         "@eslint/js": "^10.0.1",
         "@playwright/test": "^1.61.1",
         "@stylistic/eslint-plugin": "^5.10.0",
@@ -36,6 +37,7 @@
         "eslint": "^10.7.0",
         "eslint-plugin-astro": "^3.0.0",
         "eslint-plugin-jsx-a11y": "^6.10.2",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.64.0",
         "vitest": "^4.1.10"
     }
