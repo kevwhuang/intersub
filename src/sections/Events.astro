@@ -1,88 +1,102 @@
 ---
 import { Image } from 'astro:assets';
 
-import { LEVELS } from '@lib/constants';
+import { LEVELS, TIMINGS } from '@lib/constants';
 import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
 import { getCoverImage, resolveCover } from '@lib/images';
 import { getEvents } from '@lib/store';
 
 const LEVEL_FILTERS = ['all', ...LEVELS] as const;
-const TIMINGS = [
-    { label: 'All', value: 'all' },
-    { label: 'Upcoming', value: 'upcoming' },
-    { label: 'Past', value: 'past' },
-] as const;
 
 const events = await getEvents();
 
-const locations = [...new Set(events.map(entry => String(entry.location)))].sort();
+const locations = [...new Set(events.map(entry => entry.location))].sort();
 
 const locationFilters = ['all', ...locations];
 ---
 
-<section class="events__hero" aria-labelledby="events-title">
+<section
+    class="events__hero"
+    aria-labelledby="events-title"
+>
     <div class="shell">
         <h1 id="events-title" class="events__title" data-i18n="Events" data-scroll>Events</h1>
         <p class="events__subtitle" data-i18n="Our business English community regularly hosts seminars, hands-on workshops, and group discussions centered on practical workplace communication and industry topics. Through structured English improvement marathons and real-world business projects, we support members at every stage, helping them build their skills through consistent micro-learning, systematic development, and practical application in professional contexts." data-scroll>Our business English community regularly hosts seminars, hands-on workshops, and group discussions centered on practical workplace communication and industry topics. Through structured English improvement marathons and real-world business projects, we support members at every stage, helping them build their skills through consistent micro-learning, systematic development, and practical application in professional contexts.</p>
     </div>
 </section>
 
-<section class="section" aria-label="Event catalog" data-events data-i18n-aria="Event catalog">
+<section
+    class="section"
+    aria-label="Event catalog"
+    data-events
+    data-i18n-aria="Event catalog"
+>
     <div class="shell">
         <div class="events__toolbar">
             <div class="events__filters flex flex-col gap-5">
                 <div>
                     <p class="events__filter-label" data-i18n="When">When</p>
-                    <div class="flex flex-wrap gap-2">
+                    <ul class="flex flex-wrap gap-2">
                         {TIMINGS.map(timing => (
-                            <button
-                                class:list={['chip', { 'chip--active': timing.value === 'all' }]}
-                                data-filter-timing={timing.value}
-                                type="button"
-                            >
-                                <span data-i18n={timing.label}>{timing.label}</span>
-                            </button>
+                            <li>
+                                <button
+                                    class:list={['chip', { 'chip--active': timing.value === 'all' }]}
+                                    data-filter-timing={timing.value}
+                                    type="button"
+                                >
+                                    <span data-i18n={timing.label}>{timing.label}</span>
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
                 <div>
                     <p class="events__filter-label" data-i18n="Where">Where</p>
-                    <div class="flex flex-wrap gap-2">
+                    <ul class="flex flex-wrap gap-2">
                         {locationFilters.map(location => (
-                            <button
-                                class:list={['chip', { 'chip--active': location === 'all' }]}
-                                data-filter-location={location}
-                                type="button"
-                            >
-                                <span data-i18n={location === 'all' ? 'Everywhere' : location}>{location === 'all' ? 'Everywhere' : location}</span>
-                            </button>
+                            <li>
+                                <button
+                                    class:list={['chip', { 'chip--active': location === 'all' }]}
+                                    data-filter-location={location}
+                                    type="button"
+                                >
+                                    <span data-i18n={location === 'all' ? 'Everywhere' : location}>{location === 'all' ? 'Everywhere' : location}</span>
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
                 <div>
                     <p class="events__filter-label" data-i18n="Who">Who</p>
-                    <div class="flex flex-wrap gap-2">
+                    <ul class="flex flex-wrap gap-2">
                         {LEVEL_FILTERS.map(level => (
-                            <button
-                                class:list={['chip', { 'chip--active': level === 'all' }]}
-                                data-filter-level={level}
-                                type="button"
-                            >
-                                <span data-i18n={level === 'all' ? 'Everyone' : level}>{level === 'all' ? 'Everyone' : level}</span>
-                            </button>
+                            <li>
+                                <button
+                                    class:list={['chip', { 'chip--active': level === 'all' }]}
+                                    data-filter-level={level}
+                                    type="button"
+                                >
+                                    <span data-i18n={level === 'all' ? 'Everyone' : level}>{level === 'all' ? 'Everyone' : level}</span>
+                                </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             </div>
             <p class="events__count" aria-atomic="true" aria-live="polite" data-count>
                 {events.length} {events.length === 1 ? 'event' : 'events'}
             </p>
         </div>
-        <div class="events__grid" data-grid data-scroll data-scroll-stagger="0.08">
+        <div
+            class="events__grid"
+            data-grid
+            data-scroll
+            data-scroll-stagger="0.08"
+        >
             {events.map((event) => {
-                const coverImage = getCoverImage(String(event.cover || ''));
+                const coverImage = getCoverImage(event.cover ?? '');
                 const initials = getInitials(event.title);
-                const meta = getLevelMeta(String(event.level || ''));
+                const meta = getLevelMeta(event.level ?? '');
 
                 return (
                     <a
@@ -100,14 +114,14 @@ const locationFilters = ['all', ...locations];
                             {event.cover
                                 ? coverImage
                                     ? <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1250]} />
-                                    : <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(String(event.cover))} />
+                                    : <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(event.cover)} />
                                 : <span class="events__card-initials" aria-hidden="true">{initials}</span>}
                         </div>
                         <div class="events__card-body">
                             <h2 class="events__card-title">{event.title}</h2>
                             {event.level && (
                                 <div class="events__card-badge mb-[14px]">
-                                    <span class={`tag tag--${String(event.level).toLowerCase()}`} data-i18n={String(event.level)}>{event.level}</span>
+                                    <span class={`tag tag--${event.level.toLowerCase()}`} data-i18n={event.level}>{event.level}</span>
                                 </div>
                             )}
                             <dl class="events__card-details">
@@ -133,7 +147,11 @@ const locationFilters = ['all', ...locations];
                 );
             })}
         </div>
-        <div class="events__empty" data-empty hidden>
+        <div
+            class="events__empty"
+            data-empty
+            hidden
+        >
             <h2 class="events__empty-title" data-i18n="No events match those filters">No events match those filters</h2>
             <p class="events__empty-text" data-i18n="Try widening your selection. New sessions are added regularly.">Try widening your selection. New sessions are added regularly.</p>
             <button class="button" data-clear-filters data-i18n="Clear all filters" type="button">Clear all filters</button>
@@ -325,9 +343,43 @@ const locationFilters = ['all', ...locations];
     import { getToday } from '@lib/utils';
     import { translate } from '@lib/i18n';
 
+    type FilterKey = 'activeLevel' | 'activeLocation' | 'activeTiming';
+
+    interface FilterState {
+        activeLevel: string;
+        activeLocation: string;
+        activeTiming: string;
+        cards: NodeListOf<HTMLElement>;
+        countElement: HTMLElement | null;
+        emptyElement: HTMLElement | null;
+        gridElement: HTMLElement | null;
+        levelButtons: NodeListOf<HTMLButtonElement>;
+        locationButtons: NodeListOf<HTMLButtonElement>;
+        timingButtons: NodeListOf<HTMLButtonElement>;
+        today: string;
+    }
+
     const DEFAULT_FILTER = 'all';
 
     let controller: AbortController;
+
+    function applyFilter(state: FilterState, filterKey: FilterKey, value: string | undefined) {
+        state[filterKey] = value || DEFAULT_FILTER;
+        update(state);
+    }
+
+    function bindFilterGroup(state: FilterState, buttons: NodeListOf<HTMLButtonElement>, filterKey: FilterKey, datasetKey: string) {
+        buttons.forEach((button) => {
+            button.addEventListener('click', () => applyFilter(state, filterKey, button.dataset[datasetKey]), { signal: controller.signal });
+        });
+    }
+
+    function clearFilters(state: FilterState) {
+        state.activeLevel = DEFAULT_FILTER;
+        state.activeLocation = DEFAULT_FILTER;
+        state.activeTiming = DEFAULT_FILTER;
+        update(state);
+    }
 
     function initEventFilters() {
         if (controller) controller.abort();
@@ -337,95 +389,73 @@ const locationFilters = ['all', ...locations];
 
         if (!root) return;
 
-        let activeLevel = DEFAULT_FILTER;
-        let activeLocation = DEFAULT_FILTER;
-        let activeTiming = DEFAULT_FILTER;
+        const state: FilterState = {
+            activeLevel: DEFAULT_FILTER,
+            activeLocation: DEFAULT_FILTER,
+            activeTiming: DEFAULT_FILTER,
+            cards: root.querySelectorAll<HTMLElement>('[data-card]'),
+            countElement: root.querySelector<HTMLElement>('[data-count]'),
+            emptyElement: root.querySelector<HTMLElement>('[data-empty]'),
+            gridElement: root.querySelector<HTMLElement>('[data-grid]'),
+            levelButtons: root.querySelectorAll<HTMLButtonElement>('[data-filter-level]'),
+            locationButtons: root.querySelectorAll<HTMLButtonElement>('[data-filter-location]'),
+            timingButtons: root.querySelectorAll<HTMLButtonElement>('[data-filter-timing]'),
+            today: getToday(),
+        };
 
-        const cards = root.querySelectorAll<HTMLElement>('[data-card]');
-        const countElement = root.querySelector<HTMLElement>('[data-count]');
-        const emptyElement = root.querySelector<HTMLElement>('[data-empty]');
-        const gridElement = root.querySelector<HTMLElement>('[data-grid]');
-        const levelButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-level]');
-        const locationButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-location]');
-        const timingButtons = root.querySelectorAll<HTMLButtonElement>('[data-filter-timing]');
+        bindFilterGroup(state, state.levelButtons, 'activeLevel', 'filterLevel');
+        bindFilterGroup(state, state.locationButtons, 'activeLocation', 'filterLocation');
+        bindFilterGroup(state, state.timingButtons, 'activeTiming', 'filterTiming');
 
-        const today = getToday();
+        root.querySelector('[data-clear-filters]')?.addEventListener('click', () => clearFilters(state), { signal: controller.signal });
 
-        function update() {
-            let visibleCount = 0;
+        update(state);
 
-            cards.forEach((card) => {
-                const date = card.dataset.cardDate || '';
-                const level = card.dataset.cardLevel;
-                const location = card.dataset.cardLocation;
+        window.addEventListener('lang:change', () => update(state), { signal: controller.signal });
+    }
 
-                const matchesTiming = activeTiming === DEFAULT_FILTER
-                    || (activeTiming === 'upcoming' && date >= today)
-                    || (activeTiming === 'past' && date < today);
+    function update(state: FilterState) {
+        let visibleCount = 0;
 
-                const shouldShow = matchesTiming
-                    && (activeLevel === DEFAULT_FILTER || level === activeLevel)
-                    && (activeLocation === DEFAULT_FILTER || location === activeLocation);
+        state.cards.forEach((card) => {
+            const date = card.dataset.cardDate || '';
+            const level = card.dataset.cardLevel;
+            const location = card.dataset.cardLocation;
 
-                card.style.display = shouldShow ? '' : 'none';
+            const matchesTiming = state.activeTiming === DEFAULT_FILTER
+                || (state.activeTiming === 'upcoming' && date >= state.today)
+                || (state.activeTiming === 'past' && date < state.today);
 
-                if (shouldShow) visibleCount++;
-            });
+            const shouldShow = matchesTiming
+                && (state.activeLevel === DEFAULT_FILTER || level === state.activeLevel)
+                && (state.activeLocation === DEFAULT_FILTER || location === state.activeLocation);
 
-            levelButtons.forEach((button) => {
-                button.classList.toggle('chip--active', button.dataset.filterLevel === activeLevel);
-            });
+            card.style.display = shouldShow ? '' : 'none';
 
-            locationButtons.forEach((button) => {
-                button.classList.toggle('chip--active', button.dataset.filterLocation === activeLocation);
-            });
+            if (shouldShow) visibleCount++;
+        });
 
-            timingButtons.forEach((button) => {
-                button.classList.toggle('chip--active', button.dataset.filterTiming === activeTiming);
-            });
+        state.levelButtons.forEach((button) => {
+            button.classList.toggle('chip--active', button.dataset.filterLevel === state.activeLevel);
+        });
 
-            if (countElement) {
-                const isChinese = document.documentElement.lang === 'zh';
-                const unit = translate(visibleCount === 1 ? 'event' : 'events');
+        state.locationButtons.forEach((button) => {
+            button.classList.toggle('chip--active', button.dataset.filterLocation === state.activeLocation);
+        });
 
-                countElement.textContent = isChinese ? `${visibleCount}${unit}` : `${visibleCount} ${unit}`;
-            }
+        state.timingButtons.forEach((button) => {
+            button.classList.toggle('chip--active', button.dataset.filterTiming === state.activeTiming);
+        });
 
-            if (gridElement) gridElement.style.display = visibleCount ? '' : 'none';
-            if (emptyElement) emptyElement.hidden = visibleCount > 0;
+        if (state.countElement) {
+            const isChinese = document.documentElement.lang === 'zh';
+            const unit = translate(visibleCount === 1 ? 'event' : 'events');
+
+            state.countElement.textContent = isChinese ? `${visibleCount}${unit}` : `${visibleCount} ${unit}`;
         }
 
-        levelButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                activeLevel = button.dataset.filterLevel || DEFAULT_FILTER;
-                update();
-            }, { signal: controller.signal });
-        });
-
-        locationButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                activeLocation = button.dataset.filterLocation || DEFAULT_FILTER;
-                update();
-            }, { signal: controller.signal });
-        });
-
-        timingButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                activeTiming = button.dataset.filterTiming || DEFAULT_FILTER;
-                update();
-            }, { signal: controller.signal });
-        });
-
-        root.querySelector('[data-clear-filters]')?.addEventListener('click', () => {
-            activeLevel = DEFAULT_FILTER;
-            activeLocation = DEFAULT_FILTER;
-            activeTiming = DEFAULT_FILTER;
-            update();
-        }, { signal: controller.signal });
-
-        update();
-
-        window.addEventListener('lang:change', update, { signal: controller.signal });
+        if (state.gridElement) state.gridElement.style.display = visibleCount ? '' : 'none';
+        if (state.emptyElement) state.emptyElement.hidden = visibleCount > 0;
     }
 
     document.addEventListener('astro:page-load', initEventFilters);

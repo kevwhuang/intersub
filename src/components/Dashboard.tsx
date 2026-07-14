@@ -1,20 +1,16 @@
-import { Fragment, useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 
-import EditForm from '@components/dashboard/EditForm';
 import ErrorBoundary from '@components/ErrorBoundary';
-import EventRow from '@components/dashboard/EventRow';
-import EventTableHeader from '@components/dashboard/EventTableHeader';
-import FilterChips from '@components/dashboard/FilterChips';
 import ModalDelete from '@components/ModalDelete';
+import PanelEvents from '@components/dashboard/PanelEvents';
 import PanelOutcomes from '@components/dashboard/PanelOutcomes';
 import PanelTestimonials from '@components/dashboard/PanelTestimonials';
 import ScreenLogin from '@components/dashboard/ScreenLogin';
 import ScreenSetPassword from '@components/dashboard/ScreenSetPassword';
 import Sidebar from '@components/dashboard/Sidebar';
 import Spinner from '@components/Spinner';
-import TableEmpty from '@components/dashboard/TableEmpty';
 import TopBar from '@components/dashboard/TopBar';
-import { COVER_PATH_PATTERN, FONT_HEADING, FONT_MONO, LEVELS, STYLES, TIME_PATTERN, TOPBAR_HEIGHT, URL_PATTERN } from '@lib/constants';
+import { COVER_PATH_PATTERN, STYLES, TIME_PATTERN, TOPBAR_HEIGHT, URL_PATTERN, Z_INDEX } from '@lib/constants';
 import { getToday } from '@lib/utils';
 import { useAuth } from '@lib/authClient';
 
@@ -28,13 +24,14 @@ interface DashboardState {
     activePanel: PanelKey;
     activeTiming: string;
     confirmDeleteId: string | null;
-    confirmDeleteType: 'event' | 'outcome' | 'testimonial';
+    confirmDeleteType: keyof typeof PANEL_META;
     editingEventId: string | null;
     editingOutcomeId: string | null;
     editingTestimonialId: string | null;
     eventForm: EventFormData | null;
     eventFormErrors: Record<string, boolean>;
     events: AdminEvent[];
+    isDeleting: boolean;
     isDrawerOpen: boolean;
     isLoading: boolean;
     isSaving: boolean;
@@ -51,33 +48,8 @@ interface DashboardState {
     toast: string | null;
 }
 
-interface EventFormData {
-    content: string;
-    cover: string;
-    date: string;
-    level: string;
-    location: string;
-    time: string;
-    title: string;
-}
-
 const DELETE_ERROR = 'Failed to delete';
-
-const EVENT_FORM_ROWS: EditFormField<EventFormData>[][] = [
-    [{ errorMessage: 'Title is required.', key: 'title', kind: 'input', label: 'Title', required: true }],
-    [
-        { errorMessage: 'Date is required.', key: 'date', kind: 'date', label: 'Date', required: true },
-        { errorMessage: 'Time must be a 24-hour range.', key: 'time', kind: 'input', label: 'Time', required: true },
-    ],
-    [
-        { errorMessage: 'Location is required.', key: 'location', kind: 'input', label: 'Location', required: true },
-        { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
-    ],
-    [{ errorMessage: 'Cover must be a URL or internal image path.', key: 'cover', kind: 'input', label: 'Cover' }],
-    [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, mono: true, required: true, rows: 9 }],
-];
-
-const JSON_HEADERS = { 'Content-Type': 'application/json' };
+const JSON_HEADERS = { 'Content-Type': 'application/json' } as const;
 const LOAD_ERROR = 'Failed to load data';
 const MOBILE_BREAKPOINT = 1_024;
 const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
@@ -92,7 +64,14 @@ const PANEL_META = {
 const SAVE_ERROR = 'Failed to save';
 const TOAST_DURATION = 3_000;
 
-function dashboardReducer(state: DashboardState, action: DashboardAction): DashboardState {
+function compareStrings(valueA: string, valueB: string, direction: number) {
+    if (valueA < valueB) return -direction;
+    if (valueA > valueB) return direction;
+
+    return 0;
+}
+
+function dashboardReducer(state: DashboardState, action: DashboardAction) {
     if (action.type === 'SET') return { ...state, ...action.payload };
     if (action.type === 'FN') return { ...state, ...action.payload(state) };
 
@@ -103,7 +82,7 @@ function getFailureMessage(fallback: string) {
     return navigator.onLine ? fallback : OFFLINE_ERROR;
 }
 
-function getInitialPanel(): PanelKey {
+function getInitialPanel() {
     if (typeof window === 'undefined') return 'events';
 
     const stored = localStorage.getItem(PANEL_KEY);
@@ -111,9 +90,15 @@ function getInitialPanel(): PanelKey {
     return stored === 'outcomes' || stored === 'testimonials' ? stored : 'events';
 }
 
-function useDashboardState(getToken: () => Promise<string | null>, onSessionExpired: () => void) {
-    const initialPanel = getInitialPanel();
+function mergeFormFields<FormValues>(form: FormValues, errors: Record<string, boolean>, fields: Partial<FormValues>) {
+    return {
+        errors: { ...errors, ...Object.fromEntries(Object.keys(fields).map(key => [key, false])) },
+        form: { ...form, ...fields },
+    };
+}
 
+function useDashboardState(getToken: () => Promise<string | null>, isAuthenticated: boolean, onSessionExpired: () => void) {
+    const initialPanel = getInitialPanel();
     const [isMobile, setIsMobile] = useState(false);
 
     const [state, dispatch] = useReducer(dashboardReducer, {
@@ -129,6 +114,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         eventForm: null,
         eventFormErrors: {},
         events: [],
+        isDeleting: false,
         isDrawerOpen: typeof window !== 'undefined' && window.innerWidth > MOBILE_BREAKPOINT,
         isLoading: true,
         isSaving: false,
@@ -145,6 +131,8 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         toast: null,
     } satisfies DashboardState);
 
+    const fetchSequence = useRef(0);
+
     const set = useCallback(
         (payload: Partial<DashboardState>) => dispatch({ payload, type: 'SET' }),
         [],
@@ -158,12 +146,16 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
     );
 
     async function fetchData() {
+        const requestId = ++fetchSequence.current;
+
         try {
             const responses = await Promise.all([
                 fetch(PANEL_META.event.endpoint),
                 fetch(PANEL_META.outcome.endpoint),
                 fetch(PANEL_META.testimonial.endpoint),
             ]);
+
+            if (requestId !== fetchSequence.current) return;
 
             if (responses.some(response => !response.ok)) {
                 set({ isLoading: false });
@@ -174,14 +166,18 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
 
             const [events, outcomes, testimonials] = await Promise.all(responses.map(response => response.json()));
 
+            if (requestId !== fetchSequence.current) return;
+
             set({ events, isLoading: false, outcomes, testimonials });
         } catch {
+            if (requestId !== fetchSequence.current) return;
+
             set({ isLoading: false });
             showToast(getFailureMessage(LOAD_ERROR), true);
         }
     }
 
-    async function fetchWithAuth(url: string, options: RequestInit) {
+    async function fetchWithAuth(url: string, options: RequestInit & { headers?: Record<string, string> }) {
         const token = await getToken();
 
         if (!token) {
@@ -190,7 +186,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
             throw new Error('Session expired');
         }
 
-        const headers = { ...options.headers as Record<string, string>, Authorization: `Bearer ${token}` };
+        const headers = { ...options.headers, Authorization: `Bearer ${token}` };
 
         return fetch(url, { ...options, headers });
     }
@@ -207,7 +203,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         set({ editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} });
     }
 
-    function handleDrawerEscape(event: KeyboardEvent) {
+    function handleKeyDown(event: KeyboardEvent) {
         if (event.key === 'Escape' && isMobile && state.isDrawerOpen) set({ isDrawerOpen: false });
     }
 
@@ -233,7 +229,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
             return;
         }
 
-        const body: Record<string, string> = { ...state.eventForm };
+        const body: EventFormData & { id?: string } = { ...state.eventForm };
         const isNew = state.editingEventId === 'new';
 
         if (!isNew && state.editingEventId) body.id = state.editingEventId;
@@ -259,7 +255,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         const isNew = state.editingOutcomeId === 'new';
         const points = state.outcomeForm.points.split('\n').map(line => line.trim()).filter(Boolean);
 
-        const body: Record<string, string | string[]> = { points, summary: state.outcomeForm.summary, title: state.outcomeForm.title };
+        const body: Omit<OutcomeFormData, 'points'> & { id?: string; points: string[] } = { points, summary: state.outcomeForm.summary, title: state.outcomeForm.title };
 
         if (!isNew && state.editingOutcomeId) body.id = state.editingOutcomeId;
 
@@ -282,7 +278,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
             return;
         }
 
-        const body: Record<string, string> = { ...state.testimonialForm };
+        const body: TestimonialFormData & { id?: string } = { ...state.testimonialForm };
         const isNew = state.editingTestimonialId === 'new';
 
         if (!isNew && state.editingTestimonialId) body.id = state.editingTestimonialId;
@@ -295,7 +291,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
 
         if (entry) {
             set({
-                editingEventId: entry.date || id,
+                editingEventId: id,
                 eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, time: entry.time || '', title: entry.title },
                 eventFormErrors: {},
             });
@@ -338,10 +334,9 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         update((previous) => {
             if (!previous.eventForm) return {};
 
-            return {
-                eventForm: { ...previous.eventForm, ...fields },
-                eventFormErrors: { ...previous.eventFormErrors, ...Object.fromEntries(Object.keys(fields).map(key => [key, false])) },
-            };
+            const { errors, form } = mergeFormFields(previous.eventForm, previous.eventFormErrors, fields);
+
+            return { eventForm: form, eventFormErrors: errors };
         });
     }
 
@@ -349,10 +344,9 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         update((previous) => {
             if (!previous.outcomeForm) return {};
 
-            return {
-                outcomeForm: { ...previous.outcomeForm, ...fields },
-                outcomeFormErrors: { ...previous.outcomeFormErrors, ...Object.fromEntries(Object.keys(fields).map(key => [key, false])) },
-            };
+            const { errors, form } = mergeFormFields(previous.outcomeForm, previous.outcomeFormErrors, fields);
+
+            return { outcomeForm: form, outcomeFormErrors: errors };
         });
     }
 
@@ -360,10 +354,9 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         update((previous) => {
             if (!previous.testimonialForm) return {};
 
-            return {
-                testimonialForm: { ...previous.testimonialForm, ...fields },
-                testimonialFormErrors: { ...previous.testimonialFormErrors, ...Object.fromEntries(Object.keys(fields).map(key => [key, false])) },
-            };
+            const { errors, form } = mergeFormFields(previous.testimonialForm, previous.testimonialFormErrors, fields);
+
+            return { testimonialForm: form, testimonialFormErrors: errors };
         });
     }
 
@@ -378,7 +371,7 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
         toastTimer.current = setTimeout(() => set({ isToastError: false, toast: null }), TOAST_DURATION);
     }
 
-    async function submitEntity(endpoint: string, body: Record<string, unknown>, successState: Partial<DashboardState>, successMessage: string) {
+    async function submitEntity(endpoint: string, body: object, successState: Partial<DashboardState>, successMessage: string) {
         set({ isSaving: true });
 
         try {
@@ -403,8 +396,8 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
     }
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (isAuthenticated) fetchData();
+    }, [isAuthenticated]);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`);
@@ -417,9 +410,9 @@ function useDashboardState(getToken: () => Promise<string | null>, onSessionExpi
     }, [set]);
 
     useEffect(() => {
-        document.addEventListener('keydown', handleDrawerEscape);
+        document.addEventListener('keydown', handleKeyDown);
 
-        return () => document.removeEventListener('keydown', handleDrawerEscape);
+        return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isMobile, set, state.isDrawerOpen]);
 
     useEffect(() => {
@@ -486,10 +479,11 @@ function DashboardInner() {
         set,
         showToast,
         state,
-    } = useDashboardState(auth.getToken, auth.handleSessionExpired);
+    } = useDashboardState(auth.getToken, Boolean(auth.user), auth.handleSessionExpired);
 
     const confirmCollections = { event: state.events, outcome: state.outcomes, testimonial: state.testimonials };
     const direction = state.sortDirection === 'asc' ? 1 : -1;
+    const locations = [...new Set(state.events.map(entry => entry.location))].sort();
     const query = state.searchValue.trim().toLowerCase();
     const today = getToday();
 
@@ -504,7 +498,6 @@ function DashboardInner() {
             && (state.activeTiming === 'all' || (state.activeTiming === 'upcoming' && entry.date >= today) || (state.activeTiming === 'past' && entry.date < today))
             && (!query || entry.location.toLowerCase().includes(query) || entry.title.toLowerCase().includes(query)),
         )
-        .slice()
         .sort((entryA, entryB) => {
             let valueA: string, valueB: string;
 
@@ -526,37 +519,32 @@ function DashboardInner() {
                     valueB = entryB.title.toLowerCase();
             }
 
-            if (valueA < valueB) return -direction;
-            if (valueA > valueB) return direction;
-
-            return 0;
+            return compareStrings(valueA, valueB, direction);
         });
 
-    const filteredOutcomes = query
+    const filteredOutcomes = (query
         ? state.outcomes.filter(outcome => outcome.summary.toLowerCase().includes(query) || outcome.title.toLowerCase().includes(query))
-        : state.outcomes;
+        : state.outcomes
+    ).slice().sort((outcomeA, outcomeB) => {
+        const key = state.sortKey === 'summary' ? 'summary' : 'title';
+
+        return compareStrings(outcomeA[key].toLowerCase(), outcomeB[key].toLowerCase(), direction);
+    });
 
     const filteredTestimonials = (query
         ? state.testimonials.filter(testimonial => testimonial.industry.toLowerCase().includes(query) || testimonial.name.toLowerCase().includes(query) || testimonial.role.toLowerCase().includes(query))
         : state.testimonials
     ).slice().sort((testimonialA, testimonialB) => {
-        const key = state.sortKey;
+        const key = state.sortKey === 'industry' || state.sortKey === 'role' ? state.sortKey : 'name';
 
-        const valueA = (key === 'industry' || key === 'name' || key === 'role') ? testimonialA[key].toLowerCase() : testimonialA.name.toLowerCase();
-        const valueB = (key === 'industry' || key === 'name' || key === 'role') ? testimonialB[key].toLowerCase() : testimonialB.name.toLowerCase();
-
-        if (valueA < valueB) return -direction;
-        if (valueA > valueB) return direction;
-
-        return 0;
+        return compareStrings(testimonialA[key].toLowerCase(), testimonialB[key].toLowerCase(), direction);
     });
 
     async function handleConfirmDelete() {
+        const { endpoint, label } = PANEL_META[state.confirmDeleteType];
         const id = state.confirmDeleteId;
 
-        const { endpoint, label } = PANEL_META[state.confirmDeleteType];
-
-        set({ confirmDeleteId: null });
+        set({ isDeleting: true });
 
         try {
             const response = await fetchWithAuth(endpoint, { body: JSON.stringify({ id }), headers: JSON_HEADERS, method: 'DELETE' });
@@ -569,22 +557,24 @@ function DashboardInner() {
                 return;
             }
 
-            set({ editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, testimonialForm: null });
+            set({ confirmDeleteId: null, editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, testimonialForm: null });
             fetchData();
             showToast(`${label} deleted`);
         } catch {
             showToast(getFailureMessage(DELETE_ERROR), true);
+        } finally {
+            set({ isDeleting: false });
         }
+    }
+
+    function handleLogout() {
+        auth.handleLogout();
+        set({ editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, isDrawerOpen: false, outcomeForm: null, testimonialForm: null });
     }
 
     function handleSelectPanel(key: PanelKey) {
         localStorage.setItem(PANEL_KEY, key);
-        set({ activePanel: key, editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, sortDirection: 'asc', sortKey: key === 'events' ? 'title' : 'name', testimonialForm: null });
-    }
-
-    function handleSignOut() {
-        auth.handleLogout();
-        set({ editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, isDrawerOpen: false, outcomeForm: null, testimonialForm: null });
+        set({ activePanel: key, editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, sortDirection: 'asc', sortKey: key === 'testimonials' ? 'name' : 'title', testimonialForm: null });
     }
 
     function handleToggleSort(field: string) {
@@ -623,106 +613,46 @@ function DashboardInner() {
                     onCancelEdit={handleCancelOutcomeEdit}
                     onRequestDelete={id => set({ confirmDeleteId: id, confirmDeleteType: 'outcome' })}
                     onSave={handleSaveOutcome}
+                    onSort={handleToggleSort}
                     onStartEdit={handleStartOutcomeEdit}
                     onStartNew={handleStartNewOutcome}
                     onUpdate={handleUpdateOutcomeForm}
                     outcomeForm={state.outcomeForm}
                     outcomeFormErrors={state.outcomeFormErrors}
                     outcomes={filteredOutcomes}
+                    sortDirection={state.sortDirection}
+                    sortKey={state.sortKey}
                 />
             );
         }
 
-        if (state.editingEventId === null) {
-            const locations = [...new Set(state.events.map(entry => entry.location))].sort();
-
-            return (
-                <div style={{ margin: '0 auto', maxWidth: 1280 }}>
-                    <div style={{ marginBottom: 24 }}>
-                        <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, calc(21.33px + 0.83vw), 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 10px' }}>Events</h1>
-                        <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em', textTransform: 'lowercase' }}>
-                            <span>
-                                {state.events.length}
-                                {' '}
-                                {state.events.length === 1 ? 'event' : 'events'}
-                            </span>
-                            <span aria-hidden="true">&middot;</span>
-                            <span>
-                                {locations.length}
-                                {' '}
-                                {locations.length === 1 ? 'location' : 'locations'}
-                            </span>
-                            {LEVELS.map((level) => {
-                                const count = state.events.filter(entry => entry.level === level).length;
-
-                                if (!count) return null;
-
-                                return (
-                                    <Fragment key={level}>
-                                        <span aria-hidden="true">&middot;</span>
-                                        <span>
-                                            {count}
-                                            {' '}
-                                            {level}
-                                        </span>
-                                    </Fragment>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    <FilterChips
-                        activeLevel={state.activeLevel}
-                        activeLocation={state.activeLocation}
-                        activeTiming={state.activeTiming}
-                        locations={locations}
-                        onLevelChange={value => set({ activeLevel: value })}
-                        onLocationChange={value => set({ activeLocation: value })}
-                        onNewEvent={handleStartNewEvent}
-                        onTimingChange={value => set({ activeTiming: value })}
-                    />
-                    <div aria-label={isMobile || !filteredEvents.length ? undefined : 'Events'} role={isMobile || !filteredEvents.length ? undefined : 'table'} style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: 14, overflow: 'auto' }} tabIndex={0}>
-                        {!isMobile && filteredEvents.length > 0 && (
-                            <EventTableHeader
-                                onSort={handleToggleSort}
-                                sortDirection={state.sortDirection}
-                                sortKey={state.sortKey}
-                            />
-                        )}
-                        {filteredEvents.length > 0
-                            ? filteredEvents.map(entry => (
-                                    <EventRow
-                                        entry={entry}
-                                        isMobile={isMobile}
-                                        key={entry.id}
-                                        onDelete={() => set({ confirmDeleteId: entry.id, confirmDeleteType: 'event' })}
-                                        onEdit={() => handleStartEventEdit(entry.id)}
-                                    />
-                                ))
-                            : <TableEmpty description="Try a different search or filter, or add a new event." title="No events found" />}
-                    </div>
-                </div>
-            );
-        }
-
-        if (state.eventForm) {
-            return (
-                <EditForm
-                    editingId={state.editingEventId}
-                    entity="event"
-                    fieldRows={EVENT_FORM_ROWS}
-                    form={state.eventForm}
-                    formErrors={state.eventFormErrors}
-                    isMobile={isMobile}
-                    isSaving={state.isSaving}
-                    onCancel={handleCancelEventEdit}
-                    onDelete={() => set({ confirmDeleteId: state.editingEventId, confirmDeleteType: 'event' })}
-                    onSave={handleSaveEvent}
-                    onUpdate={handleUpdateEventForm}
-                />
-            );
-        }
-
-        return null;
+        return (
+            <PanelEvents
+                activeLevel={state.activeLevel}
+                activeLocation={state.activeLocation}
+                activeTiming={state.activeTiming}
+                allEvents={state.events}
+                editingEventId={state.editingEventId}
+                eventForm={state.eventForm}
+                eventFormErrors={state.eventFormErrors}
+                events={filteredEvents}
+                isMobile={isMobile}
+                isSaving={state.isSaving}
+                locations={locations}
+                onCancelEdit={handleCancelEventEdit}
+                onLevelChange={value => set({ activeLevel: value })}
+                onLocationChange={value => set({ activeLocation: value })}
+                onRequestDelete={id => set({ confirmDeleteId: id, confirmDeleteType: 'event' })}
+                onSave={handleSaveEvent}
+                onSort={handleToggleSort}
+                onStartEdit={handleStartEventEdit}
+                onStartNew={handleStartNewEvent}
+                onTimingChange={value => set({ activeTiming: value })}
+                onUpdate={handleUpdateEventForm}
+                sortDirection={state.sortDirection}
+                sortKey={state.sortKey}
+            />
+        );
     }
 
     if (auth.isLoading) return <ScreenLoading />;
@@ -742,14 +672,14 @@ function DashboardInner() {
                 searchValue={state.searchValue}
             />
             <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
-                {isMobile && state.isDrawerOpen && <button aria-label="Close navigation" onClick={() => set({ isDrawerOpen: false })} style={{ background: STYLES.overlayLight, border: 'none', inset: `${TOPBAR_HEIGHT}px 0 0 0`, position: 'fixed', zIndex: 30 }} type="button" />}
+                {isMobile && state.isDrawerOpen && <button className="dashboard-backdrop" aria-label="Close navigation" onClick={() => set({ isDrawerOpen: false })} style={{ border: 'none', inset: `${TOPBAR_HEIGHT}px 0 0 0`, position: 'fixed', zIndex: Z_INDEX.overlay }} type="button" />}
                 <Sidebar
                     activePanel={state.activePanel}
                     isDrawerOpen={state.isDrawerOpen}
                     isMobile={isMobile}
                     key={isMobile ? 'mobile' : 'desktop'}
                     onCloseDrawer={() => set({ isDrawerOpen: false })}
-                    onLogout={handleSignOut}
+                    onLogout={handleLogout}
                     onSelectPanel={handleSelectPanel}
                     userEmail={auth.user?.email ?? ''}
                 />
@@ -757,15 +687,20 @@ function DashboardInner() {
                     {renderPanel()}
                 </main>
             </div>
-            {state.confirmDeleteId && confirmItem && (
+            {confirmItem && (
                 <ModalDelete
+                    isDeleting={state.isDeleting}
                     onCancel={() => set({ confirmDeleteId: null })}
                     onConfirm={handleConfirmDelete}
                     title={'title' in confirmItem ? confirmItem.title : confirmItem.name}
                 />
             )}
             {state.toast && (
-                <div aria-live="polite" role="status" style={{ alignItems: 'center', animation: 'dashboard__toast-in var(--duration-slow) ease both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, justifyContent: 'center', left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px 24px', position: 'fixed', textAlign: 'center', transform: 'translateX(-50%)', zIndex: 50 }}>
+                <div
+                    aria-live="polite"
+                    role="status"
+                    style={{ alignItems: 'center', animation: 'dashboard__toast-in var(--duration-slow) ease both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, justifyContent: 'center', left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px 24px', position: 'fixed', textAlign: 'center', transform: 'translateX(-50%)', zIndex: Z_INDEX.toast }}
+                >
                     {state.toast}
                 </div>
             )}

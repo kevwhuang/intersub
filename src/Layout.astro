@@ -22,8 +22,8 @@ interface Props {
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 const cookieLang = Astro.cookies.get('lang')?.value;
-const preferredLang = Astro.request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
 const { description, noindex, title } = Astro.props;
+const preferredLang = Astro.request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
 
 const isChinese = cookieLang === 'zh' || (cookieLang !== 'en' && preferredLang.startsWith('zh'));
 

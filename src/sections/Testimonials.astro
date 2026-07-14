@@ -5,14 +5,17 @@ const testimonials = await getTestimonials();
 ---
 
 <section
-    class="testimonials"
+    class="section testimonials"
     aria-label="Client testimonials"
     data-i18n-aria="Client testimonials"
     data-testimonials
 >
     <div class="testimonials__inner shell">
         <p class="testimonials__eyebrow" data-i18n="From the people in the room" data-scroll>From the people in the room</p>
-        <div class="testimonials__carousel" data-scroll>
+        <div
+            class="testimonials__carousel"
+            data-scroll
+        >
             {testimonials.map((testimonial, index) => (
                 <figure
                     class:list={['testimonials__slide', { 'testimonials__slide--active': index === 0 }]}
@@ -27,16 +30,21 @@ const testimonials = await getTestimonials();
                 </figure>
             ))}
         </div>
-        <div class="testimonials__dots flex gap-2 justify-center" data-scroll>
+        <ul
+            class="testimonials__dots flex justify-center gap-0"
+            data-scroll
+        >
             {testimonials.map((_, index) => (
-                <button
-                    class:list={['testimonials__dot', { 'testimonials__dot--active': index === 0 }]}
-                    aria-label={`Show testimonial ${index + 1}`}
-                    data-dot={index}
-                    type="button"
-                />
+                <li>
+                    <button
+                        class:list={['testimonials__dot', { 'testimonials__dot--active': index === 0 }]}
+                        aria-label={`Show testimonial ${index + 1}`}
+                        data-dot={index}
+                        type="button"
+                    />
+                </li>
             ))}
-        </div>
+        </ul>
     </div>
 </section>
 
@@ -53,35 +61,47 @@ const testimonials = await getTestimonials();
     }
 
     .testimonials__dot {
-        background: var(--color-slate-surface);
+        background: transparent;
         border: none;
-        border-radius: 99px;
-        height: 10px;
+        display: grid;
+        height: 48px;
         padding: 0;
+        place-items: center;
+        width: 48px;
+    }
+
+    .testimonials__dot::before {
+        background: var(--color-slate-light);
+        border-radius: 99px;
+        content: '';
+        height: 10px;
         transition: background var(--duration-slow) ease, opacity var(--duration-fast) ease, width var(--duration-slow) ease;
         width: 10px;
     }
 
-    .testimonials__dot:active {
+    .testimonials__dot:active::before {
         opacity: 0.7;
     }
 
     .testimonials__dot:focus-visible {
-        box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
-    .testimonials__dot:hover {
-        background: var(--color-slate-dim);
+    .testimonials__dot:focus-visible::before {
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
     }
 
-    .testimonials__dot--active {
-        background: var(--color-cobalt);
+    .testimonials__dot:hover::before {
+        background: var(--color-slate-pale);
+    }
+
+    .testimonials__dot--active::before {
+        background: var(--color-cobalt-bright);
         width: 32px;
     }
 
-    .testimonials__dot--active:hover {
-        background: var(--color-cobalt);
+    .testimonials__dot--active:hover::before {
+        background: var(--color-cobalt-bright);
     }
 
     .testimonials__eyebrow {
@@ -102,7 +122,6 @@ const testimonials = await getTestimonials();
     }
 
     .testimonials__inner {
-        padding-block: clamp(72px, calc(53.33px + 5.83vw), 128px);
         text-align: center;
     }
 
@@ -149,6 +168,13 @@ const testimonials = await getTestimonials();
 <script>
     import { translate } from '@lib/i18n';
 
+    interface Rotator {
+        currentIndex: number;
+        dots: NodeListOf<HTMLElement>;
+        isPaused: boolean;
+        slides: NodeListOf<HTMLElement>;
+    }
+
     const ROTATE_INTERVAL = 5_200;
 
     let controller: AbortController;
@@ -157,6 +183,7 @@ const testimonials = await getTestimonials();
     function initTestimonials() {
         if (controller) controller.abort();
         if (testimonialInterval) clearInterval(testimonialInterval);
+
         controller = new AbortController();
 
         const section = document.querySelector<HTMLElement>('[data-testimonials]');
@@ -168,63 +195,64 @@ const testimonials = await getTestimonials();
 
         if (!slides.length) return;
 
-        let currentIndex = 0;
-        let isPaused = false;
+        const rotator: Rotator = { currentIndex: 0, dots, isPaused: false, slides };
 
-        function labelDots() {
-            dots.forEach((dot, dotIndex) => {
-                dot.setAttribute('aria-label', `${translate('Show testimonial')} ${dotIndex + 1}`);
-            });
-        }
+        function handleDotClick(event: Event) {
+            if (!(event.currentTarget instanceof HTMLElement)) return;
 
-        function resetInterval() {
-            if (testimonialInterval) clearInterval(testimonialInterval);
-            testimonialInterval = setInterval(() => {
-                if (!isPaused) showSlide((currentIndex + 1) % slides.length);
-            }, ROTATE_INTERVAL);
-        }
-
-        function showSlide(index: number) {
-            slides.forEach((slide, slideIndex) => {
-                slide.classList.toggle('testimonials__slide--active', slideIndex === index);
-            });
-
-            dots.forEach((dot, dotIndex) => {
-                dot.classList.toggle('testimonials__dot--active', dotIndex === index);
-            });
-
-            currentIndex = index;
+            showSlide(rotator, Number(event.currentTarget.dataset.dot));
+            resetInterval(rotator);
         }
 
         dots.forEach((dot) => {
-            dot.addEventListener('click', () => {
-                const index = Number(dot.dataset.dot);
-
-                showSlide(index);
-                resetInterval();
-            }, { signal: controller.signal });
+            dot.addEventListener('click', handleDotClick, { signal: controller.signal });
         });
 
         section.addEventListener('mouseenter', () => {
-            isPaused = true;
+            rotator.isPaused = true;
         }, { signal: controller.signal });
 
         section.addEventListener('mouseleave', () => {
-            isPaused = false;
+            rotator.isPaused = false;
         }, { signal: controller.signal });
 
         section.addEventListener('focusin', () => {
-            isPaused = true;
+            rotator.isPaused = true;
         }, { signal: controller.signal });
 
         section.addEventListener('focusout', (event) => {
-            if (!(event.relatedTarget instanceof Node) || !section.contains(event.relatedTarget)) isPaused = false;
+            if (!(event.relatedTarget instanceof Node) || !section.contains(event.relatedTarget)) rotator.isPaused = false;
         }, { signal: controller.signal });
 
-        labelDots();
-        resetInterval();
+        labelDots(dots);
+        resetInterval(rotator);
 
-        window.addEventListener('lang:change', labelDots, { signal: controller.signal });
+        window.addEventListener('lang:change', () => labelDots(dots), { signal: controller.signal });
+    }
+
+    function labelDots(dots: NodeListOf<HTMLElement>) {
+        dots.forEach((dot, dotIndex) => {
+            dot.setAttribute('aria-label', `${translate('Show testimonial')} ${dotIndex + 1}`);
+        });
+    }
+
+    function resetInterval(rotator: Rotator) {
+        if (testimonialInterval) clearInterval(testimonialInterval);
+        testimonialInterval = setInterval(() => {
+            if (!rotator.isPaused) showSlide(rotator, (rotator.currentIndex + 1) % rotator.slides.length);
+        }, ROTATE_INTERVAL);
+    }
+
+    function showSlide(rotator: Rotator, index: number) {
+        rotator.slides.forEach((slide, slideIndex) => {
+            slide.classList.toggle('testimonials__slide--active', slideIndex === index);
+        });
+
+        rotator.dots.forEach((dot, dotIndex) => {
+            dot.classList.toggle('testimonials__dot--active', dotIndex === index);
+        });
+
+        rotator.currentIndex = index;
     }
 
     document.addEventListener('astro:before-swap', () => {

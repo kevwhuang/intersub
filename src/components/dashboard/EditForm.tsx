@@ -1,6 +1,8 @@
 import FormField from '@components/dashboard/FormField';
 import Spinner from '@components/Spinner';
-import { FONT_HEADING, FONT_MONO, STYLES } from '@lib/constants';
+import { FONT_MONO, STYLES, TOUCH_TARGET } from '@lib/constants';
+
+const PADDING_COMPACT = '11px 14px';
 
 export default function EditForm<Values extends Record<keyof Values, string>>({ editingId, entity, fieldRows, form, formErrors, isMobile, isSaving, onCancel, onDelete, onSave, onUpdate }: {
     editingId: string;
@@ -24,8 +26,8 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
         onSave();
     }
 
-    function renderControl(field: EditFormField<Values>) {
-        const describedBy = formErrors[field.key] ? `error-${entity}-${field.key}` : undefined;
+    function renderControl(field: EditFormField<Values>, errorId: string) {
+        const describedBy = formErrors[field.key] ? errorId : undefined;
         const inputClassName = formErrors[field.key] ? 'dashboard-input dashboard-input--error' : 'dashboard-input';
 
         function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
@@ -35,7 +37,13 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
         if (field.kind === 'select') {
             return (
                 <div className="dashboard-select">
-                    <select className="dashboard-input" onChange={handleChange} style={{ ...STYLES.inputBase, appearance: 'none', background: STYLES.colorSurface, padding: '11px 14px' }} value={form[field.key]}>
+                    <select
+                        className={inputClassName}
+                        aria-describedby={describedBy}
+                        onChange={handleChange}
+                        style={{ ...STYLES.inputBase, appearance: 'none', background: STYLES.colorSurface, padding: PADDING_COMPACT }}
+                        value={form[field.key]}
+                    >
                         <option value="">None</option>
                         {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
                     </select>
@@ -50,47 +58,78 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
         }
 
         return (
-            <input className={inputClassName} aria-describedby={describedBy} onChange={handleChange} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { padding: '11px 14px' } : {}) }} type={field.kind === 'date' ? 'date' : undefined} value={form[field.key]} />
+            <input className={inputClassName} aria-describedby={describedBy} onChange={handleChange} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { padding: PADDING_COMPACT } : {}) }} type={field.kind === 'date' ? 'date' : undefined} value={form[field.key]} />
         );
     }
 
     function renderField(field: EditFormField<Values>) {
+        const errorId = `error-${entity}-${field.key}`;
+
         return (
-            <FormField errorId={`error-${entity}-${field.key}`} errorMessage={formErrors[field.key] ? field.errorMessage : undefined} key={field.key} label={field.label} labelSuffix={field.labelSuffix} required={field.required}>
-                {renderControl(field)}
+            <FormField
+                errorId={errorId}
+                errorMessage={formErrors[field.key] ? field.errorMessage : undefined}
+                key={field.key}
+                label={field.label}
+                labelSuffix={field.labelSuffix}
+                required={field.required}
+            >
+                {renderControl(field, errorId)}
             </FormField>
+        );
+    }
+
+    function renderRow(row: EditFormField<Values>[]) {
+        if (row.length === 1) return renderField(row[0]);
+
+        return (
+            <div
+                key={row.map(field => field.key).join('-')}
+                style={{ display: 'grid', gap: 16, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}
+            >
+                {row.map(renderField)}
+            </div>
         );
     }
 
     return (
         <div style={{ margin: '0 auto', maxWidth: 760 }}>
-            <h1 style={{ fontFamily: FONT_HEADING, fontSize: 'clamp(24px, calc(21.33px + 0.83vw), 32px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 28px' }}>
+            <h1 style={{ ...STYLES.headingPanel, margin: '0 0 28px' }}>
                 {isNew ? `New ${entity}` : `Edit ${entity}`}
             </h1>
             <form
+                noValidate
                 onSubmit={handleSubmit}
                 style={{ background: STYLES.colorSurface, border: STYLES.border, borderRadius: STYLES.borderRadiusLarge, display: 'flex', flexDirection: 'column', gap: 20, padding: 'clamp(20px, calc(13.33px + 2.08vw), 40px)' }}
             >
-                {fieldRows.map(row => (
-                    row.length === 1
-                        ? renderField(row[0])
-                        : (
-                                <div key={row.map(field => field.key).join('-')} style={{ display: 'grid', gap: 16, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
-                                    {row.map(renderField)}
-                                </div>
-                            )
-                ))}
-                <div style={{ borderTop: `1px solid ${STYLES.colorBorder}`, display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', gap: 10, paddingTop: 24 }}>
-                    <button className="dashboard-button dashboard-button--primary" aria-label={submitLabel} disabled={isSaving} style={{ alignItems: 'center', display: 'inline-flex', justifyContent: 'center', minHeight: 44, minWidth: isMobile ? undefined : 150 }} type="submit">
+                {fieldRows.map(renderRow)}
+                <div style={{ borderTop: STYLES.borderDivider, display: 'flex', flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', gap: 10, paddingTop: 24 }}>
+                    <button
+                        className="dashboard-button dashboard-button--primary"
+                        aria-label={submitLabel}
+                        disabled={isSaving}
+                        style={{ alignItems: 'center', display: 'inline-flex', justifyContent: 'center', minHeight: TOUCH_TARGET, minWidth: isMobile ? undefined : 150 }}
+                        type="submit"
+                    >
                         {isSaving ? <Spinner /> : submitLabel}
                     </button>
-                    <button className="dashboard-button dashboard-button--outline" disabled={isSaving} onClick={onCancel} type="button">
+                    <button
+                        className="dashboard-button dashboard-button--outline"
+                        disabled={isSaving}
+                        onClick={onCancel}
+                        type="button"
+                    >
                         Cancel
                     </button>
                     {!isNew && (
                         <>
                             {!isMobile && <div style={{ flex: 1 }} />}
-                            <button className="dashboard-button dashboard-button--danger" disabled={isSaving} onClick={onDelete} type="button">
+                            <button
+                                className="dashboard-button dashboard-button--danger"
+                                disabled={isSaving}
+                                onClick={onDelete}
+                                type="button"
+                            >
                                 {`Delete ${entity}`}
                             </button>
                         </>

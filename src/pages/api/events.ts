@@ -17,8 +17,8 @@ function isCalendarDate(date: string): boolean {
     return parsed.getUTCDate() === day && parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1;
 }
 
-async function loadEvents(): Promise<Record<string, unknown>[]> {
-    if (IS_DEV) return readCollection('events').sort(compareByDateDescending);
+async function loadEvents(): Promise<AdminEvent[]> {
+    if (IS_DEV) return readCollection<AdminEvent>('events').sort(compareByDateDescending);
 
     return getEvents();
 }

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
+import { ERROR_RATE_LIMITED } from '../../src/lib/constants';
 import { POST } from '../../src/pages/api/contact';
 
 import type { Mock } from 'vitest';
@@ -40,7 +41,6 @@ const GLOBAL_KEY = 'contact-global';
 const GLOBAL_LIMIT = 50;
 const MESSAGE_ERROR = 'Message is required (max 2000 characters)';
 const NAME_ERROR = 'Name is required (max 100 characters)';
-const RATE_ERROR = 'Too many requests. Please try again later.';
 const RATE_LIMIT = 10;
 const RATE_WINDOW = 3_600_000;
 const SEND_ERROR = 'Failed to send message';
@@ -231,7 +231,7 @@ describe('rate limiter', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(429);
-        expect(result.error).toBe(RATE_ERROR);
+        expect(result.error).toBe(ERROR_RATE_LIMITED);
         expect(store.setJSON).not.toHaveBeenCalled();
     });
 
@@ -243,7 +243,7 @@ describe('rate limiter', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(429);
-        expect(result.error).toBe(RATE_ERROR);
+        expect(result.error).toBe(ERROR_RATE_LIMITED);
         expect(store.setJSON).toHaveBeenCalledExactlyOnceWith('contact-8.8.8.8', { count: 1, windowStart: expect.any(Number) });
     });
 

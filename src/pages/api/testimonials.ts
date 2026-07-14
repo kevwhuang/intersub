@@ -7,8 +7,8 @@ import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
 
-async function loadTestimonials(): Promise<Record<string, unknown>[]> {
-    if (IS_DEV) return readCollection('testimonials');
+async function loadTestimonials(): Promise<AdminTestimonial[]> {
+    if (IS_DEV) return readCollection<AdminTestimonial>('testimonials');
 
     return getTestimonials();
 }

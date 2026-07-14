@@ -17,12 +17,19 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
             <h2 id="contact-title" class="contact__title" data-i18n="Get in touch">Get in touch</h2>
             <p class="contact__intro" data-i18n="Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We'll reply with a tailored recommendation.">Interested in coaching, a workshop, or one of our events? Tell us about your team, the English situations they face, and what you'd like to improve. We'll reply with a tailored recommendation.</p>
         </div>
-        <div class="contact__success" hidden>
-            <h3 class="contact__success-title" data-i18n="Thank you message sent">Thank you message sent</h3>
+        <div
+            class="contact__success"
+            hidden
+        >
+            <h3 class="contact__success-title" data-i18n="Thank you, message sent">Thank you, message sent</h3>
             <p class="contact__success-text" data-i18n="We've received your note and will be in touch at the email you provided.">We've received your note and will be in touch at the email you provided.</p>
             <button class="button button--outline contact__reset" data-i18n="Send another" type="button">Send another</button>
         </div>
-        <form class="contact__form flex flex-col gap-5 text-left" data-scroll novalidate>
+        <form
+            class="contact__form flex flex-col gap-5 text-left"
+            data-scroll
+            novalidate
+        >
             <label class="label">
                 <span data-i18n="Name">Name</span> <span class="label__required">*</span>
                 <input
@@ -200,17 +207,24 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 </style>
 
 <script>
-    import { EMAIL_PATTERN } from '@lib/constants';
+    import { EMAIL_PATTERN, ERROR_GENERIC, ERROR_RATE_LIMITED } from '@lib/constants';
     import { translate } from '@lib/i18n';
 
-    const ERROR_GENERIC = 'Something went wrong. Please try again.';
-    const ERROR_RATE_LIMITED = 'Too many requests. Please try again later.';
     const STATUS_RATE_LIMITED = 429;
 
     let controller: AbortController;
 
+    function clearErrors(form: HTMLFormElement, errors: NodeListOf<HTMLElement>) {
+        errors.forEach(error => error.hidden = true);
+
+        form.querySelectorAll('.input--error, .textarea--error').forEach((element) => {
+            element.classList.remove('input--error', 'textarea--error');
+        });
+    }
+
     function initContact() {
         if (controller) controller.abort();
+
         controller = new AbortController();
 
         const section = document.querySelector('.contact');
@@ -238,35 +252,16 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 
         const eventTitle = new URLSearchParams(window.location.search).get('event');
 
-        if (eventTitle && messageInput) {
-            messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
-            history.replaceState(history.state, '', window.location.pathname + window.location.hash);
+        function handleReset() {
+            form.reset();
+            clearErrors(form, errors);
+            successPanel.hidden = true;
+            form.hidden = false;
         }
 
-        function clearErrors() {
-            errors.forEach(error => error.hidden = true);
-
-            form.querySelectorAll('.input--error, .textarea--error').forEach((element) => {
-                element.classList.remove('input--error', 'textarea--error');
-            });
-        }
-
-        function showNetworkError(key: string) {
-            if (!networkError) return;
-
-            networkError.dataset.i18n = key;
-            networkError.textContent = translate(key);
-            networkError.hidden = false;
-        }
-
-        nameInput?.addEventListener('input', clearErrors, { signal: controller.signal });
-        wechatInput?.addEventListener('input', clearErrors, { signal: controller.signal });
-        emailInput?.addEventListener('input', clearErrors, { signal: controller.signal });
-        messageInput?.addEventListener('input', clearErrors, { signal: controller.signal });
-
-        form.addEventListener('submit', async (event) => {
+        async function handleSubmit(event: SubmitEvent) {
             event.preventDefault();
-            clearErrors();
+            clearErrors(form, errors);
 
             let isValid = true;
 
@@ -311,7 +306,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
                 });
 
                 if (!response.ok) {
-                    showNetworkError(response.status === STATUS_RATE_LIMITED ? ERROR_RATE_LIMITED : ERROR_GENERIC);
+                    showNetworkError(networkError, response.status === STATUS_RATE_LIMITED ? ERROR_RATE_LIMITED : ERROR_GENERIC);
 
                     return;
                 }
@@ -319,18 +314,31 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
                 form.hidden = true;
                 successPanel.hidden = false;
             } catch {
-                showNetworkError(ERROR_GENERIC);
+                showNetworkError(networkError, ERROR_GENERIC);
             } finally {
                 submitButton.disabled = false;
             }
-        }, { signal: controller.signal });
+        }
 
-        resetButton.addEventListener('click', () => {
-            form.reset();
-            clearErrors();
-            successPanel.hidden = true;
-            form.hidden = false;
-        }, { signal: controller.signal });
+        if (eventTitle && messageInput) {
+            messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
+            history.replaceState(history.state, '', window.location.pathname + window.location.hash);
+        }
+
+        nameInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
+        wechatInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
+        emailInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
+        messageInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
+        form.addEventListener('submit', handleSubmit, { signal: controller.signal });
+        resetButton.addEventListener('click', handleReset, { signal: controller.signal });
+    }
+
+    function showNetworkError(networkError: HTMLElement | null, key: string) {
+        if (!networkError) return;
+
+        networkError.dataset.i18n = key;
+        networkError.textContent = translate(key);
+        networkError.hidden = false;
     }
 
     document.addEventListener('astro:page-load', initContact);

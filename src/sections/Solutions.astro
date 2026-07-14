@@ -31,15 +31,22 @@ const SOLUTIONS = [
 ---
 
 <section
-    class="solutions section"
+    class="section solutions"
     aria-labelledby="solutions-title"
 >
     <div class="shell">
-        <div class="solutions__header" data-scroll>
+        <div
+            class="solutions__header"
+            data-scroll
+        >
             <h2 id="solutions-title" class="solutions__title" data-i18n="Solutions">Solutions</h2>
             <p class="solutions__intro" data-i18n="Three formats, each built around your real situations: the meetings you run, the clients you email, the rooms you need to win.">Three formats, each built around your real situations: the meetings you run, the clients you email, the rooms you need to win.</p>
         </div>
-        <div class="solutions__list flex flex-col gap-[22px]" data-scroll data-scroll-stagger="0.12">
+        <div
+            class="solutions__list flex flex-col gap-[22px]"
+            data-scroll
+            data-scroll-stagger="0.12"
+        >
             {SOLUTIONS.map(solution => (
                 <article class="solutions__card">
                     <div class="solutions__card-main flex flex-col">

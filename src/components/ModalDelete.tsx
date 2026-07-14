@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-import { FONT_HEADING, STYLES } from '@lib/constants';
+import Spinner from '@components/Spinner';
+import { FONT_HEADING, STYLES, Z_INDEX } from '@lib/constants';
+import { trapTabKey } from '@lib/utils';
 
-export default function ModalDelete({ onCancel, onConfirm, title }: {
+export default function ModalDelete({ isDeleting, onCancel, onConfirm, title }: {
+    isDeleting: boolean;
     onCancel: () => void;
     onConfirm: () => void;
     title: string;
@@ -10,28 +13,15 @@ export default function ModalDelete({ onCancel, onConfirm, title }: {
     const dialogRef = useRef<HTMLDivElement>(null);
 
     function handleKeyDown(event: KeyboardEvent) {
-        const dialog = dialogRef.current;
-
         if (event.key === 'Escape') {
             onCancel();
 
             return;
         }
 
-        if (event.key !== 'Tab' || !dialog) return;
+        if (!dialogRef.current || event.key !== 'Tab') return;
 
-        const buttons = dialog.querySelectorAll<HTMLButtonElement>('button');
-
-        const first = buttons[0];
-        const last = buttons[buttons.length - 1];
-
-        if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-        }
+        trapTabKey(event, dialogRef.current);
     }
 
     function handleMouseDown(event: MouseEvent) {
@@ -57,20 +47,47 @@ export default function ModalDelete({ onCancel, onConfirm, title }: {
     }, []);
 
     return (
-        <div style={{ alignItems: 'center', background: STYLES.overlayBackdrop, display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: 60 }}>
-            <div aria-describedby="delete-modal-text" aria-labelledby="delete-modal-title" aria-modal="true" ref={dialogRef} role="dialog" style={{ background: STYLES.colorSurface, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowModal, maxWidth: 420, padding: 30, width: '100%' }}>
-                <h2 id="delete-modal-title" style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}>Delete this item?</h2>
-                <p id="delete-modal-text" style={{ color: STYLES.colorMuted, fontSize: 16, lineHeight: 1.55, margin: '0 0 24px' }}>
+        <div style={{ alignItems: 'center', background: STYLES.overlayBackdrop, display: 'flex', inset: 0, justifyContent: 'center', padding: 24, position: 'fixed', zIndex: Z_INDEX.modal }}>
+            <div
+                aria-describedby="delete-modal-text"
+                aria-labelledby="delete-modal-title"
+                aria-modal="true"
+                ref={dialogRef}
+                role="dialog"
+                style={{ background: STYLES.colorSurface, borderRadius: STYLES.borderRadiusLarge, boxShadow: STYLES.shadowModal, maxWidth: 420, padding: 30, width: '100%' }}
+            >
+                <h2
+                    id="delete-modal-title"
+                    style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}
+                >
+                    Delete this item?
+                </h2>
+                <p
+                    id="delete-modal-text"
+                    style={{ color: STYLES.colorMuted, fontSize: 16, lineHeight: 1.55, margin: '0 0 24px' }}
+                >
                     &ldquo;
                     {title}
                     &rdquo; will be permanently deleted. This cannot be undone.
                 </p>
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                    <button className="dashboard-button dashboard-button--outline" onClick={onCancel} style={{ borderRadius: STYLES.borderRadiusSmall, padding: '10px 18px' }}>
+                    <button
+                        className="dashboard-button dashboard-button--outline"
+                        disabled={isDeleting}
+                        onClick={onCancel}
+                        style={{ borderRadius: STYLES.borderRadiusSmall, padding: '10px 18px' }}
+                        type="button"
+                    >
                         Cancel
                     </button>
-                    <button className="dashboard-button dashboard-button--danger dashboard-button--danger-solid" onClick={onConfirm} style={{ borderRadius: STYLES.borderRadiusSmall, padding: '10px 18px' }}>
-                        Delete
+                    <button
+                        className="dashboard-button dashboard-button--danger dashboard-button--danger-solid"
+                        disabled={isDeleting}
+                        onClick={onConfirm}
+                        style={{ borderRadius: STYLES.borderRadiusSmall, padding: '10px 18px' }}
+                        type="button"
+                    >
+                        {isDeleting ? <Spinner /> : 'Delete'}
                     </button>
                 </div>
             </div>

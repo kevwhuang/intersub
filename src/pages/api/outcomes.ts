@@ -7,8 +7,8 @@ import { verifyAuth } from '@lib/authServer';
 
 import type { APIRoute } from 'astro';
 
-async function loadOutcomes(): Promise<Record<string, unknown>[]> {
-    if (IS_DEV) return readCollection('outcomes').sort(compareByNumericId);
+async function loadOutcomes(): Promise<AdminOutcome[]> {
+    if (IS_DEV) return readCollection<AdminOutcome>('outcomes').sort(compareByNumericId);
 
     return getOutcomes();
 }

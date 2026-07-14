@@ -22,16 +22,22 @@ import { ROUTES } from '@lib/constants';
             aria-label="Primary"
             data-i18n-aria="Primary"
         >
-            <div id="site-nav-menu" class="site-nav__menu flex items-center" data-nav-menu>
+            <ul
+                id="site-nav-menu"
+                class="site-nav__menu flex items-center"
+                data-nav-menu
+            >
                 {ROUTES.map(route => (
-                    <a
-                        class="site-nav__link"
-                        href={route.href}
-                    >
-                        <span data-i18n={route.label}>{route.label}</span>
-                    </a>
+                    <li>
+                        <a
+                            class="site-nav__link"
+                            href={route.href}
+                        >
+                            <span data-i18n={route.label}>{route.label}</span>
+                        </a>
+                    </li>
                 ))}
-            </div>
+            </ul>
             <button
                 class="site-nav__language"
                 aria-label="Switch language"
@@ -140,6 +146,7 @@ import { ROUTES } from '@lib/constants';
     .site-nav__link {
         border-radius: 9px;
         color: var(--color-slate-faint);
+        display: block;
         font-size: 16px;
         font-weight: 600;
         padding: 8px 14px;
@@ -277,10 +284,13 @@ import { ROUTES } from '@lib/constants';
 
 <script>
     import { applyLanguage, toggleLanguage } from '@lib/i18n';
+    import { trapTabKey } from '@lib/utils';
 
     const MOBILE_QUERY = '(max-width: 768px)';
 
     let controller: AbortController;
+    let menu: HTMLElement | null;
+    let toggle: HTMLButtonElement | null;
 
     function applyPublicLanguage() {
         if (window.location.pathname.startsWith('/admin')) return;
@@ -288,26 +298,55 @@ import { ROUTES } from '@lib/constants';
         applyLanguage();
     }
 
+    function closeMenu(shouldRestoreFocus = false) {
+        menu?.classList.remove('site-nav__menu--open');
+        toggle?.setAttribute('aria-expanded', 'false');
+
+        if (shouldRestoreFocus) toggle?.focus();
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+        if (!menu?.classList.contains('site-nav__menu--open')) return;
+
+        if (event.key === 'Escape') {
+            closeMenu(true);
+
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+
+        const header = menu.closest<HTMLElement>('.site-header');
+
+        if (header) trapTabKey(event, header);
+    }
+
+    function handleMediaChange(event: MediaQueryListEvent) {
+        if (!event.matches) {
+            closeMenu();
+
+            return;
+        }
+
+        menu?.classList.add('site-nav__menu--instant');
+        requestAnimationFrame(() => requestAnimationFrame(() => menu?.classList.remove('site-nav__menu--instant')));
+    }
+
+    function handleMousedown(event: MouseEvent) {
+        if (!menu?.classList.contains('site-nav__menu--open')) return;
+        if (!(event.target instanceof Element)) return;
+
+        if (!event.target.closest('.site-header') || event.clientY >= menu.getBoundingClientRect().bottom) closeMenu();
+    }
+
     function initNavbar() {
         if (controller) controller.abort();
         controller = new AbortController();
 
         const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
-        const menu = document.querySelector<HTMLElement>('[data-nav-menu]');
-        const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
 
-        function closeMenu(shouldRestoreFocus = false) {
-            menu?.classList.remove('site-nav__menu--open');
-            toggle?.setAttribute('aria-expanded', 'false');
-
-            if (shouldRestoreFocus) toggle?.focus();
-        }
-
-        function openMenu() {
-            menu?.classList.add('site-nav__menu--open');
-            toggle?.setAttribute('aria-expanded', 'true');
-            requestAnimationFrame(() => menu?.querySelector<HTMLElement>('a')?.focus());
-        }
+        menu = document.querySelector<HTMLElement>('[data-nav-menu]');
+        toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
 
         document.querySelectorAll('.site-nav__link').forEach((link) => {
             const href = link.getAttribute('href')?.replace(/\/$/, '') || '/';
@@ -333,59 +372,16 @@ import { ROUTES } from '@lib/constants';
             }
         }, { signal: controller.signal });
 
-        document.addEventListener('keydown', (event) => {
-            if (!menu?.classList.contains('site-nav__menu--open')) return;
-
-            if (event.key === 'Escape') {
-                closeMenu(true);
-
-                return;
-            }
-
-            if (event.key !== 'Tab') return;
-
-            const header = menu.closest('.site-header');
-
-            if (!header) return;
-
-            const focusables = Array.from(header.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
-
-            if (!focusables.length) return;
-
-            const first = focusables[0];
-            const last = focusables[focusables.length - 1];
-            const active = document.activeElement;
-
-            if (event.shiftKey && (active === first || !header.contains(active))) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && (active === last || !header.contains(active))) {
-                event.preventDefault();
-                first.focus();
-            }
-        }, { signal: controller.signal });
-
-        document.addEventListener('mousedown', (event) => {
-            if (!menu?.classList.contains('site-nav__menu--open')) return;
-            if (!(event.target instanceof Element)) return;
-
-            if (!event.target.closest('.site-header') || event.clientY >= menu.getBoundingClientRect().bottom) {
-                closeMenu();
-            }
-        }, { signal: controller.signal });
-
-        window.matchMedia(MOBILE_QUERY).addEventListener('change', (event) => {
-            if (!event.matches) {
-                closeMenu();
-
-                return;
-            }
-
-            menu?.classList.add('site-nav__menu--instant');
-            requestAnimationFrame(() => requestAnimationFrame(() => menu?.classList.remove('site-nav__menu--instant')));
-        }, { signal: controller.signal });
-
+        document.addEventListener('keydown', handleKeydown, { signal: controller.signal });
+        document.addEventListener('mousedown', handleMousedown, { signal: controller.signal });
+        window.matchMedia(MOBILE_QUERY).addEventListener('change', handleMediaChange, { signal: controller.signal });
         document.querySelector('[data-lang-toggle]')?.addEventListener('click', toggleLanguage, { signal: controller.signal });
+    }
+
+    function openMenu() {
+        menu?.classList.add('site-nav__menu--open');
+        toggle?.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(() => menu?.querySelector<HTMLElement>('a')?.focus());
     }
 
     document.addEventListener('astro:page-load', applyPublicLanguage);

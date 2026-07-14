@@ -7,7 +7,7 @@ export default function TableSortButton({ field, label, onSort, sortDirection, s
     sortDirection: SortDirection;
     sortKey: string;
 }) {
-    function getAriaSort(): 'ascending' | 'descending' | 'none' {
+    function getAriaSort() {
         if (sortKey !== field) return 'none';
 
         return sortDirection === 'asc' ? 'ascending' : 'descending';
@@ -16,12 +16,20 @@ export default function TableSortButton({ field, label, onSort, sortDirection, s
     function getSortArrow() {
         if (sortKey !== field) return '';
 
-        return sortDirection === 'asc' ? ' \u2191' : ' \u2193';
+        return sortDirection === 'asc' ? ' ↑' : ' ↓';
     }
 
     return (
-        <div aria-sort={getAriaSort()} role="columnheader">
-            <button className="dashboard-button dashboard-button--ghost" onClick={() => onSort(field)} style={STYLES.headerBase} type="button">
+        <div
+            aria-sort={getAriaSort()}
+            role="columnheader"
+        >
+            <button
+                className="dashboard-button dashboard-button--ghost"
+                onClick={() => onSort(field)}
+                style={STYLES.headerBase}
+                type="button"
+            >
                 {label}
                 {getSortArrow()}
             </button>
