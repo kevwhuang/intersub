@@ -28,6 +28,12 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
     testimonialFormErrors: Record<string, boolean>;
     testimonials: AdminTestimonial[];
 }) {
+    function renderBody() {
+        if (!testimonials.length) return <TableEmpty description="Try a different search, or add a new testimonial." title="No testimonials found" />;
+
+        return testimonials.map(renderRow);
+    }
+
     function renderRow(testimonial: AdminTestimonial) {
         return (
             <TestimonialRow
@@ -106,9 +112,7 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
                         </span>
                     </div>
                 )}
-                {testimonials.length > 0
-                    ? testimonials.map(renderRow)
-                    : <TableEmpty description="Try a different search, or add a new testimonial." title="No testimonials found" />}
+                {renderBody()}
             </div>
         </div>
     );

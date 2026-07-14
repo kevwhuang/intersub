@@ -5,12 +5,12 @@ import placeholderTranslations from '@content/translations/placeholders.json';
 import testimonialsTranslations from '@content/translations/testimonials.json';
 import titleTranslations from '@content/translations/titles.json';
 import uiTranslations from '@content/translations/ui.json';
+import { LANG_KEY } from '@lib/constants';
 import { parseDate } from '@lib/utils';
 
 const DESCRIPTION_TRANSLATIONS: Record<string, string> = descriptionTranslations;
 const HTML_TRANSLATIONS: Record<string, string> = htmlTranslations;
 const LANG_EN = 'en';
-const LANG_KEY = 'lang';
 const LANG_MAX_AGE = 31_536_000;
 const LANG_ZH = 'zh';
 const PLACEHOLDER_TRANSLATIONS: Record<string, string> = placeholderTranslations;
@@ -31,7 +31,7 @@ function formatDateChinese(dateString: string): string {
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
 }
 
-function persistLang(lang: string): void {
+function persistLanguage(lang: string): void {
     try {
         document.cookie = `${LANG_KEY}=${lang}; path=/; max-age=${LANG_MAX_AGE}; samesite=lax`;
         localStorage.setItem(LANG_KEY, lang);
@@ -40,7 +40,7 @@ function persistLang(lang: string): void {
     }
 }
 
-function readLang(): string | null {
+function readLanguage(): string | null {
     try {
         return localStorage.getItem(LANG_KEY);
     } catch {
@@ -49,10 +49,11 @@ function readLang(): string | null {
 }
 
 export function applyLanguage() {
-    const stored = readLang();
+    const stored = readLanguage();
+
     const isChinese = stored !== null ? stored === LANG_ZH : document.documentElement.lang === LANG_ZH;
 
-    persistLang(isChinese ? LANG_ZH : LANG_EN);
+    persistLanguage(isChinese ? LANG_ZH : LANG_EN);
 
     document.documentElement.lang = isChinese ? LANG_ZH : LANG_EN;
 
@@ -106,14 +107,14 @@ export function applyLanguage() {
 }
 
 export function toggleLanguage() {
-    const isChinese = readLang() === LANG_ZH;
+    const isChinese = readLanguage() === LANG_ZH;
 
-    persistLang(isChinese ? LANG_EN : LANG_ZH);
+    persistLanguage(isChinese ? LANG_EN : LANG_ZH);
     applyLanguage();
 }
 
 export function translate(key: string): string {
-    const isChinese = readLang() === LANG_ZH;
+    const isChinese = readLanguage() === LANG_ZH;
 
     return isChinese && TRANSLATIONS[key] ? TRANSLATIONS[key] : key;
 }

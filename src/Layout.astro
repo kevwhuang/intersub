@@ -12,6 +12,7 @@ import { ClientRouter } from 'astro:transitions';
 
 import '@/global.css';
 import '@/styles.css';
+import { LANG_KEY } from '@lib/constants';
 import { translateDescription, translateTitle } from '@lib/i18n';
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
 }
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
-const cookieLang = Astro.cookies.get('lang')?.value;
+const cookieLang = Astro.cookies.get(LANG_KEY)?.value;
 const { description, noindex, title } = Astro.props;
 const preferredLang = Astro.request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
 
@@ -31,6 +32,7 @@ const htmlLang = isChinese ? 'zh' : 'en';
 const localizedDescription = translateDescription(description, isChinese);
 const localizedSiteName = translateTitle('InterSub', isChinese);
 const localizedTitle = translateTitle(title, isChinese);
+const ogImageUrl = `${Astro.site}og.png`;
 const ogLocale = isChinese ? 'zh_CN' : 'en_US';
 const ogLocaleAlternate = isChinese ? 'en_US' : 'zh_CN';
 
@@ -54,7 +56,7 @@ Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
         <link href="/favicon.ico" rel="icon" type="image/x-icon" />
         <meta content={localizedTitle} property="og:title" />
         <meta content={localizedDescription} property="og:description" />
-        <meta content={`${Astro.site}og.png`} property="og:image" />
+        <meta content={ogImageUrl} property="og:image" />
         <meta content={canonicalUrl} property="og:url" />
         <meta content={localizedSiteName} property="og:site_name" />
         <meta content="website" property="og:type" />
@@ -63,7 +65,7 @@ Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
         <meta content="summary_large_image" name="twitter:card" />
         <meta content={localizedTitle} name="twitter:title" />
         <meta content={localizedDescription} name="twitter:description" />
-        <meta content={`${Astro.site}og.png`} name="twitter:image" />
+        <meta content={ogImageUrl} name="twitter:image" />
         <script
             is:inline
             set:html={JSON.stringify({

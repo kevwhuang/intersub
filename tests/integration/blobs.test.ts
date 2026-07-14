@@ -3,8 +3,6 @@ import { existsSync, readFileSync } from 'node:fs';
 import { getStore } from '@netlify/blobs';
 import { join } from 'node:path';
 
-type BlobStore = ReturnType<typeof getStore>;
-
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const PREFIX = `vitest-${process.pid}-`;
 const SITE_ID = 'ea8a2c98-379a-437b-9062-94c97995a975';
@@ -12,15 +10,18 @@ const SWEEP_PREFIX = 'vitest-';
 const TEST_TIMEOUT = 30_000;
 
 const envPath = join(process.cwd(), '.env');
+
 const envLines = existsSync(envPath) ? readFileSync(envPath, 'utf-8').split('\n') : [];
+
 const tokenLine = envLines.find(line => line.startsWith('NETLIFY_AUTH_TOKEN='));
+
 const token = tokenLine ? tokenLine.slice('NETLIFY_AUTH_TOKEN='.length).trim() : '';
 
-function createEventualStore(name: string): BlobStore {
+function createEventualStore(name: string) {
     return getStore({ name, siteID: SITE_ID, token });
 }
 
-function createStrongStore(name: string): BlobStore {
+function createStrongStore(name: string) {
     return getStore({ consistency: 'strong', name, siteID: SITE_ID, token });
 }
 
@@ -46,6 +47,7 @@ describe.skipIf(!token)('netlify blobs', { timeout: TEST_TIMEOUT }, () => {
             const store = createEventualStore('events');
 
             const { blobs } = await store.list();
+
             const keys = blobs.map(blob => blob.key);
 
             expect(keys.length).toBeGreaterThan(0);
@@ -86,6 +88,7 @@ describe.skipIf(!token)('netlify blobs', { timeout: TEST_TIMEOUT }, () => {
                 await Promise.all(keys.map(key => store.setJSON(key, { key })));
 
                 const { blobs } = await store.list({ prefix: `${PREFIX}list-` });
+
                 const listed = blobs.map(blob => blob.key).sort();
 
                 expect(listed).toEqual(keys);
@@ -115,7 +118,7 @@ describe.skipIf(!token)('netlify blobs', { timeout: TEST_TIMEOUT }, () => {
             }
         });
 
-        test('handles a concurrent batch of writes and parallel reads', async () => {
+        test('lists and reads back a concurrently written batch of keys', async () => {
             const keys = [0, 1, 2, 3, 4].map(index => `${PREFIX}batch-${index}`);
             const store = createEventualStore('tests');
 

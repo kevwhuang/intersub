@@ -3,8 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
-type Translations = Record<string, string>;
-
 interface ContentBlock {
     content: string;
     type: 'h' | 'li' | 'p';
@@ -33,12 +31,8 @@ const who = event.level ?? 'Everyone';
 const headings = blocks.filter(block => block.type === 'h').map(block => block.content);
 const listGroupCount = blocks.filter((block, index) => block.type === 'li' && blocks[index - 1]?.type !== 'li').length;
 const listItems = blocks.filter(block => block.type === 'li').map(block => block.content);
-const metaValues = [formatDateEn(event.date), ...event.time ? [event.time] : [], event.location, who];
+const metaValues = [new Date(`${event.date}T00:00:00`).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }), ...event.time ? [event.time] : [], event.location, who];
 const paragraphs = blocks.filter(block => block.type === 'p').map(block => block.content);
-
-function formatDateEn(date: string) {
-    return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 function formatDateZh(date: string) {
     const [year, month, day] = date.split('-').map(Number);
@@ -114,7 +108,7 @@ test.describe('event detail page', () => {
         await expect(page.locator('#error-not-found-title')).toHaveText('This page doesn\'t exist');
     });
 
-    test('translates the title, meta, and date in chinese', async ({ page }) => {
+    test('translates the meta rows to Chinese and keeps the title and content unchanged', async ({ page }) => {
         await page.locator('[data-lang-toggle]').click();
 
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');

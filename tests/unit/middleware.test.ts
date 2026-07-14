@@ -6,7 +6,9 @@ import type { APIContext, MiddlewareNext } from 'astro';
 
 function createContext(pathname: string) {
     const rewritten = new Response('rewritten');
+
     const rewrite = vi.fn(async () => rewritten);
+
     const context = { rewrite, url: new URL(`http://localhost:8888${pathname}`) } as unknown as APIContext;
 
     return { context, rewrite, rewritten };
@@ -16,6 +18,7 @@ describe('onRequest', () => {
     test('passes the /500 path straight through even with a 5xx response', async () => {
         const { context, rewrite } = createContext('/500');
         const errorPage = new Response(null, { status: 503 });
+
         const next: MiddlewareNext = vi.fn(async () => errorPage);
 
         const response = await onRequest(context, next);
@@ -27,6 +30,7 @@ describe('onRequest', () => {
     test('passes page responses under 500 through', async () => {
         const { context, rewrite } = createContext('/events');
         const page = new Response('ok', { status: 200 });
+
         const next: MiddlewareNext = vi.fn(async () => page);
 
         const response = await onRequest(context, next);
@@ -48,6 +52,7 @@ describe('onRequest', () => {
     test('passes api 500 responses through without rewriting', async () => {
         const { context, rewrite } = createContext('/api/events');
         const failure = new Response(null, { status: 500 });
+
         const next: MiddlewareNext = vi.fn(async () => failure);
 
         const response = await onRequest(context, next);
@@ -58,6 +63,7 @@ describe('onRequest', () => {
 
     test('returns a json 500 when next throws on an api path', async () => {
         const { context, rewrite } = createContext('/api/events');
+
         const next: MiddlewareNext = vi.fn(async () => {
             throw new Error('boom');
         });
@@ -72,6 +78,7 @@ describe('onRequest', () => {
 
     test('rewrites to /500 when next throws on a page path', async () => {
         const { context, rewrite, rewritten } = createContext('/events');
+
         const next: MiddlewareNext = vi.fn(async () => {
             throw new Error('boom');
         });

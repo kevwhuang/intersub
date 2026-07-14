@@ -6,13 +6,6 @@ interface AuthUser {
     email?: string;
 }
 
-interface StoredSession {
-    accessToken: string;
-    email: string;
-    expiresAt: number;
-    refreshToken: string;
-}
-
 interface TokenResponse {
     access_token: string;
     email?: string;
@@ -21,7 +14,10 @@ interface TokenResponse {
 }
 
 const AUTH_KEY = 'intersub_auth';
+const ERROR_INVALID_LINK = 'This link is invalid or has expired.';
+const ERROR_SESSION_EXPIRED = 'Session expired. Please sign in again.';
 const EXPIRY_BUFFER = 60_000;
+const FORM_HEADERS = { 'Content-Type': 'application/x-www-form-urlencoded' } as const;
 
 const IDENTITY_URL = typeof window !== 'undefined'
     ? `${window.location.origin}/.netlify/identity`
@@ -32,10 +28,6 @@ const IS_LOCAL = import.meta.env.DEV
     && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
 
 let refreshPromise: Promise<StoredSession | null> | null = null;
-
-function clearAuthHash() {
-    history.replaceState(history.state, '', window.location.pathname + window.location.search);
-}
 
 function clearSession() {
     localStorage.removeItem(AUTH_KEY);
@@ -104,7 +96,7 @@ async function refreshSession(): Promise<StoredSession | null> {
     try {
         const response = await fetchIdentity('/token', {
             body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(stored.refreshToken)}`,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: FORM_HEADERS,
             method: 'POST',
         });
 
@@ -223,7 +215,7 @@ export function useAuth() {
         try {
             const response = await fetchIdentity('/token', {
                 body: `grant_type=password&username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                headers: FORM_HEADERS,
                 method: 'POST',
             });
 
@@ -255,7 +247,7 @@ export function useAuth() {
     function handleSessionExpired() {
         if (loadSession()) return;
 
-        setError('Session expired. Please sign in again.');
+        setError(ERROR_SESSION_EXPIRED);
         setUser(null);
     }
 
@@ -292,7 +284,7 @@ export function useAuth() {
             const session = await resolveSession();
 
             if (!session) {
-                setError('Session expired. Please sign in again.');
+                setError(ERROR_SESSION_EXPIRED);
                 setUser(null);
 
                 return;
@@ -328,7 +320,7 @@ export function useAuth() {
             const authHash = parseAuthHash();
 
             if (authHash) {
-                clearAuthHash();
+                history.replaceState(history.state, '', window.location.pathname + window.location.search);
 
                 if (authHash.kind === 'invite') {
                     const probe = await fetchIdentity('/verify', {
@@ -353,7 +345,7 @@ export function useAuth() {
                         return;
                     }
 
-                    setError('This link is invalid or has expired.');
+                    setError(ERROR_INVALID_LINK);
                 } else {
                     const verified = await verifyToken({ token: authHash.token, type: authHash.kind === 'recovery' ? 'recovery' : 'signup' });
 
@@ -365,7 +357,7 @@ export function useAuth() {
                         return;
                     }
 
-                    setError('This link is invalid or has expired.');
+                    setError(ERROR_INVALID_LINK);
                 }
             }
 

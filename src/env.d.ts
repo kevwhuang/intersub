@@ -6,6 +6,8 @@ type PanelKey = 'events' | 'outcomes' | 'testimonials';
 
 type SortDirection = 'asc' | 'desc';
 
+type Translations = Record<string, string>;
+
 interface AdminEvent {
     content: string;
     cover?: string;
@@ -32,14 +34,18 @@ interface AdminTestimonial {
     role: string;
 }
 
+interface ButtonProps {
+    onClick: () => void;
+}
+
 interface EditFormField<Values> {
     errorMessage?: string;
+    isMonospace?: boolean;
     key: keyof Values & string;
     kind: 'date' | 'input' | 'select' | 'textarea';
     label: string;
     labelSuffix?: string;
     minHeight?: number;
-    mono?: boolean;
     options?: readonly string[];
     required?: boolean;
     rows?: number;
@@ -59,6 +65,13 @@ interface OutcomeFormData {
     points: string;
     summary: string;
     title: string;
+}
+
+interface StoredSession {
+    accessToken: string;
+    email: string;
+    expiresAt: number;
+    refreshToken: string;
 }
 
 interface TestimonialFormData {

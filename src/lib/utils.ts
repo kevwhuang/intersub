@@ -31,7 +31,7 @@ export function getInitials(title: string): string {
 }
 
 export function getLevelMeta(level: string): LevelMeta {
-    return LEVEL_META[level] ?? { background: 'var(--color-silver)', cover: 'var(--color-pearl)', foreground: 'var(--color-slate-muted)', ink: 'var(--color-slate-muted)' };
+    return LEVEL_META[level] ?? { background: 'var(--color-silver)', cover: 'var(--color-silver-light)', foreground: 'var(--color-slate-muted)', ink: 'var(--color-slate-muted)' };
 }
 
 export function getToday(): string {

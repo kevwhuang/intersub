@@ -18,7 +18,7 @@ const EVENT_FORM_ROWS: EditFormField<EventFormData>[][] = [
         { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
     ],
     [{ errorMessage: 'Cover must be a URL or internal image path.', key: 'cover', kind: 'input', label: 'Cover' }],
-    [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, mono: true, required: true, rows: 9 }],
+    [{ errorMessage: 'Content is required.', isMonospace: true, key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
 ];
 
 export default function PanelEvents({ activeLevel, activeLocation, activeTiming, allEvents, editingEventId, eventForm, eventFormErrors, events, isMobile, isSaving, locations, onCancelEdit, onLevelChange, onLocationChange, onRequestDelete, onSave, onSort, onStartEdit, onStartNew, onTimingChange, onUpdate, sortDirection, sortKey }: {
@@ -46,6 +46,12 @@ export default function PanelEvents({ activeLevel, activeLocation, activeTiming,
     sortDirection: SortDirection;
     sortKey: string;
 }) {
+    function renderBody() {
+        if (!events.length) return <TableEmpty description="Try a different search or filter, or add a new event." title="No events found" />;
+
+        return events.map(renderRow);
+    }
+
     function renderRow(entry: AdminEvent) {
         return (
             <EventRow
@@ -133,9 +139,7 @@ export default function PanelEvents({ activeLevel, activeLocation, activeTiming,
                         sortKey={sortKey}
                     />
                 )}
-                {events.length > 0
-                    ? events.map(renderRow)
-                    : <TableEmpty description="Try a different search or filter, or add a new event." title="No events found" />}
+                {renderBody()}
             </div>
         </div>
     );

@@ -17,6 +17,7 @@ function collectByType(node: ReactNode, type: string): ReactElement<TreeProps>[]
     if (!isValidElement(node)) return [];
 
     const element = node as ReactElement<TreeProps>;
+
     const nested = collectByType(element.props.children, type);
 
     return element.type === type ? [element, ...nested] : nested;
@@ -29,6 +30,7 @@ class FailingBoundary extends ErrorBoundary {
 describe('ErrorBoundary', () => {
     test('renders its children while no error is caught', () => {
         const children = createElement('p', null, 'Dashboard ready');
+
         const boundary = new ErrorBoundary({ children });
 
         expect(boundary.render()).toBe(children);
@@ -45,7 +47,7 @@ describe('ErrorBoundary', () => {
         expect(html).toContain('>Error</p>');
         expect(html).toContain('aria-hidden="true"');
         expect(html).toContain('Something went wrong</h1>');
-        expect(html).toContain('Try refreshing the page or returning home.');
+        expect(html).toContain('Return to the home page and try again.');
     });
 
     test('washes the oversized error glyph with the brand color', () => {
@@ -68,6 +70,7 @@ describe('ErrorBoundary', () => {
         Object.assign(boundary.state, { hasError: true });
 
         const fallback = boundary.render();
+
         const [homeLink] = collectByType(fallback, 'a');
 
         expect(homeLink.props.href).toBe('/');

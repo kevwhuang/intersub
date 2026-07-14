@@ -6,7 +6,7 @@ import FormField from '../../src/components/dashboard/FormField';
 
 type FormFieldProps = Parameters<typeof FormField>[0];
 
-function renderField(overrides: Partial<FormFieldProps> = {}): string {
+function renderField(overrides: Partial<FormFieldProps> = {}) {
     const props = { label: 'Title', ...overrides };
 
     return renderToStaticMarkup(createElement(FormField, props, createElement('input', { name: 'title' })));
@@ -26,7 +26,7 @@ describe('FormField', () => {
         expect(html).toContain('Title</span>');
         expect(html).toContain('font-size:12px');
         expect(html).toContain('font-weight:600');
-        expect(html).toContain('margin-bottom:7px');
+        expect(html).toContain('margin-bottom:8px');
     });
 
     test('marks required fields with an accent asterisk', () => {

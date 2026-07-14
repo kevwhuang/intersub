@@ -7,17 +7,6 @@ import { readFileSync, readdirSync } from 'node:fs';
 import EventDetail from '../../src/sections/EventDetail.astro';
 import { formatDate, getInitials, getLevelMeta } from '../../src/lib/utils';
 
-interface EventEntry {
-    content: string;
-    cover?: string;
-    date: string;
-    id: string;
-    level?: string;
-    location: string;
-    time: string;
-    title: string;
-}
-
 const EVENTS_DIR = fileURLToPath(new URL('../../src/content/events', import.meta.url));
 const META_LABELS = ['Date', 'Time', 'Location', 'Who'] as const;
 const SAMPLE_CONTENT = 'Intro paragraph.\n\n## Focus\n- Point one\n- Point two\n\nClosing paragraph.';
@@ -27,7 +16,7 @@ const events = readdirSync(EVENTS_DIR)
     .filter(file => file.endsWith('.json'))
     .map(file => ({
         id: file.replace('.json', ''),
-        ...JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')) as Omit<EventEntry, 'id'>,
+        ...JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')) as Omit<AdminEvent, 'id'>,
     }));
 
 const [event] = events.filter(entry => Boolean(entry.cover && entry.level && entry.time));

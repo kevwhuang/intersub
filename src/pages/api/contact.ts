@@ -7,12 +7,15 @@ import { EMAIL_MAX, EMAIL_PATTERN, ERROR_RATE_LIMITED, IS_DEV, MESSAGE_MAX, NAME
 import type { APIRoute } from 'astro';
 import type { Store } from '@netlify/blobs';
 
+const COBALT = '#2a52e0';
 const EMAIL_FROM = 'InterSub <noreply@intersubstudio.com>';
 const GLOBAL_KEY = 'contact-global';
 const GLOBAL_LIMIT = 50;
 const GLOBAL_WINDOW = 86_400_000;
 const RATE_LIMIT = 10;
 const RATE_WINDOW = 3_600_000;
+const SLATE = '#14161c';
+const SLATE_MUTED = '#4a515e';
 
 function escapeHtml(text: string) {
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -49,10 +52,6 @@ async function isRateLimited(clientAddress: string): Promise<boolean> {
 export const prerender = false;
 
 export const POST: APIRoute = async ({ clientAddress, request }) => {
-    if (await isRateLimited(clientAddress)) {
-        return Response.json({ error: ERROR_RATE_LIMITED }, { status: 429 });
-    }
-
     let body: Record<string, unknown>;
 
     try {
@@ -84,6 +83,8 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
         return Response.json({ error: `Message is required (max ${MESSAGE_MAX} characters)` }, { status: 400 });
     }
 
+    if (await isRateLimited(clientAddress)) return Response.json({ error: ERROR_RATE_LIMITED }, { status: 429 });
+
     const apiKey = import.meta.env.RESEND_API_KEY;
     const contactEmail = import.meta.env.CONTACT_EMAIL;
 
@@ -95,24 +96,17 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
 
     const resend = new Resend(apiKey);
 
-    const raw = {
-        email: email?.trim() ?? '',
-        message: message.trim(),
-        name: name.trim(),
-        wechat: wechat.trim(),
-    };
-
     const escaped = {
-        email: escapeHtml(raw.email),
-        message: escapeHtml(raw.message),
-        name: escapeHtml(raw.name),
-        wechat: escapeHtml(raw.wechat),
+        email: escapeHtml(email),
+        message: escapeHtml(message),
+        name: escapeHtml(name),
+        wechat: escapeHtml(wechat),
     };
 
     const emailRow = escaped.email
         ? `<tr>
-                <td style="color: #4a515e; font-size: 16px; padding: 6px 12px 6px 0; vertical-align: top; white-space: nowrap">Email</td>
-                <td style="color: #14161c; font-size: 16px; padding: 6px 0; word-break: break-word"><a href="mailto:${escaped.email}" style="color: #2a52e0; text-decoration: none">${escaped.email}</a></td>
+                <td style="color: ${SLATE_MUTED}; font-size: 16px; padding: 6px 12px 6px 0; vertical-align: top; white-space: nowrap">Email</td>
+                <td style="color: ${SLATE}; font-size: 16px; padding: 6px 0; word-break: break-word"><a href="mailto:${escaped.email}" style="color: ${COBALT}; text-decoration: none">${escaped.email}</a></td>
             </tr>`
         : '';
 
@@ -128,8 +122,8 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
     const { error } = await resend.emails.send({
         from: EMAIL_FROM,
         html,
-        ...(raw.email && { replyTo: raw.email }),
-        subject: `New inquiry from ${raw.name}`,
+        ...(email && { replyTo: email }),
+        subject: `New inquiry from ${name}`,
         to: contactEmail,
     });
 

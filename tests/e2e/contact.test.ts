@@ -4,6 +4,7 @@ import type { Page, Route } from '@playwright/test';
 
 const ERROR_GENERIC = 'Something went wrong. Please try again.';
 const ERROR_RATE_LIMITED = 'Too many requests. Please try again later.';
+const RESPONSE_DELAY = 750;
 
 const VALID_FORM = {
     email: 'tester@example.com',
@@ -155,7 +156,7 @@ test.describe('contact form', () => {
 
     test('disables the submit button while the request is pending', async ({ page }) => {
         const calls = await routeContact(page, async (route) => {
-            await new Promise(resolve => setTimeout(resolve, 750));
+            await new Promise(resolve => setTimeout(resolve, RESPONSE_DELAY));
             await route.fulfill({ json: { sent: true } });
         });
 

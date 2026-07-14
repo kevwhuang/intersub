@@ -113,6 +113,7 @@ async function postJson(body: Record<string, unknown>): Promise<Response> {
 describe('POST', () => {
     test('rejects a malformed body', async () => {
         const response = await POST(createContext('{'));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -121,6 +122,7 @@ describe('POST', () => {
 
     test('rejects a missing name', async () => {
         const response = await postJson({});
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -129,6 +131,7 @@ describe('POST', () => {
 
     test('rejects a name over 100 characters', async () => {
         const response = await postJson({ name: 'a'.repeat(101) });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -137,6 +140,7 @@ describe('POST', () => {
 
     test('rejects a missing wechat', async () => {
         const response = await postJson({ name: 'Kevin' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -145,6 +149,7 @@ describe('POST', () => {
 
     test('rejects a wechat with spaces', async () => {
         const response = await postJson({ name: 'Kevin', wechat: 'kevin huang' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -153,6 +158,7 @@ describe('POST', () => {
 
     test('rejects a wechat over 50 characters', async () => {
         const response = await postJson({ name: 'Kevin', wechat: 'a'.repeat(51) });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -161,6 +167,7 @@ describe('POST', () => {
 
     test('rejects an invalid email', async () => {
         const response = await postJson({ email: 'not-an-email', name: 'Kevin', wechat: 'kevin' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -169,6 +176,7 @@ describe('POST', () => {
 
     test('rejects an email over 200 characters', async () => {
         const response = await postJson({ email: `${'a'.repeat(195)}@test.com`, name: 'Kevin', wechat: 'kevin' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -177,6 +185,7 @@ describe('POST', () => {
 
     test('allows an empty email string past the email check', async () => {
         const response = await postJson({ email: '', name: 'Kevin', wechat: 'kevin' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -185,6 +194,7 @@ describe('POST', () => {
 
     test('rejects a missing message', async () => {
         const response = await postJson({ name: 'Kevin', wechat: 'kevin' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -193,6 +203,7 @@ describe('POST', () => {
 
     test('rejects a message over 2000 characters', async () => {
         const response = await postJson({ message: 'a'.repeat(2_001), name: 'Kevin', wechat: 'kevin' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -208,16 +219,19 @@ describe('rate limiter', () => {
         vi.restoreAllMocks();
     });
 
-    test('increments the per-ip and global counters under the limit and proceeds to validation', async () => {
+    test('increments the per-ip and global counters under the limit and proceeds to the send stage', async () => {
         const windowStart = Date.now() - 1_000;
+
         const store = buildRateStore({ 'contact-9.9.9.9': { count: 3, windowStart } });
+
         const post = await importProductionPost(() => store);
 
-        const response = await post(createContext('{}', '9.9.9.9'));
+        const response = await post(createContext(buildSendBody(), '9.9.9.9'));
+
         const result: Record<string, unknown> = await response.json();
 
-        expect(response.status).toBe(400);
-        expect(result.error).toBe(NAME_ERROR);
+        expect(response.status).toBe(503);
+        expect(result.error).toBe(CONFIG_ERROR);
         expect(store.setJSON).toHaveBeenCalledTimes(2);
         expect(store.setJSON).toHaveBeenCalledWith('contact-9.9.9.9', { count: 4, windowStart });
         expect(store.setJSON).toHaveBeenCalledWith(GLOBAL_KEY, { count: 1, windowStart: expect.any(Number) });
@@ -225,9 +239,11 @@ describe('rate limiter', () => {
 
     test('returns 429 once an ip reaches the rate limit within the window', async () => {
         const store = buildRateStore({ 'contact-9.9.9.9': { count: RATE_LIMIT, windowStart: Date.now() } });
+
         const post = await importProductionPost(() => store);
 
-        const response = await post(createContext('{}', '9.9.9.9'));
+        const response = await post(createContext(buildSendBody(), '9.9.9.9'));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(429);
@@ -237,9 +253,11 @@ describe('rate limiter', () => {
 
     test('returns 429 for a fresh ip once the global limit is reached', async () => {
         const store = buildRateStore({ [GLOBAL_KEY]: { count: GLOBAL_LIMIT, windowStart: Date.now() } });
+
         const post = await importProductionPost(() => store);
 
-        const response = await post(createContext('{}', '8.8.8.8'));
+        const response = await post(createContext(buildSendBody(), '8.8.8.8'));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(429);
@@ -249,45 +267,66 @@ describe('rate limiter', () => {
 
     test('restarts the per-ip count when the window has expired', async () => {
         const requestedAt = Date.now();
+
         const store = buildRateStore({ 'contact-6.6.6.6': { count: RATE_LIMIT, windowStart: requestedAt - RATE_WINDOW - 1_000 } });
+
         const post = await importProductionPost(() => store);
 
-        const response = await post(createContext('{}', '6.6.6.6'));
+        const response = await post(createContext(buildSendBody(), '6.6.6.6'));
+
         const result: Record<string, unknown> = await response.json();
+
         const payload = store.setJSON.mock.calls.find(call => call[0] === 'contact-6.6.6.6')?.[1];
 
-        expect(response.status).toBe(400);
-        expect(result.error).toBe(NAME_ERROR);
+        expect(response.status).toBe(503);
+        expect(result.error).toBe(CONFIG_ERROR);
         expect(payload?.count).toBe(1);
         expect(payload?.windowStart).toBeGreaterThanOrEqual(requestedAt);
     });
 
-    test('fails open to validation when the store read throws', async () => {
+    test('fails open to the send stage when the store read throws', async () => {
         const store = buildRateStore({});
 
         store.get.mockRejectedValue(new Error('blobs offline'));
 
         const post = await importProductionPost(() => store);
 
-        const response = await post(createContext('{}', '9.9.9.9'));
+        const response = await post(createContext(buildSendBody(), '9.9.9.9'));
+
         const result: Record<string, unknown> = await response.json();
 
-        expect(response.status).toBe(400);
-        expect(result.error).toBe(NAME_ERROR);
+        expect(response.status).toBe(503);
+        expect(result.error).toBe(CONFIG_ERROR);
     });
 
-    test('fails open to validation when the store write throws', async () => {
+    test('fails open to the send stage when the store write throws', async () => {
         const store = buildRateStore({});
 
         store.setJSON.mockRejectedValue(new Error('blobs offline'));
 
         const post = await importProductionPost(() => store);
 
+        const response = await post(createContext(buildSendBody(), '9.9.9.9'));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(503);
+        expect(result.error).toBe(CONFIG_ERROR);
+    });
+
+    test('never touches the counters when the body fails validation', async () => {
+        const store = buildRateStore({ 'contact-9.9.9.9': { count: RATE_LIMIT, windowStart: Date.now() } });
+
+        const post = await importProductionPost(() => store);
+
         const response = await post(createContext('{}', '9.9.9.9'));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
         expect(result.error).toBe(NAME_ERROR);
+        expect(store.get).not.toHaveBeenCalled();
+        expect(store.setJSON).not.toHaveBeenCalled();
     });
 });
 
@@ -302,9 +341,11 @@ describe('send path', () => {
 
     test('returns 503 when the resend api key is blank', async () => {
         const send = buildSendMock({ error: null });
+
         const post = await importSendPath(send, '');
 
         const response = await post(createContext(buildSendBody()));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(503);
@@ -314,6 +355,7 @@ describe('send path', () => {
 
     test('sends the escaped and substituted template through the mocked client', async () => {
         const send = buildSendMock({ error: null });
+
         const post = await importSendPath(send);
 
         const response = await post(createContext(buildSendBody({
@@ -321,7 +363,9 @@ describe('send path', () => {
             message: '<script>alert(1)</script> & < > "',
             name: 'Ann & "Bo" <Cy>',
         })));
+
         const result: Record<string, unknown> = await response.json();
+
         const payload = send.mock.lastCall?.[0];
 
         expect(response.status).toBe(200);
@@ -341,10 +385,13 @@ describe('send path', () => {
 
     test('omits replyTo and the email row when no email is provided', async () => {
         const send = buildSendMock({ error: null });
+
         const post = await importSendPath(send);
 
         const response = await post(createContext(buildSendBody()));
+
         const result: Record<string, unknown> = await response.json();
+
         const payload = send.mock.lastCall?.[0];
 
         expect(response.status).toBe(200);
@@ -357,9 +404,11 @@ describe('send path', () => {
 
     test('returns 500 when the mocked client resolves with an error', async () => {
         const send = buildSendMock({ error: { message: 'boom' } });
+
         const post = await importSendPath(send);
 
         const response = await post(createContext(buildSendBody()));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(500);

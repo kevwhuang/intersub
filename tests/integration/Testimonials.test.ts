@@ -6,21 +6,13 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 import Testimonials from '../../src/sections/Testimonials.astro';
 
-interface Testimonial {
-    id: string;
-    industry: string;
-    name: string;
-    quote: string;
-    role: string;
-}
-
 const TESTIMONIALS_DIR = fileURLToPath(new URL('../../src/content/testimonials', import.meta.url));
 
 const testimonials = readdirSync(TESTIMONIALS_DIR)
     .filter(file => file.endsWith('.json'))
     .map(file => ({
         id: file.replace('.json', ''),
-        ...JSON.parse(readFileSync(join(TESTIMONIALS_DIR, file), 'utf-8')) as Omit<Testimonial, 'id'>,
+        ...JSON.parse(readFileSync(join(TESTIMONIALS_DIR, file), 'utf-8')) as Omit<AdminTestimonial, 'id'>,
     }));
 
 function escapeAttribute(value: string): string {

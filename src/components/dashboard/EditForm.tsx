@@ -53,12 +53,12 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
 
         if (field.kind === 'textarea') {
             return (
-                <textarea className={inputClassName} aria-describedby={describedBy} onChange={handleChange} rows={field.rows} style={{ ...STYLES.inputBase, ...(field.mono ? { fontFamily: FONT_MONO, fontSize: 12 } : {}), lineHeight: 1.6, minHeight: field.minHeight ?? 140, resize: 'vertical' }} value={form[field.key]} />
+                <textarea className={inputClassName} aria-describedby={describedBy} onChange={handleChange} rows={field.rows} style={{ ...STYLES.inputBase, ...(field.isMonospace ? { fontFamily: FONT_MONO, fontSize: 12 } : {}), lineHeight: 1.6, minHeight: field.minHeight ?? 140, resize: 'vertical' }} value={form[field.key]} />
             );
         }
 
         return (
-            <input className={inputClassName} aria-describedby={describedBy} onChange={handleChange} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { padding: PADDING_COMPACT } : {}) }} type={field.kind === 'date' ? 'date' : undefined} value={form[field.key]} />
+            <input className={inputClassName} aria-describedby={describedBy} onChange={handleChange} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { appearance: 'none', minWidth: 0, padding: PADDING_COMPACT } : {}) }} type={field.kind === 'date' ? 'date' : undefined} value={form[field.key]} />
         );
     }
 
@@ -85,7 +85,7 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
         return (
             <div
                 key={row.map(field => field.key).join('-')}
-                style={{ display: 'grid', gap: 16, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}
+                style={{ display: 'grid', gap: 16, gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)' }}
             >
                 {row.map(renderField)}
             </div>

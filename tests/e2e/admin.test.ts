@@ -17,6 +17,7 @@ interface EventEntry {
 
 interface OutcomeEntry {
     points: string[];
+    summary: string;
     title: string;
 }
 
@@ -35,6 +36,7 @@ const RELOAD_QUIET = 1_500;
 const RELOAD_TIMEOUT = 8_000;
 
 const events = loadCollection<EventEntry>('src/content/events').sort((entryA, entryB) => compareText(entryA.title, entryB.title));
+
 const firstEvent = events[0];
 const lastEvent = events[events.length - 1];
 const locations = [...new Set(events.map(event => event.location))].sort();
@@ -67,10 +69,6 @@ function formatDate(date: string) {
 
 function getEventsTable(page: Page) {
     return page.getByRole('table', { name: 'Events' });
-}
-
-function getToday() {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
 }
 
 function loadCollection<T>(directory: string) {
@@ -177,6 +175,25 @@ test.describe('dashboard shell', () => {
         await testimonialsTable.getByRole('button', { name: 'Name' }).click();
         await expect(testimonialsTable.getByRole('row').nth(1).getByRole('cell').first()).toHaveText(testimonials[testimonials.length - 1].name);
     });
+
+    test('sorts outcomes by title direction and by summary', async ({ page }) => {
+        const outcomesBySummary = outcomes.slice().sort((entryA, entryB) => compareText(entryA.summary, entryB.summary));
+
+        await page.getByRole('button', { name: 'Outcomes' }).click();
+
+        const table = page.getByRole('table', { name: 'Outcomes' });
+
+        await expect(table.getByRole('row').nth(1).getByRole('cell').first()).toHaveText(outcomes[0].title);
+
+        await table.getByRole('button', { name: 'Title' }).click();
+        await expect(table.getByRole('row').nth(1).getByRole('cell').first()).toHaveText(outcomes[outcomes.length - 1].title);
+
+        await table.getByRole('button', { name: 'Summary' }).click();
+        await expect(table.getByRole('row').nth(1).getByRole('cell').nth(1)).toHaveText(outcomesBySummary[0].summary);
+
+        await table.getByRole('button', { name: 'Summary' }).click();
+        await expect(table.getByRole('row').nth(1).getByRole('cell').nth(1)).toHaveText(outcomesBySummary[outcomesBySummary.length - 1].summary);
+    });
 });
 
 test.describe('events table', () => {
@@ -235,7 +252,8 @@ test.describe('events table', () => {
     });
 
     test('timing chips filter rows by date against today', async ({ page }) => {
-        const currentDay = getToday();
+        const currentDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
+
         const pastCount = events.filter(event => event.date < currentDay).length;
 
         await page.getByRole('button', { name: 'Past' }).click();
@@ -244,12 +262,13 @@ test.describe('events table', () => {
         await page.getByRole('button', { name: 'Upcoming' }).click();
         await expectEventRowCount(page, events.length - pastCount);
 
-        await page.getByRole('button', { name: 'All', exact: true }).click();
+        await page.getByRole('button', { exact: true, name: 'All' }).click();
         await expectEventRowCount(page, events.length);
     });
 
     test('search filters rows and shows the empty state when nothing matches', async ({ page }) => {
         const loweredTitle = lastEvent.title.toLowerCase();
+
         const matching = events.filter(event => event.location.toLowerCase().includes(loweredTitle) || event.title.toLowerCase().includes(loweredTitle));
 
         await page.getByLabel('Search').fill('zzzz');

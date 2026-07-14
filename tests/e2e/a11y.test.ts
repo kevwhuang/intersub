@@ -90,7 +90,7 @@ test.describe('language', () => {
 });
 
 test.describe('page titles', () => {
-    test('titles are unique and follow the intersub suffix pattern', async ({ page }) => {
+    test('titles are unique and follow the InterSub suffix pattern', async ({ page }) => {
         const titles: string[] = [];
 
         for (const path of PUBLIC_PATHS) {

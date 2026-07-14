@@ -25,7 +25,7 @@ export default class ErrorBoundary extends Component<{ children: React.ReactNode
                         Something went wrong
                     </h1>
                     <p style={{ color: STYLES.colorMuted, fontSize: 16, lineHeight: 1.6, margin: '0 0 32px' }}>
-                        Try refreshing the page or returning home.
+                        Return to the home page and try again.
                     </p>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                         <a

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import Spinner from '@components/Spinner';
-import { FONT_HEADING, STYLES, Z_INDEX } from '@lib/constants';
+import { STYLES, Z_INDEX } from '@lib/constants';
 import { trapTabKey } from '@lib/utils';
 
 export default function ModalDelete({ isDeleting, onCancel, onConfirm, title }: {
@@ -58,7 +58,7 @@ export default function ModalDelete({ isDeleting, onCancel, onConfirm, title }: 
             >
                 <h2
                     id="delete-modal-title"
-                    style={{ fontFamily: FONT_HEADING, fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}
+                    style={{ fontSize: 20, fontWeight: 600, margin: '0 0 10px' }}
                 >
                     Delete this item?
                 </h2>

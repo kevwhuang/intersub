@@ -23,7 +23,9 @@ const UPDATED_SUMMARY = 'Updated sentinel lifecycle summary.';
 const createdIds: string[] = [];
 
 const outcomesDir = join(process.cwd(), 'src/content/outcomes');
+
 const outcomePath = join(outcomesDir, `${OUTCOME_ID}.json`);
+
 const existingOutcome: Record<string, unknown> = JSON.parse(readFileSync(outcomePath, 'utf-8'));
 
 const sentinelOutcome = {
@@ -48,14 +50,6 @@ function buildBlobStore(payloads: Record<string, Record<string, unknown>>): Blob
     };
 }
 
-function committedFiles(): string[] {
-    return execSync('git ls-files src/content/outcomes', { encoding: 'utf-8' })
-        .split('\n')
-        .map(line => basename(line))
-        .filter(file => file.endsWith('.json'))
-        .sort();
-}
-
 function createContext(method: string, body?: string): RouteContext {
     return {
         clientAddress: '127.0.0.1',
@@ -68,11 +62,12 @@ function createContext(method: string, body?: string): RouteContext {
 }
 
 async function createSentinel(): Promise<string> {
-    const id = nextOutcomeId();
+    const id = getNextOutcomeId();
 
     createdIds.push(id);
 
     const response = await postJson(sentinelOutcome);
+
     const result: Record<string, unknown> = await response.json();
 
     expect(response.status).toBe(200);
@@ -83,6 +78,15 @@ async function createSentinel(): Promise<string> {
 
 async function deleteJson(id: string): Promise<Response> {
     return DELETE(createContext('DELETE', JSON.stringify({ id })));
+}
+
+function getNextOutcomeId(): string {
+    const ids = readdirSync(outcomesDir)
+        .filter(file => file.endsWith('.json'))
+        .map(file => parseInt(file.replace('.json', ''), 10))
+        .filter(value => !Number.isNaN(value));
+
+    return String(ids.reduce((max, value) => Math.max(max, value), 0) + 1);
 }
 
 async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promise<RoutesModule> {
@@ -98,13 +102,12 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     return import('../../src/pages/api/outcomes');
 }
 
-function nextOutcomeId(): string {
-    const ids = readdirSync(outcomesDir)
+function listCommittedFiles(): string[] {
+    return execSync('git ls-files src/content/outcomes', { encoding: 'utf-8' })
+        .split('\n')
+        .map(line => basename(line))
         .filter(file => file.endsWith('.json'))
-        .map(file => parseInt(file.replace('.json', ''), 10))
-        .filter(value => !Number.isNaN(value));
-
-    return String(ids.reduce((max, value) => Math.max(max, value), 0) + 1);
+        .sort();
 }
 
 async function postJson(body: Record<string, unknown>): Promise<Response> {
@@ -128,7 +131,7 @@ function snapshotTree(): Record<string, string> {
 }
 
 beforeAll(() => {
-    committedNames = committedFiles();
+    committedNames = listCommittedFiles();
 
     for (const file of readdirSync(outcomesDir)) {
         if (file.endsWith('.json') && !committedNames.includes(file)) rmSync(join(outcomesDir, file), { force: true });
@@ -147,6 +150,7 @@ afterAll(() => {
 describe('DELETE', () => {
     test('rejects an unknown id', async () => {
         const response = await DELETE(createContext('DELETE', JSON.stringify({ id: '999' })));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
@@ -157,6 +161,7 @@ describe('DELETE', () => {
 describe('GET', () => {
     test('returns all outcomes sorted by numeric id ascending', async () => {
         const response = await GET(createContext('GET'));
+
         const outcomes: Record<string, unknown>[] = await response.json();
 
         const expected = readdirSync(outcomesDir)
@@ -174,6 +179,7 @@ describe('POST', () => {
         const before = readFileSync(outcomePath, 'utf-8');
 
         const response = await postJson({ ...existingOutcome, id: OUTCOME_ID });
+
         const result: Record<string, unknown> = await response.json();
 
         const after = readFileSync(outcomePath, 'utf-8');
@@ -185,6 +191,7 @@ describe('POST', () => {
 
     test('rejects an empty points array', async () => {
         const response = await postJson({ ...existingOutcome, id: OUTCOME_ID, points: [] });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -193,6 +200,7 @@ describe('POST', () => {
 
     test('rejects points containing only blank strings', async () => {
         const response = await postJson({ ...existingOutcome, id: OUTCOME_ID, points: ['', '   '] });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -201,6 +209,7 @@ describe('POST', () => {
 
     test('rejects a blank summary', async () => {
         const response = await postJson({ ...existingOutcome, id: OUTCOME_ID, summary: '' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -209,6 +218,7 @@ describe('POST', () => {
 
     test('rejects a blank title', async () => {
         const response = await postJson({ ...existingOutcome, id: OUTCOME_ID, title: '' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
@@ -217,6 +227,7 @@ describe('POST', () => {
 
     test('rejects an unknown id', async () => {
         const response = await postJson({ ...existingOutcome, id: '999' });
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
@@ -242,6 +253,7 @@ describe('lifecycle', () => {
             const id = await createSentinel();
 
             const response = await postJson({ ...sentinelOutcome, id, summary: UPDATED_SUMMARY });
+
             const result: Record<string, unknown> = await response.json();
 
             const stored: Record<string, unknown> = JSON.parse(readFileSync(join(outcomesDir, `${id}.json`), 'utf-8'));
@@ -259,9 +271,11 @@ describe('lifecycle', () => {
             const id = await createSentinel();
 
             const response = await deleteJson(id);
+
             const result: Record<string, unknown> = await response.json();
 
             const repeat = await deleteJson(id);
+
             const repeatResult: Record<string, unknown> = await repeat.json();
 
             expect(response.status).toBe(200);
@@ -297,7 +311,9 @@ describe('production blobs', () => {
             997: { points: ['Existing point'], summary: 'Existing summary', title: 'Existing Title' },
             998: { points: ['Existing point'], summary: 'Existing summary', title: 'Existing Title' },
         });
+
         const getStoreStub = vi.fn(() => store);
+
         const routes = await importProductionRoutes(getStoreStub);
 
         const response = await routes.POST(createContext('POST', JSON.stringify({
@@ -305,6 +321,7 @@ describe('production blobs', () => {
             summary: `  ${sentinelOutcome.summary}  `,
             title: `  ${sentinelOutcome.title}  `,
         })));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
@@ -316,10 +333,13 @@ describe('production blobs', () => {
 
     test('deletes an outcome from the blob store by its string id', async () => {
         const store = buildBlobStore({ 999: { ...sentinelOutcome } });
+
         const getStoreStub = vi.fn(() => store);
+
         const routes = await importProductionRoutes(getStoreStub);
 
         const response = await routes.DELETE(createContext('DELETE', JSON.stringify({ id: 999 })));
+
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
@@ -333,9 +353,11 @@ describe('production blobs', () => {
             '02': { ...sentinelOutcome },
             '10': { ...sentinelOutcome },
         });
+
         const routes = await importProductionRoutes(() => store);
 
         const response = await routes.GET(createContext('GET'));
+
         const outcomes: Record<string, unknown>[] = await response.json();
 
         expect(response.status).toBe(200);

@@ -6,10 +6,6 @@ import TableSortButton from '../../src/components/dashboard/TableSortButton';
 
 import type { ReactElement } from 'react';
 
-type ButtonProps = {
-    onClick: () => void;
-};
-
 function renderButton(sortDirection: 'asc' | 'desc', sortKey: string) {
     return renderToStaticMarkup(createElement(TableSortButton, {
         field: 'date',
@@ -54,7 +50,9 @@ describe('TableSortButton', () => {
 
     test('sorts by its own field on click', () => {
         const handleSort = vi.fn();
+
         const tree = TableSortButton({ field: 'date', label: 'Date', onSort: handleSort, sortDirection: 'asc', sortKey: 'title' });
+
         const button = tree.props.children as ReactElement<ButtonProps>;
 
         button.props.onClick();

@@ -47,6 +47,7 @@ const committedSnapshots = new Map<string, string>();
 const committedTestimonialIds = listCommittedIds('src/content/testimonials');
 const eventsDir = fileURLToPath(new URL('../../src/content/events', import.meta.url));
 const outcomesDir = fileURLToPath(new URL('../../src/content/outcomes', import.meta.url));
+
 const sentinelPath = join(eventsDir, `${SENTINEL_ID}.json`);
 const testimonialsDir = fileURLToPath(new URL('../../src/content/testimonials', import.meta.url));
 
@@ -248,6 +249,7 @@ test.describe('event lifecycle', () => {
 
     test('committed events remain byte-identical and the sentinel is gone', async ({ request }) => {
         const events: { id: string }[] = await (await request.get('/api/events')).json();
+
         const ids = events.map(event => event.id);
 
         for (const id of committedEventIds) expect(ids).toContain(id);
@@ -340,6 +342,7 @@ test.describe('outcome lifecycle', () => {
 
     test('committed outcomes remain byte-identical and the sentinel is gone', async ({ request }) => {
         const outcomes: { id: string; title: string }[] = await (await request.get('/api/outcomes')).json();
+
         const ids = outcomes.map(outcome => outcome.id);
 
         for (const id of committedOutcomeIds) expect(ids).toContain(id);
@@ -383,6 +386,7 @@ test.describe('testimonial lifecycle', () => {
             await expect(cells.nth(3)).toHaveText(TESTIMONIAL_SENTINEL.quote);
 
             const persisted: { id: string; quote: string }[] = await (await request.get('/api/testimonials')).json();
+
             const entry = persisted.find(testimonial => testimonial.id === TESTIMONIAL_SENTINEL_ID);
 
             expect(entry?.quote).toBe(TESTIMONIAL_SENTINEL.quote);
@@ -429,6 +433,7 @@ test.describe('testimonial lifecycle', () => {
 
     test('committed testimonials remain byte-identical and the sentinel is gone', async ({ request }) => {
         const testimonials: { id: string }[] = await (await request.get('/api/testimonials')).json();
+
         const ids = testimonials.map(testimonial => testimonial.id);
 
         for (const id of committedTestimonialIds) expect(ids).toContain(id);

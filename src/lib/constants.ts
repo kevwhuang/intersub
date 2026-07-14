@@ -11,6 +11,7 @@ export const FOCUSABLE_SELECTOR = 'a, button';
 export const FONT_HEADING = 'var(--font-heading)';
 export const FONT_MONO = 'var(--font-mono)';
 export const IS_DEV = import.meta.env.DEV;
+export const LANG_KEY = 'lang';
 export const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Cohort'] as const;
 export const MESSAGE_MAX = 2_000;
 export const NAME_MAX = 100;
@@ -22,21 +23,17 @@ export const ROUTES = [
     { href: '/events', label: 'Events' },
 ] as const;
 
-export const SIDEBAR_WIDTH = 240;
-
 export const STYLES = {
     actionBase: {
         borderRadius: 8,
         fontSize: 12,
-        padding: '7px 12px',
+        padding: '8px 12px',
         width: 66,
     } as React.CSSProperties,
     border: '1px solid var(--color-silver-strong)',
     borderDivider: '1px solid var(--color-silver)',
-    borderRadius: 10,
     borderRadiusLarge: 16,
     borderRadiusSmall: 9,
-    borderRow: '1px solid var(--color-silver-light)',
     buttonNew: {
         alignItems: 'center',
         display: 'inline-flex',
@@ -89,8 +86,6 @@ export const STYLES = {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
     } as React.CSSProperties,
-    colorBorder: 'var(--color-silver)',
-    colorBorderHover: 'var(--color-silver-hover)',
     colorError: 'var(--color-red)',
     colorErrorBackground: 'var(--color-rose)',
     colorGhost: 'var(--color-slate-ghost)',
@@ -116,7 +111,7 @@ export const STYLES = {
         fontFamily: 'var(--font-mono)',
         fontSize: 10,
         fontWeight: 500,
-        gap: 5,
+        gap: 4,
         justifyContent: 'flex-start',
         letterSpacing: '.08em',
         padding: 0,
@@ -124,7 +119,6 @@ export const STYLES = {
         textTransform: 'uppercase',
     } as React.CSSProperties,
     headingPanel: {
-        fontFamily: 'var(--font-heading)',
         fontSize: 'clamp(24px, calc(21.33px + 0.83vw), 32px)',
         fontWeight: 700,
         letterSpacing: '-0.02em',
@@ -133,20 +127,18 @@ export const STYLES = {
     inputBase: {
         borderRadius: 10,
         color: 'var(--color-slate)',
-        fontFamily: 'inherit',
         fontSize: 16,
         outline: 'none',
         padding: '12px 14px',
         width: '100%',
     } as React.CSSProperties,
     labelBase: {
-        display: 'block' as const,
+        display: 'block',
         fontSize: 12,
         fontWeight: 600,
-        marginBottom: 7,
+        marginBottom: 8,
     } as React.CSSProperties,
     overlayBackdrop: 'var(--color-slate-45)',
-    overlayLight: 'var(--color-slate-35)',
     rowBase: {
         alignItems: 'center',
         borderBottom: '1px solid var(--color-silver-light)',
