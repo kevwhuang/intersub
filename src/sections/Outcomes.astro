@@ -9,11 +9,18 @@ const outcomes = await getOutcomes();
     aria-labelledby="outcomes-title"
 >
     <div class="shell">
-        <div class="outcomes__header" data-scroll>
+        <div
+            class="outcomes__header"
+            data-scroll
+        >
             <h2 id="outcomes-title" class="outcomes__title" data-i18n="Outcomes">Outcomes</h2>
             <p class="outcomes__intro" data-i18n="Real case studies from teams we have coached. Measurable shifts in confidence, speed, and clarity within weeks of engagement.">Real case studies from teams we have coached. Measurable shifts in confidence, speed, and clarity within weeks of engagement.</p>
         </div>
-        <div class="outcomes__grid" data-scroll data-scroll-stagger="0.1">
+        <div
+            class="outcomes__grid"
+            data-scroll
+            data-scroll-stagger="0.1"
+        >
             {outcomes.map(outcome => (
                 <article class="outcomes__card">
                     <h3 class="outcomes__card-title" data-i18n={outcome.title}>{outcome.title}</h3>

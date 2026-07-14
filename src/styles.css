@@ -70,6 +70,7 @@
     font-size: 12px;
     font-weight: 600;
     padding: 8px 15px;
+    position: relative;
     transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
 }
 
@@ -89,6 +90,12 @@
     border-color: var(--color-slate-ghost);
 }
 
+.chip::after {
+    content: '';
+    inset: -6px 0;
+    position: absolute;
+}
+
 .chip--active {
     background: var(--color-cobalt);
     border-color: var(--color-cobalt);
@@ -97,6 +104,25 @@
 
 .chip--active:hover {
     border-color: var(--color-cobalt);
+}
+
+.dashboard-backdrop {
+    background: var(--color-slate-35);
+    cursor: pointer;
+    transition: background var(--duration-fast) ease;
+}
+
+.dashboard-backdrop:active {
+    background: var(--color-slate-45);
+}
+
+.dashboard-backdrop:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-cobalt-20) inset;
+    outline: none;
+}
+
+.dashboard-backdrop:hover {
+    background: var(--color-slate-45);
 }
 
 .dashboard-button {
@@ -271,6 +297,16 @@
     color: var(--color-slate);
 }
 
+.dashboard-link--hit {
+    position: relative;
+}
+
+.dashboard-link--hit::after {
+    content: '';
+    inset: -17px -6px;
+    position: absolute;
+}
+
 .dashboard-nav {
     color: var(--color-slate-soft);
     font-family: inherit;
@@ -411,12 +447,12 @@
 }
 
 .section {
-    padding: clamp(64px, calc(45.33px + 5.83vw), 120px) 0;
+    padding: var(--section-padding) 0;
 }
 
 .shell {
     margin: 0 auto;
-    max-width: var(--shell-max);
+    max-width: 1280px;
     padding: 0 var(--shell-pad);
     width: 100%;
 }

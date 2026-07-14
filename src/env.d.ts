@@ -45,6 +45,16 @@ interface EditFormField<Values> {
     rows?: number;
 }
 
+interface EventFormData {
+    content: string;
+    cover: string;
+    date: string;
+    level: string;
+    location: string;
+    time: string;
+    title: string;
+}
+
 interface OutcomeFormData {
     points: string;
     summary: string;

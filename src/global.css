@@ -6,6 +6,7 @@
     --color-cobalt: #2a52e0;
     --color-cobalt-10: #2a52e01a;
     --color-cobalt-20: #2a52e033;
+    --color-cobalt-85: #2a52e0d9;
     --color-cobalt-bright: #a8bfff;
     --color-cobalt-dark: #2245c0;
     --color-cobalt-darker: #1b389e;
@@ -38,7 +39,6 @@
     --color-slate-25: #14161c40;
     --color-slate-35: #14161c59;
     --color-slate-45: #14161c73;
-    --color-slate-dim: #4a4e57;
     --color-slate-edge: #2a2d35;
     --color-slate-faint: #545a66;
     --color-slate-ghost: #6c7280;
@@ -47,7 +47,6 @@
     --color-slate-muted: #4a515e;
     --color-slate-pale: #9aa0ad;
     --color-slate-soft: #3f4654;
-    --color-slate-surface: #3a3e47;
     --color-slate-text: #c7ccd4;
     --color-snow: #f7f8fa;
     --color-teal: #0d7a5f;
@@ -63,7 +62,7 @@
     --duration-fast: 0.15s;
     --duration-slow: 0.4s;
     --header-height: 68px;
-    --shell-max: 1280px;
+    --section-padding: clamp(64px, calc(45.33px + 5.83vw), 120px);
     --shell-pad: clamp(20px, calc(5.33px + 4.58vw), 64px);
 }
 

@@ -15,7 +15,7 @@ export function deleteEntry(collection: string, id: string) {
     if (existsSync(filepath)) unlinkSync(filepath);
 }
 
-export function readCollection(collection: string): Record<string, unknown>[] {
+export function readCollection<Entry = Record<string, unknown>>(collection: string): Entry[] {
     const directory = join(contentRoot, collection);
 
     if (!existsSync(directory)) return [];

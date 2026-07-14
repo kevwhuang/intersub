@@ -1,3 +1,5 @@
+import { FOCUSABLE_SELECTOR } from '@lib/constants';
+
 interface LevelMeta {
     background: string;
     cover: string;
@@ -38,4 +40,19 @@ export function getToday(): string {
 
 export function parseDate(dateString: string): Date {
     return new Date(dateString + 'T00:00:00');
+}
+
+export function trapTabKey(event: KeyboardEvent, container: HTMLElement): void {
+    const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+
+    const first = targets[0];
+    const last = targets[targets.length - 1];
+
+    if (event.shiftKey && (document.activeElement === first || !container.contains(document.activeElement))) {
+        event.preventDefault();
+        last?.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !container.contains(document.activeElement))) {
+        event.preventDefault();
+        first?.focus();
+    }
 }

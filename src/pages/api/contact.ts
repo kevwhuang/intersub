@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import { getStore } from '@netlify/blobs';
 
 import template from '@lib/contact.html?raw';
-import { EMAIL_MAX, EMAIL_PATTERN, IS_DEV, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
+import { EMAIL_MAX, EMAIL_PATTERN, ERROR_RATE_LIMITED, IS_DEV, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 
 import type { APIRoute } from 'astro';
 import type { Store } from '@netlify/blobs';
@@ -50,7 +50,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ clientAddress, request }) => {
     if (await isRateLimited(clientAddress)) {
-        return Response.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+        return Response.json({ error: ERROR_RATE_LIMITED }, { status: 429 });
     }
 
     let body: Record<string, unknown>;

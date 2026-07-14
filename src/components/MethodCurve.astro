@@ -2,7 +2,12 @@
 
 ---
 
-<svg class="method__curve" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 300 1000">
+<svg
+    class="method__curve"
+    aria-hidden="true"
+    preserveAspectRatio="none"
+    viewBox="0 0 300 1000"
+>
     <path class="method__curve-path" d="M 30 60 C 30 170, 200 170, 200 280 S 30 390, 30 500 S 200 610, 200 720 S 30 830, 30 960" />
     <circle class="method__curve-dot" cx="30" cy="60" r="4" />
     <circle class="method__curve-dot" cx="200" cy="280" r="4" />
@@ -12,11 +17,11 @@
 
 <style>
     .method__curve {
-        height: 100%;
+        height: calc(100% + 2 * var(--section-padding));
         left: 0;
         pointer-events: none;
         position: absolute;
-        top: 0;
+        top: calc(-1 * var(--section-padding));
         width: clamp(100px, calc(53.33px + 14.58vw), 240px);
     }
 

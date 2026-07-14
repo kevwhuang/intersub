@@ -29,11 +29,18 @@ const METHOD_BLOCKS = [
 ] as const;
 ---
 
-<section class="method" aria-label="Our method" data-i18n-aria="Our method">
+<section
+    class="method section"
+    aria-label="Our method"
+    data-i18n-aria="Our method"
+>
     <div class="method__inner shell">
         <MethodCurve />
         {METHOD_BLOCKS.map((block, index) => (
-            <div class:list={['method__block', { 'method__block--indent': index % 2 === 1 }]} data-scroll>
+            <div
+                class:list={['method__block', { 'method__block--indent': index % 2 === 1 }]}
+                data-scroll
+            >
                 <div class="method__label">
                     <span class="method__number">{block.step}</span>
                     <p class="method__tag" data-i18n={block.label}>{block.label}</p>
@@ -78,7 +85,6 @@ const METHOD_BLOCKS = [
         display: flex;
         flex-direction: column;
         gap: clamp(44px, calc(29.33px + 4.58vw), 88px);
-        padding-block: clamp(64px, calc(45.33px + 5.83vw), 120px);
         position: relative;
     }
 
@@ -88,7 +94,7 @@ const METHOD_BLOCKS = [
     }
 
     .method__number {
-        color: color-mix(in srgb, var(--color-cobalt) 40%, var(--color-white));
+        color: var(--color-cobalt-85);
         display: block;
         font-family: var(--font-heading);
         font-size: clamp(40px, calc(24px + 5vw), 88px);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { AUTH_TOKEN_PATTERN, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
+import { AUTH_TOKEN_PATTERN, ERROR_GENERIC, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
 
 interface AuthUser {
     email?: string;
@@ -230,7 +230,7 @@ export function useAuth() {
             if (!response.ok) {
                 setError(response.status === 400 || response.status === 401
                     ? 'Invalid email or password.'
-                    : 'Something went wrong. Please try again.');
+                    : ERROR_GENERIC);
 
                 return;
             }
@@ -240,7 +240,7 @@ export function useAuth() {
             storeSession(data, email);
             setUser({ email });
         } catch {
-            setError('Something went wrong. Please try again.');
+            setError(ERROR_GENERIC);
         } finally {
             setIsPending(false);
         }
@@ -315,7 +315,7 @@ export function useAuth() {
 
             setIsRecovery(false);
         } catch {
-            setError('Something went wrong. Please try again.');
+            setError(ERROR_GENERIC);
         } finally {
             setIsPending(false);
         }
@@ -373,7 +373,7 @@ export function useAuth() {
 
             if (session) setUser({ email: session.email });
         } catch {
-            setError('Something went wrong. Please try again.');
+            setError(ERROR_GENERIC);
         } finally {
             setIsLoading(false);
         }

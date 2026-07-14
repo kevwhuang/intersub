@@ -1,0 +1,246 @@
+---
+import { Image } from 'astro:assets';
+
+import { formatDate, getInitials, getLevelMeta } from '@lib/utils';
+import { getCoverImage, resolveCover } from '@lib/images';
+
+import type { getEvents } from '@lib/store';
+
+interface ContentBlock {
+    content: string;
+    type: 'h' | 'li' | 'p';
+}
+
+interface Props {
+    event: Awaited<ReturnType<typeof getEvents>>[number];
+}
+
+const { event } = Astro.props;
+
+const { cover = '', date, level = '', location, time, title } = event;
+
+const coverImage = getCoverImage(cover);
+const initials = getInitials(title);
+const meta = getLevelMeta(level);
+const rawBlocks = parseEventContent(event.content);
+const who = level || 'Everyone';
+
+const groupedBlocks: Array<{ items: string[]; type: ContentBlock['type'] }> = [];
+
+function parseEventContent(markdown: string) {
+    const blocks: ContentBlock[] = [];
+
+    for (const line of markdown.split('\n')) {
+        const trimmed = line.trim();
+
+        if (!trimmed) continue;
+        if (trimmed.startsWith('## ')) blocks.push({ content: trimmed.slice(3), type: 'h' });
+        else if (trimmed.startsWith('- ')) blocks.push({ content: trimmed.slice(2), type: 'li' });
+        else blocks.push({ content: trimmed, type: 'p' });
+    }
+
+    return blocks;
+}
+
+for (const block of rawBlocks) {
+    if (block.type === 'li' && groupedBlocks.length && groupedBlocks[groupedBlocks.length - 1].type === 'li') {
+        groupedBlocks[groupedBlocks.length - 1].items.push(block.content);
+    } else {
+        groupedBlocks.push({ items: [block.content], type: block.type });
+    }
+}
+---
+
+<article class="event-detail">
+    <div class="shell">
+        <a
+            class="event-detail__back"
+            href="/events"
+        >
+            <span aria-hidden="true">&larr;</span>
+            <span data-i18n="All events">All events</span>
+        </a>
+        <h1 class="event-detail__title" data-scroll>{title}</h1>
+        <dl
+            class="event-detail__meta"
+            data-scroll
+        >
+            <div>
+                <dt class="event-detail__meta-label" data-i18n="Date">Date</dt>
+                <dd class="event-detail__meta-value">
+                    <time data-i18n-date={date} datetime={date}>{formatDate(date)}</time>
+                </dd>
+            </div>
+            {time && (
+                <div>
+                    <dt class="event-detail__meta-label" data-i18n="Time">Time</dt>
+                    <dd class="event-detail__meta-value">{time}</dd>
+                </div>
+            )}
+            <div>
+                <dt class="event-detail__meta-label" data-i18n="Location">Location</dt>
+                <dd class="event-detail__meta-value" data-i18n={location}>{location}</dd>
+            </div>
+            <div>
+                <dt class="event-detail__meta-label" data-i18n="Who">Who</dt>
+                <dd class="event-detail__meta-value" data-i18n={who}>{who}</dd>
+            </div>
+        </dl>
+        <div
+            class="event-detail__cover"
+            data-scroll
+            style={`background:${meta.cover};color:${meta.ink}`}
+        >
+            {coverImage
+                ? <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1250]} />
+                : cover
+                    ? <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />
+                    : <span class="event-detail__cover-initials" aria-hidden="true">{initials}</span>}
+        </div>
+        <div
+            class="event-detail__content prose"
+            data-scroll
+        >
+            {groupedBlocks.map((group) => {
+                if (group.type === 'h') return <h2>{group.items[0]}</h2>;
+                if (group.type === 'li') return <ul>{group.items.map(item => <li>{item}</li>)}</ul>;
+                return <p>{group.items[0]}</p>;
+            })}
+        </div>
+        <div
+            class="event-detail__actions"
+            data-scroll
+        >
+            <a
+                class="button event-detail__action"
+                href={`/?event=${encodeURIComponent(title)}#contact`}
+            >
+                <span data-i18n="Register">Register</span>
+            </a>
+            <a
+                class="button button--outline event-detail__action"
+                href="/events"
+            >
+                <span data-i18n="Back to all">Back to all</span>
+            </a>
+        </div>
+    </div>
+</article>
+
+<style>
+    .event-detail {
+        padding-bottom: var(--section-padding);
+        padding-top: calc(var(--header-height) + clamp(28px, calc(22.67px + 1.67vw), 44px));
+    }
+
+    .event-detail__actions {
+        align-items: center;
+        border-top: 1px solid var(--color-silver);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        padding-top: 36px;
+    }
+
+    .event-detail__back {
+        align-items: center;
+        color: var(--color-slate-faint);
+        display: inline-flex;
+        font-size: 16px;
+        font-weight: 600;
+        gap: 8px;
+        margin-bottom: 28px;
+        text-decoration: none;
+        transition: color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+    }
+
+    .event-detail__back:active {
+        opacity: 0.7;
+    }
+
+    .event-detail__back:focus-visible {
+        box-shadow: 0 0 0 3px var(--color-cobalt-20);
+        outline: none;
+    }
+
+    .event-detail__back:hover {
+        color: var(--color-cobalt);
+    }
+
+    .event-detail__content {
+        margin-bottom: 48px;
+    }
+
+    .event-detail__cover {
+        align-items: center;
+        aspect-ratio: 2.5;
+        border: 1px solid var(--color-silver);
+        border-radius: 16px;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 44px;
+        overflow: hidden;
+    }
+
+    .event-detail__cover-image {
+        height: 100%;
+        object-fit: cover;
+        object-position: left top;
+        width: 100%;
+    }
+
+    .event-detail__cover-initials {
+        font-family: var(--font-heading);
+        font-size: clamp(60px, calc(40px + 6.25vw), 120px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        opacity: 0.26;
+    }
+
+    .event-detail__meta {
+        border-bottom: 1px solid var(--color-silver);
+        border-top: 1px solid var(--color-silver);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px 40px;
+        margin-bottom: 36px;
+        padding: 22px 0;
+    }
+
+    .event-detail__meta-label {
+        color: var(--color-slate-ghost);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        margin: 0 0 6px;
+        text-transform: uppercase;
+    }
+
+    .event-detail__meta-value {
+        color: var(--color-slate);
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .event-detail__title {
+        color: var(--color-slate);
+        font-size: clamp(32px, calc(26.67px + 1.67vw), 48px);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 1.06;
+        margin: 0 0 28px;
+        text-wrap: balance;
+    }
+
+    @media (max-width: 768px) {
+        .event-detail__action {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .event-detail__actions {
+            flex-direction: column;
+        }
+    }
+</style>

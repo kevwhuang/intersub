@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+
 import IconApplePodcasts from '@components/IconApplePodcasts.astro';
 import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
 import QrCode from '@components/QrCode.astro';
@@ -24,65 +26,70 @@ const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
     aria-label="Site footer"
     data-i18n-aria="Site footer"
 >
-    <div class="site-footer__inner shell grid items-start">
+    <div class="shell site-footer__inner grid items-start">
         <div>
             <div class="site-footer__brand flex items-center">
-                <img class="site-footer__wordmark" alt="InterSub" decoding="async" height="32" lang="en" loading="lazy" src={logoEn.src} />
-                <img class="site-footer__wordmark" alt="言际阁" decoding="async" height="32" lang="zh" loading="lazy" src={logoZh.src} />
+                <Image class="site-footer__wordmark" alt="InterSub" densities={[1, 2]} height={32} lang="en" quality="max" src={logoEn} />
+                <Image class="site-footer__wordmark" alt="言际阁" densities={[1, 2]} height={32} lang="zh" quality="max" src={logoZh} />
             </div>
             <p class="site-footer__tag" data-i18n="We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.">We are dedicated to enhancing English communication skills for adults and providing solutions tailored to specific workplace and life needs.</p>
         </div>
         <div class="site-footer__column flex flex-col">
             <p class="site-footer__heading" data-i18n="Directory">Directory</p>
-            <div class="flex flex-col gap-3">
+            <ul class="flex flex-col gap-3">
                 {ROUTES.map(route => (
-                    <a
-                        class="site-footer__link"
-                        href={route.href}
-                    >
-                        <span data-i18n={route.label}>{route.label}</span>
-                    </a>
+                    <li>
+                        <a
+                            class="site-footer__link"
+                            href={route.href}
+                        >
+                            <span data-i18n={route.label}>{route.label}</span>
+                        </a>
+                    </li>
                 ))}
                 {import.meta.env.DEV && (
-                    <a
-                        class="site-footer__link"
-                        href="/admin"
-                    >
-                        Admin
-                    </a>
+                    <li>
+                        <a class="site-footer__link" href="/admin">Admin</a>
+                    </li>
                 )}
-            </div>
+            </ul>
         </div>
         <div class="site-footer__column site-footer__connect flex flex-col">
             <div>
                 <p class="site-footer__heading" data-i18n="Follow">Follow</p>
-                <div class="site-footer__socials flex flex-wrap gap-2">
+                <ul class="site-footer__socials flex flex-wrap gap-2">
                     {SOCIALS.map((social) => {
                         const Icon = ICONS[social.slug];
 
                         return (
-                            <a
-                                class="site-footer__social site-footer__social--link flex items-center justify-center"
-                                aria-label={social.label}
-                                href={social.href}
-                                target="_blank"
-                                title={social.label}
-                            >
-                                <Icon size={22} />
-                            </a>
+                            <li>
+                                <a
+                                    class="site-footer__social site-footer__social--link flex items-center justify-center"
+                                    aria-label={social.label}
+                                    href={social.href}
+                                    target="_blank"
+                                    title={social.label}
+                                >
+                                    <Icon size={22} />
+                                </a>
+                            </li>
                         );
                     })}
-                </div>
+                </ul>
             </div>
             <div>
                 <p class="site-footer__heading" data-i18n="WeChat">WeChat</p>
-                <a class="site-footer__qr-link" href={WECHAT_URL} target="_blank">
+                <a
+                    class="site-footer__qr-link"
+                    href={WECHAT_URL}
+                    target="_blank"
+                >
                     <QrCode size={128} />
                 </a>
             </div>
         </div>
     </div>
-    <div class="site-footer__bottom shell select-none">
+    <div class="shell site-footer__bottom select-none">
         <span data-i18n-html="footer-copyright">&copy; 2026 InterSub. All rights reserved.</span>
         <span data-i18n="Founded by Lydia Zhu">Founded by Lydia Zhu</span>
     </div>
@@ -187,6 +194,7 @@ const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
     }
 
     .site-footer__social--link {
+        position: relative;
         text-decoration: none;
         transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
     }
@@ -203,6 +211,12 @@ const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
     .site-footer__social--link:hover {
         border-color: var(--color-cobalt);
         color: var(--color-white);
+    }
+
+    .site-footer__social--link::after {
+        content: '';
+        inset: -4px;
+        position: absolute;
     }
 
     .site-footer__tag {
