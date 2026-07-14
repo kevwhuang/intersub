@@ -87,15 +87,15 @@ describe('PanelTestimonials', () => {
 
         expect(html).not.toContain('role="table"');
         expect(html).not.toContain('aria-sort=');
-        expect(html).toContain('Consultant \u00B7 Human Resources');
-        expect(html).toContain('Founder \u00B7 Consulting');
+        expect(html).toContain('Consultant <span aria-hidden="true">\u00B7</span> Human Resources');
+        expect(html).toContain('Founder <span aria-hidden="true">\u00B7</span> Consulting');
     });
 
     test('shows the empty state when there are no testimonials', () => {
         const html = renderPanel({ testimonials: [] });
 
-        expect(html).toContain('No testimonials yet');
-        expect(html).toContain('Add a testimonial to feature client feedback on the site.');
+        expect(html).toContain('No testimonials found');
+        expect(html).toContain('Try a different search, or add a new testimonial.');
         expect(html).not.toContain('role="table"');
     });
 

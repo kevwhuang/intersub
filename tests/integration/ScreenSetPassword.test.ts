@@ -36,7 +36,7 @@ describe('ScreenSetPassword', () => {
     test('documents the password rules on the field', () => {
         const html = renderScreen();
 
-        expect(html).toContain('>New password</span>');
+        expect(html).toContain('>New password<span');
         expect(html).toContain('type="password"');
         expect(html).toContain('minLength="8"');
         expect(html).toContain('maxLength="20"');

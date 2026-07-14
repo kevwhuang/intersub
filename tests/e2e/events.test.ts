@@ -3,8 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 
-import { getToday } from '../../src/lib/utils';
-
 import type { Page } from '@playwright/test';
 
 interface EventEntry {
@@ -22,7 +20,7 @@ const events = readdirSync(EVENTS_DIR)
     .map(file => JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')) as EventEntry)
     .sort((entryA, entryB) => entryB.date.localeCompare(entryA.date));
 
-const today = getToday();
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
 
 const leveledEvents = events.filter(event => event.level);
 const pastEvents = events.filter(event => event.date < today);

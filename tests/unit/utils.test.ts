@@ -1,6 +1,13 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { formatDate, getInitials, getLevelMeta, getToday, parseDate } from '../../src/lib/utils';
+import { FOCUSABLE_SELECTOR } from '../../src/lib/constants';
+import { formatDate, getInitials, getLevelMeta, getToday, parseDate, trapTabKey } from '../../src/lib/utils';
+
+import type { Mock } from 'vitest';
+
+interface FocusTarget {
+    focus: Mock<() => void>;
+}
 
 const FALLBACK_META = {
     background: 'var(--color-silver)',
@@ -36,6 +43,27 @@ const LEVEL_EXPECTATIONS = {
     },
 } as const;
 
+function buildContainer(targets: FocusTarget[]) {
+    return {
+        contains: (node: unknown) => targets.includes(node as FocusTarget),
+        querySelectorAll: vi.fn(() => targets),
+    };
+}
+
+function buildFocusTarget(): FocusTarget {
+    return { focus: vi.fn() };
+}
+
+function runTrapTabKey(shiftKey: boolean, targets: FocusTarget[], activeElement: unknown) {
+    const container = buildContainer(targets);
+    const event = { preventDefault: vi.fn(), shiftKey };
+
+    vi.stubGlobal('document', { activeElement });
+    trapTabKey(event as unknown as KeyboardEvent, container as unknown as HTMLElement);
+
+    return { container, event };
+}
+
 describe('formatDate', () => {
     test('formats an iso date as a short us date', () => {
         expect(formatDate('2026-06-15')).toBe('Jun 15, 2026');
@@ -44,6 +72,10 @@ describe('formatDate', () => {
 
     test('returns an empty string for an empty input', () => {
         expect(formatDate('')).toBe('');
+    });
+
+    test('returns the input unchanged when it cannot be parsed', () => {
+        expect(formatDate('not-a-date')).toBe('not-a-date');
     });
 });
 
@@ -102,5 +134,83 @@ describe('parseDate', () => {
 
     test('produces nan time for an invalid string', () => {
         expect(Number.isNaN(parseDate('not-a-date').getTime())).toBe(true);
+    });
+});
+
+describe('trapTabKey', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    test('queries the container with the shared focusable selector', () => {
+        const { container } = runTrapTabKey(false, [], null);
+
+        expect(container.querySelectorAll).toHaveBeenCalledExactlyOnceWith(FOCUSABLE_SELECTOR);
+    });
+
+    test('wraps a forward tab from the last target to the first', () => {
+        const targets = [buildFocusTarget(), buildFocusTarget(), buildFocusTarget()];
+
+        const { event } = runTrapTabKey(false, targets, targets[2]);
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(targets[0].focus).toHaveBeenCalledTimes(1);
+        expect(targets[2].focus).not.toHaveBeenCalled();
+    });
+
+    test('pulls a forward tab into the first target when focus is outside the container', () => {
+        const targets = [buildFocusTarget(), buildFocusTarget()];
+
+        const { event } = runTrapTabKey(false, targets, buildFocusTarget());
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(targets[0].focus).toHaveBeenCalledTimes(1);
+        expect(targets[1].focus).not.toHaveBeenCalled();
+    });
+
+    test('lets a forward tab move on from a non-terminal target inside the container', () => {
+        const targets = [buildFocusTarget(), buildFocusTarget()];
+
+        const { event } = runTrapTabKey(false, targets, targets[0]);
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(targets[0].focus).not.toHaveBeenCalled();
+        expect(targets[1].focus).not.toHaveBeenCalled();
+    });
+
+    test('wraps a shift tab from the first target to the last', () => {
+        const targets = [buildFocusTarget(), buildFocusTarget(), buildFocusTarget()];
+
+        const { event } = runTrapTabKey(true, targets, targets[0]);
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(targets[2].focus).toHaveBeenCalledTimes(1);
+        expect(targets[0].focus).not.toHaveBeenCalled();
+    });
+
+    test('pulls a shift tab into the last target when focus is outside the container', () => {
+        const targets = [buildFocusTarget(), buildFocusTarget()];
+
+        const { event } = runTrapTabKey(true, targets, null);
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        expect(targets[1].focus).toHaveBeenCalledTimes(1);
+        expect(targets[0].focus).not.toHaveBeenCalled();
+    });
+
+    test('lets a shift tab move on from a non-terminal target inside the container', () => {
+        const targets = [buildFocusTarget(), buildFocusTarget()];
+
+        const { event } = runTrapTabKey(true, targets, targets[1]);
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(targets[0].focus).not.toHaveBeenCalled();
+        expect(targets[1].focus).not.toHaveBeenCalled();
+    });
+
+    test('prevents default without focusing when the container has no targets', () => {
+        const { event } = runTrapTabKey(true, [], null);
+
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
     });
 });

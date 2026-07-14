@@ -210,6 +210,22 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
     import { EMAIL_PATTERN, ERROR_GENERIC, ERROR_RATE_LIMITED } from '@lib/constants';
     import { translate } from '@lib/i18n';
 
+    interface ContactRefs {
+        emailError: HTMLElement | null;
+        emailInput: HTMLInputElement | null;
+        errors: NodeListOf<HTMLElement>;
+        form: HTMLFormElement;
+        messageError: HTMLElement | null;
+        messageInput: HTMLTextAreaElement | null;
+        nameError: HTMLElement | null;
+        nameInput: HTMLInputElement | null;
+        networkError: HTMLElement | null;
+        submitButton: HTMLButtonElement;
+        successPanel: HTMLElement;
+        wechatError: HTMLElement | null;
+        wechatInput: HTMLInputElement | null;
+    }
+
     const STATUS_RATE_LIMITED = 429;
 
     let controller: AbortController;
@@ -220,6 +236,78 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         form.querySelectorAll('.input--error, .textarea--error').forEach((element) => {
             element.classList.remove('input--error', 'textarea--error');
         });
+    }
+
+    function handleReset(refs: ContactRefs) {
+        refs.form.reset();
+        clearErrors(refs.form, refs.errors);
+        refs.successPanel.hidden = true;
+        refs.form.hidden = false;
+    }
+
+    async function handleSubmit(refs: ContactRefs, event: SubmitEvent) {
+        event.preventDefault();
+        clearErrors(refs.form, refs.errors);
+
+        let isValid = true;
+
+        if (!refs.nameInput?.value.trim()) {
+            if (refs.nameError) refs.nameError.hidden = false;
+
+            refs.nameInput?.classList.add('input--error');
+            isValid = false;
+        }
+
+        if (!refs.wechatInput?.value.trim() || /\s/.test(refs.wechatInput.value.trim())) {
+            if (refs.wechatError) refs.wechatError.hidden = false;
+
+            refs.wechatInput?.classList.add('input--error');
+            isValid = false;
+        }
+
+        if (refs.emailInput?.value.trim() && !EMAIL_PATTERN.test(refs.emailInput.value.trim())) {
+            if (refs.emailError) refs.emailError.hidden = false;
+
+            refs.emailInput?.classList.add('input--error');
+            isValid = false;
+        }
+
+        if (!refs.messageInput?.value.trim()) {
+            if (refs.messageError) refs.messageError.hidden = false;
+
+            refs.messageInput?.classList.add('textarea--error');
+            isValid = false;
+        }
+
+        if (!isValid) return;
+
+        refs.submitButton.disabled = true;
+
+        try {
+            const response = await fetch('/api/contact', {
+                body: JSON.stringify({
+                    email: refs.emailInput?.value.trim(),
+                    message: refs.messageInput?.value.trim(),
+                    name: refs.nameInput?.value.trim(),
+                    wechat: refs.wechatInput?.value.trim(),
+                }),
+                headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+            });
+
+            if (!response.ok) {
+                showNetworkError(refs.networkError, response.status === STATUS_RATE_LIMITED ? ERROR_RATE_LIMITED : ERROR_GENERIC);
+
+                return;
+            }
+
+            refs.form.hidden = true;
+            refs.successPanel.hidden = false;
+        } catch {
+            showNetworkError(refs.networkError, ERROR_GENERIC);
+        } finally {
+            refs.submitButton.disabled = false;
+        }
     }
 
     function initContact() {
@@ -239,98 +327,35 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 
         if (!form || !resetButton || !submitButton || !successPanel) return;
 
-        const emailError = form.querySelector<HTMLElement>('#error-email');
-        const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]');
-        const errors = form.querySelectorAll<HTMLElement>('.contact__error');
-        const messageError = form.querySelector<HTMLElement>('#error-message');
-        const messageInput = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
-        const nameError = form.querySelector<HTMLElement>('#error-name');
-        const nameInput = form.querySelector<HTMLInputElement>('input[name="name"]');
-        const networkError = form.querySelector<HTMLElement>('.contact__network-error');
-        const wechatError = form.querySelector<HTMLElement>('#error-wechat');
-        const wechatInput = form.querySelector<HTMLInputElement>('input[name="wechat"]');
+        const refs: ContactRefs = {
+            emailError: form.querySelector<HTMLElement>('#error-email'),
+            emailInput: form.querySelector<HTMLInputElement>('input[name="email"]'),
+            errors: form.querySelectorAll<HTMLElement>('.contact__error'),
+            form,
+            messageError: form.querySelector<HTMLElement>('#error-message'),
+            messageInput: form.querySelector<HTMLTextAreaElement>('textarea[name="message"]'),
+            nameError: form.querySelector<HTMLElement>('#error-name'),
+            nameInput: form.querySelector<HTMLInputElement>('input[name="name"]'),
+            networkError: form.querySelector<HTMLElement>('.contact__network-error'),
+            submitButton,
+            successPanel,
+            wechatError: form.querySelector<HTMLElement>('#error-wechat'),
+            wechatInput: form.querySelector<HTMLInputElement>('input[name="wechat"]'),
+        };
 
         const eventTitle = new URLSearchParams(window.location.search).get('event');
 
-        function handleReset() {
-            form.reset();
-            clearErrors(form, errors);
-            successPanel.hidden = true;
-            form.hidden = false;
-        }
-
-        async function handleSubmit(event: SubmitEvent) {
-            event.preventDefault();
-            clearErrors(form, errors);
-
-            let isValid = true;
-
-            if (!nameInput?.value.trim()) {
-                if (nameError) nameError.hidden = false;
-                nameInput?.classList.add('input--error');
-                isValid = false;
-            }
-
-            if (!wechatInput?.value.trim() || /\s/.test(wechatInput.value.trim())) {
-                if (wechatError) wechatError.hidden = false;
-                wechatInput?.classList.add('input--error');
-                isValid = false;
-            }
-
-            if (emailInput?.value.trim() && !EMAIL_PATTERN.test(emailInput.value.trim())) {
-                if (emailError) emailError.hidden = false;
-                emailInput?.classList.add('input--error');
-                isValid = false;
-            }
-
-            if (!messageInput?.value.trim()) {
-                if (messageError) messageError.hidden = false;
-                messageInput?.classList.add('textarea--error');
-                isValid = false;
-            }
-
-            if (!isValid) return;
-
-            submitButton.disabled = true;
-
-            try {
-                const response = await fetch('/api/contact', {
-                    body: JSON.stringify({
-                        email: emailInput?.value.trim(),
-                        message: messageInput?.value.trim(),
-                        name: nameInput?.value.trim(),
-                        wechat: wechatInput?.value.trim(),
-                    }),
-                    headers: { 'Content-Type': 'application/json' },
-                    method: 'POST',
-                });
-
-                if (!response.ok) {
-                    showNetworkError(networkError, response.status === STATUS_RATE_LIMITED ? ERROR_RATE_LIMITED : ERROR_GENERIC);
-
-                    return;
-                }
-
-                form.hidden = true;
-                successPanel.hidden = false;
-            } catch {
-                showNetworkError(networkError, ERROR_GENERIC);
-            } finally {
-                submitButton.disabled = false;
-            }
-        }
-
-        if (eventTitle && messageInput) {
-            messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
+        if (eventTitle && refs.messageInput) {
+            refs.messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
             history.replaceState(history.state, '', window.location.pathname + window.location.hash);
         }
 
-        nameInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
-        wechatInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
-        emailInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
-        messageInput?.addEventListener('input', () => clearErrors(form, errors), { signal: controller.signal });
-        form.addEventListener('submit', handleSubmit, { signal: controller.signal });
-        resetButton.addEventListener('click', handleReset, { signal: controller.signal });
+        refs.nameInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });
+        refs.wechatInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });
+        refs.emailInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });
+        refs.messageInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });
+        form.addEventListener('submit', event => handleSubmit(refs, event), { signal: controller.signal });
+        resetButton.addEventListener('click', () => handleReset(refs), { signal: controller.signal });
     }
 
     function showNetworkError(networkError: HTMLElement | null, key: string) {

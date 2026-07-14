@@ -34,7 +34,7 @@ describe('TopBar', () => {
     test('renders the search input with the current value', () => {
         const html = renderTopBar({ searchValue: 'workshop' });
 
-        expect(html).toContain('aria-label="Search"');
+        expect(html).toContain('<span class="sr-only">Search</span>');
         expect(html).toContain('placeholder="Search\u2026"');
         expect(html).toContain('value="workshop"');
         expect(html).toContain('class="dashboard-input"');

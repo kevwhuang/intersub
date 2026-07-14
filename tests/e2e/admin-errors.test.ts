@@ -201,7 +201,7 @@ test.describe('offline save', () => {
 });
 
 test.describe('delete failure', () => {
-    test('a 500 response shows the delete error toast and keeps the row', async ({ page }) => {
+    test('a 500 response shows the delete error toast and keeps the dialog and row', async ({ page }) => {
         const mutations = await mockDashboardApi(page, { onMutation: route => route.fulfill({ json: {}, status: 500 }) });
 
         await openDashboard(page);
@@ -213,6 +213,10 @@ test.describe('delete failure', () => {
         await dialog.getByRole('button', { name: 'Delete' }).click();
 
         await expect(page.getByRole('status')).toHaveText(DELETE_ERROR);
+        await expect(dialog).toBeVisible();
+
+        await dialog.getByRole('button', { name: 'Cancel' }).click();
+
         await expect(dialog).toBeHidden();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(SYNTHETIC_EVENTS.length + 1);
         await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(shanghaiEvent.title);

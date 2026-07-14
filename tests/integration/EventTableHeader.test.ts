@@ -13,7 +13,7 @@ describe('EventTableHeader', () => {
         const html = renderHeader('date', 'asc');
 
         expect(html).toContain('role="row"');
-        expect(html).toContain('grid-template-columns:1fr 102px 92px 84px 84px 138px');
+        expect(html).toContain('grid-template-columns:1fr 102px 92px 84px 110px 138px');
         expect(html).toContain('background:var(--color-snow)');
         expect(html).toContain('border-bottom:1px solid var(--color-silver)');
     });

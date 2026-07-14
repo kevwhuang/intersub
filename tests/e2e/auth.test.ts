@@ -168,7 +168,7 @@ async function signIn(page: Page, baseURL: string | undefined) {
 }
 
 test.use({
-    launchOptions: { args: [`--host-resolver-rules=MAP ${MAPPED_HOST} 127.0.0.1`] },
+    launchOptions: { args: [`--host-resolver-rules=MAP ${MAPPED_HOST} [::1]`] },
 });
 
 test.beforeEach(async ({ page }) => {
