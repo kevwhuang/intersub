@@ -107,10 +107,6 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         padding-top: 8px;
     }
 
-    .contact__form {
-        scroll-margin-top: 26px;
-    }
-
     .contact__inner {
         max-width: 620px;
         position: relative;
@@ -352,7 +348,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         if (eventTitle && refs.messageInput) {
             refs.messageInput.value = `Hi! I'd like to sign up for \u201C${eventTitle}\u201D.\n\n`;
             history.replaceState(history.state, '', window.location.pathname + window.location.hash);
-            requestAnimationFrame(() => refs.form.scrollIntoView());
+            scrollToContactSection(section);
         }
 
         refs.nameInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });
@@ -361,6 +357,14 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         refs.messageInput?.addEventListener('input', () => clearErrors(refs.form, refs.errors), { signal: controller.signal });
         form.addEventListener('submit', event => handleSubmit(refs, event), { signal: controller.signal });
         resetButton.addEventListener('click', () => handleReset(refs), { signal: controller.signal });
+    }
+
+    async function scrollToContactSection(section: Element) {
+        section.scrollIntoView({ behavior: 'instant' });
+
+        await document.fonts.ready;
+
+        section.scrollIntoView({ behavior: 'instant' });
     }
 
     function showNetworkError(networkError: HTMLElement | null, key: string) {

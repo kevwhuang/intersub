@@ -47,7 +47,11 @@ function initScrollAnimations() {
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function initMotion() {
+export async function initMotion() {
     ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     initScrollAnimations();
+
+    await document.fonts.ready;
+
+    ScrollTrigger.refresh();
 }
