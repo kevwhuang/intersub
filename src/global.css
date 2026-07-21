@@ -91,7 +91,11 @@ h4 {
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: calc(var(--header-height) + 24px);
+    scroll-padding-top: var(--header-height);
+}
+
+html[data-astro-transition] {
+    scroll-behavior: auto;
 }
 
 :disabled {
