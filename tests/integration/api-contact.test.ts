@@ -83,6 +83,7 @@ function createContext(body: string, clientAddress = '127.0.0.1'): RouteContext 
 async function importProductionPost(getStoreStub: () => RateStoreStub): Promise<PostHandler> {
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
+
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
 
@@ -100,10 +101,28 @@ async function importSendPath(send: SendMock, apiKey = 'resend-key'): Promise<Po
             emails = { send };
         },
     }));
+
     vi.stubEnv('CONTACT_EMAIL', CONTACT_TO);
     vi.stubEnv('RESEND_API_KEY', apiKey);
 
     return importProductionPost(() => buildRateStore({}));
+}
+
+async function importDevPost(send: SendMock): Promise<PostHandler> {
+    vi.resetModules();
+
+    vi.doMock('resend', () => ({
+        Resend: class {
+            emails = { send };
+        },
+    }));
+
+    vi.stubEnv('CONTACT_EMAIL', CONTACT_TO);
+    vi.stubEnv('RESEND_API_KEY', 'resend-key');
+
+    const module = await import('../../src/pages/api/contact');
+
+    return module.POST;
 }
 
 async function postJson(body: Record<string, unknown>): Promise<Response> {
@@ -414,6 +433,20 @@ describe('send path', () => {
         expect(response.status).toBe(500);
         expect(result.error).toBe(SEND_ERROR);
         expect(send).toHaveBeenCalledTimes(1);
+    });
+
+    test('skips the real send in dev even when credentials are configured', async () => {
+        const send = buildSendMock({ error: null });
+
+        const post = await importDevPost(send);
+
+        const response = await post(createContext(buildSendBody()));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(result.sent).toBe(true);
+        expect(send).not.toHaveBeenCalled();
     });
 });
 

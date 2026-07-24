@@ -6,6 +6,8 @@ import EditForm from '../../src/components/dashboard/EditForm';
 import eventJune from '../../src/content/events/2026-06-15.json';
 import { LEVELS } from '../../src/lib/constants';
 
+type EditFormProps = Parameters<typeof EditForm<EventFormData>>[0];
+
 const EMPTY_FORM: EventFormData = { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' };
 
 const EVENT_FIELD_ROWS: EditFormField<EventFormData>[][] = [
@@ -22,7 +24,7 @@ const EVENT_FIELD_ROWS: EditFormField<EventFormData>[][] = [
     [{ errorMessage: 'Content is required.', isMonospace: true, key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
 ];
 
-function renderForm(overrides: Record<string, unknown> = {}) {
+function renderForm(overrides: Partial<EditFormProps> = {}) {
     return renderToStaticMarkup(createElement(EditForm, {
         editingId: '2026-06-15',
         entity: 'event',

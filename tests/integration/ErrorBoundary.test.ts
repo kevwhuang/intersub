@@ -62,6 +62,7 @@ describe('ErrorBoundary', () => {
 
         expect(html).not.toContain('<button');
         expect(html).toContain('<a class="button" href="/">Go home</a>');
+        expect(html.match(/<a /g)).toHaveLength(1);
     });
 
     test('points the home link at the root', () => {

@@ -53,6 +53,7 @@ describe('readCollection', () => {
             { id: 'alpha', tag: 'first' },
             { id: 'beta', tag: 'second' },
         ]);
+
         expect(readFileSync).toHaveBeenCalledWith(join(contentRoot, 'things', 'alpha.json'), 'utf-8');
     });
 

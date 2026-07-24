@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
 interface EventEntry {
-    date: string;
     title: string;
 }
 
@@ -90,6 +89,7 @@ test.describe('event registration', () => {
 
         await expect(page.locator('.contact__success')).toBeVisible();
         await expect(page.locator('.contact__form')).toBeHidden();
+
         expect(bodies).toEqual([{
             email: '',
             message: `Hi! I'd like to sign up for \u201C${event.title}\u201D.`,

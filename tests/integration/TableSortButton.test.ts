@@ -6,7 +6,7 @@ import TableSortButton from '../../src/components/dashboard/TableSortButton';
 
 import type { ReactElement } from 'react';
 
-function renderButton(sortDirection: 'asc' | 'desc', sortKey: string) {
+function renderButton(sortDirection: SortDirection, sortKey: string) {
     return renderToStaticMarkup(createElement(TableSortButton, {
         field: 'date',
         label: 'Date',

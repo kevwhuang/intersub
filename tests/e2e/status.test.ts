@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { readdirSync } from 'node:fs';
 
 const PAGE_PATHS = ['/', '/events', '/events/2026-06-15', '/admin'] as const;
-
 const contentRoot = join(process.cwd(), 'src/content');
 
 const eventIds = listIds('events').sort((idA, idB) => idB.localeCompare(idA));
@@ -31,6 +30,13 @@ test.describe('pages', () => {
 
         expect(response.status()).toBe(404);
         expect(response.headers()['content-type']).toContain('text/html');
+    });
+
+    test('serves the hardened security headers', async ({ request }) => {
+        const response = await request.get('/');
+
+        expect(response.headers()['content-security-policy']).toBe('base-uri \'none\'; connect-src \'self\' https://*.supabase.co; default-src \'self\'; font-src \'self\' data:; form-action \'self\'; frame-ancestors \'self\'; img-src \'self\' https:; script-src \'self\' \'unsafe-inline\' data:; style-src \'self\' \'unsafe-inline\'');
+        expect(response.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
     });
 });
 
@@ -75,6 +81,17 @@ test.describe('api', () => {
         expect(Array.isArray(testimonials)).toBe(true);
         expect(testimonialIds.length).toBeGreaterThan(0);
         expect(testimonials.map(entry => entry.id).sort()).toEqual(testimonialIds);
+    });
+
+    test('returns a json 404 for unknown api paths', async ({ request }) => {
+        const response = await request.get('/api/this-route-does-not-exist');
+
+        expect(response.status()).toBe(404);
+        expect(response.headers()['content-type']).toContain('application/json');
+
+        const body: Record<string, unknown> = await response.json();
+
+        expect(body.error).toBe('Not found');
     });
 
     test('rejects an empty contact payload with 400', async ({ request }) => {

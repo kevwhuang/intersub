@@ -18,7 +18,7 @@ describe('Navbar', () => {
         expect(html).toContain('data-i18n-aria="InterSub Home"');
     });
 
-    test('renders both logo variants as optimized Astro images', () => {
+    test('renders both logo variants as optimized images with retina srcsets', () => {
         expect(html.split('data-image-component="true"').length - 1).toBe(2);
         expect(html).toMatch(/<img[^>]*logo_en\.webp[^>]*alt="InterSub"/);
         expect(html).toMatch(/<img[^>]*logo_zh\.webp[^>]*alt="言际阁"/);

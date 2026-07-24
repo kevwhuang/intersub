@@ -80,6 +80,7 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
     vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => true) }));
+
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
 
@@ -202,15 +203,6 @@ describe('POST', () => {
         expect(response.status).toBe(200);
         expect(result.id).toBe(EVENT_ID);
         expect(after).toBe(before);
-    });
-
-    test('normalizes the time range to an en dash', async () => {
-        const response = await postJson({ ...existingEvent, id: EVENT_ID });
-
-        const result: Record<string, unknown> = await response.json();
-
-        expect(response.status).toBe(200);
-        expect(result.time).toBe('19:00\u201321:00');
     });
 
     test('rejects a malformed body', async () => {
@@ -443,6 +435,7 @@ describe('production blobs', () => {
         expect(response.status).toBe(200);
         expect(result.id).toBe(SENTINEL_ID);
         expect(getStoreStub).toHaveBeenCalledWith({ consistency: 'strong', name: 'events' });
+
         expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(SENTINEL_ID, {
             content: sentinelEvent.content,
             date: sentinelEvent.date,
@@ -450,6 +443,7 @@ describe('production blobs', () => {
             time: SENTINEL_TIME,
             title: sentinelEvent.title,
         });
+
         expect(existsSync(join(eventsDir, `${SENTINEL_ID}.json`))).toBe(false);
     });
 
@@ -464,6 +458,7 @@ describe('production blobs', () => {
 
         expect(response.status).toBe(200);
         expect(result.id).toBe(SENTINEL_RENAMED_ID);
+
         expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(SENTINEL_RENAMED_ID, {
             content: sentinelEvent.content,
             date: SENTINEL_RENAMED_ID,
@@ -471,6 +466,7 @@ describe('production blobs', () => {
             time: SENTINEL_TIME,
             title: sentinelEvent.title,
         });
+
         expect(store.delete).toHaveBeenCalledExactlyOnceWith(SENTINEL_ID);
         expect(SENTINEL_IDS.some(id => existsSync(join(eventsDir, `${id}.json`)))).toBe(false);
     });

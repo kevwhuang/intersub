@@ -85,7 +85,6 @@ async function removeTestimonialSentinel(request: APIRequestContext) {
 
 async function settleAfterWrite(page: Page) {
     const deadline = Date.now() + RELOAD_TIMEOUT;
-
     let lastLoad = Date.now();
 
     function handleLoad() {

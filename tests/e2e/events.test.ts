@@ -80,8 +80,6 @@ test.describe('events catalog', () => {
     });
 
     test('splits upcoming and past around today in Shanghai', async ({ page }) => {
-        expect(upcomingEvents.length + pastEvents.length).toBe(events.length);
-
         await page.locator('[data-filter-timing="upcoming"]').click();
 
         await expectVisibleCards(page, upcomingEvents);

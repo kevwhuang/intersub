@@ -16,7 +16,7 @@ test.describe('index page', () => {
         await expect(page).toHaveTitle('InterSub');
     });
 
-    test('renders every home section with a visible heading', async ({ page }) => {
+    test('renders every home section with visible content', async ({ page }) => {
         await expect(page.locator('.hero__title')).toBeVisible();
         await expect(page.locator('.hero__title')).toContainText('Authority');
 

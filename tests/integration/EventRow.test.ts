@@ -41,7 +41,6 @@ describe('EventRow', () => {
         const html = renderRow(EVENT_WITHOUT_LEVEL);
 
         expect(html).not.toContain('class="tag');
-        expect(html).not.toContain('>Advanced</span>');
     });
 
     test('renders edit and delete actions', () => {

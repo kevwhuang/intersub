@@ -90,7 +90,6 @@ function pluralize(count: number, noun: string) {
 
 async function settleAfterWrite(page: Page) {
     const deadline = Date.now() + RELOAD_TIMEOUT;
-
     let lastLoad = Date.now();
 
     function handleLoad() {

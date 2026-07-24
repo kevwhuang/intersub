@@ -78,6 +78,7 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
     vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => true) }));
+
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
 

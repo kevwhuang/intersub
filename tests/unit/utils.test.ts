@@ -52,6 +52,7 @@ function runTrapTabKey(shiftKey: boolean, targets: FocusTarget[], activeElement:
         contains: (node: unknown) => targets.includes(node as FocusTarget),
         querySelectorAll: vi.fn(() => targets),
     };
+
     const event = { preventDefault: vi.fn(), shiftKey };
 
     vi.stubGlobal('document', { activeElement });
@@ -105,14 +106,19 @@ describe('getLevelMeta', () => {
 });
 
 describe('getToday', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     test('returns an iso calendar date string', () => {
         expect(getToday()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
 
     test('matches the current date in shanghai', () => {
-        const expected = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-06-15T18:30:00Z'));
 
-        expect(getToday()).toBe(expected);
+        expect(getToday()).toBe('2026-06-16');
     });
 });
 

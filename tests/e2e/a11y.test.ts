@@ -84,7 +84,9 @@ test.describe('language', () => {
 
         await expect(page.locator('html')).toHaveAttribute('lang', 'en');
         await expect(page.locator('.site-nav__link[href="/"]')).toHaveAttribute('aria-current', 'page', { timeout: SCRIPT_TIMEOUT });
+
         await page.locator('[data-lang-toggle]').click();
+
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');
     });
 });

@@ -106,7 +106,7 @@ html[data-astro-transition] {
     outline: none;
 }
 
-:focus-visible:not(input, textarea, select) {
+:focus-visible:not(input, select, textarea) {
     border-radius: 2px;
     outline: 2px solid var(--color-cobalt);
     outline-offset: 2px;
@@ -126,8 +126,9 @@ html[data-astro-transition] {
 
 @media (prefers-reduced-motion: reduce) {
     *,
-    *::before,
-    *::after {
+    *::after,
+    *::before {
+        animation-delay: 0s !important;
         animation-duration: 0.01s !important;
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
