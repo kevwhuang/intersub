@@ -7,12 +7,13 @@ const IDENTITY_URL = 'https://identity.test';
 function buildRequest(header?: string) {
     const headers = header ? { Authorization: header } : undefined;
 
-    return new Request('http://localhost:8888/api/save', { headers });
+    return new Request('http://localhost:8888/api/events', { headers });
 }
 
 async function importProduction(identityUrl: string) {
     vi.resetModules();
     vi.stubEnv('IDENTITY_URL', identityUrl);
+
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
 
@@ -67,6 +68,7 @@ describe('verifyAuth', () => {
         const verify = await importProduction(IDENTITY_URL);
 
         await expect(verify(buildRequest('Bearer abc123'))).resolves.toBe(true);
+
         expect(fetchStub).toHaveBeenCalledExactlyOnceWith(`${IDENTITY_URL}/user`, {
             headers: { Authorization: 'Bearer abc123' },
             signal: expect.any(AbortSignal),

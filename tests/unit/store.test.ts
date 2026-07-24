@@ -29,6 +29,7 @@ function buildStore(payloads: Record<string, Record<string, unknown> | null>) {
 async function importProductionStore(getStoreStub: () => StoreStub) {
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
+
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
 
@@ -123,6 +124,7 @@ describe('loadCollection', () => {
             { id: 'first-client', name: 'Ada', role: 'CTO' },
             { id: 'second-client', name: 'Lin', role: 'Director' },
         ]);
+
         expect(store.list).toHaveBeenCalledTimes(1);
         expect(store.get).toHaveBeenCalledWith('first-client', { type: 'json' });
         expect(store.get).toHaveBeenCalledWith('second-client', { type: 'json' });
@@ -154,13 +156,16 @@ describe('loadCollection', () => {
     });
 
     test('falls back to the astro:content seed when getStore throws', async () => {
-        const production = await importProductionStore(() => {
+        const getStoreStub = vi.fn(() => {
             throw new Error('blobs unavailable');
         });
+
+        const production = await importProductionStore(getStoreStub);
 
         const seeded = await production.getOutcomes();
         const expectedIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
 
+        expect(getStoreStub).toHaveBeenCalledTimes(1);
         expect(seeded.map(outcome => outcome.id)).toEqual(expectedIds);
     });
 

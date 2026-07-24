@@ -108,7 +108,7 @@ test.describe('event detail page', () => {
         await expect(page.locator('#error-not-found-title')).toHaveText('This page doesn\'t exist');
     });
 
-    test('translates the meta rows to Chinese and keeps the title and content unchanged', async ({ page }) => {
+    test('translates the meta rows to chinese and keeps the title and content unchanged', async ({ page }) => {
         await page.locator('[data-lang-toggle]').click();
 
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');

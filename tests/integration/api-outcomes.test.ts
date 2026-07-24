@@ -93,6 +93,7 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
     vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => true) }));
+
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
 
@@ -351,6 +352,7 @@ describe('production blobs', () => {
     test('lists blob-backed outcomes numerically ascending through the loader', async () => {
         const store = buildBlobStore({
             '02': { ...sentinelOutcome },
+            '3': { ...sentinelOutcome },
             '10': { ...sentinelOutcome },
         });
 
@@ -361,9 +363,10 @@ describe('production blobs', () => {
         const outcomes: Record<string, unknown>[] = await response.json();
 
         expect(response.status).toBe(200);
-        expect(outcomes.map(entry => entry.id)).toEqual(['02', '10']);
+        expect(outcomes.map(entry => entry.id)).toEqual(['02', '3', '10']);
         expect(store.list).toHaveBeenCalledTimes(1);
         expect(store.get).toHaveBeenCalledWith('02', { type: 'json' });
+        expect(store.get).toHaveBeenCalledWith('3', { type: 'json' });
         expect(store.get).toHaveBeenCalledWith('10', { type: 'json' });
     });
 });

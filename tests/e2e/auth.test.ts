@@ -206,12 +206,14 @@ test.describe('login screen', () => {
         await page.getByRole('button', { name: 'Sign in' }).click();
 
         await expect(page.getByRole('alert')).toHaveText('Invalid email or password.');
+
         expect(mock.calls).toEqual([{
             authorization: '',
             body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=wrong-password`,
             method: 'POST',
             path: '/token',
         }]);
+
         expect(mock.unmatched).toEqual([]);
     });
 
@@ -260,6 +262,7 @@ test.describe('login screen', () => {
         expect(stored?.expiresAt).toBeGreaterThanOrEqual(before + TOKEN_RESPONSE.expires_in * 1_000);
         expect(stored?.expiresAt).toBeLessThanOrEqual(after + TOKEN_RESPONSE.expires_in * 1_000);
         expect(stored?.refreshToken).toBe(TOKEN_RESPONSE.refresh_token);
+
         expect(mock.calls).toEqual([{
             authorization: '',
             body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`,
@@ -303,6 +306,7 @@ test.describe('stored sessions', () => {
         expect(stored?.accessToken).toBe(TOKEN_RESPONSE.access_token);
         expect(stored?.email).toBe(SEEDED_EMAIL);
         expect(stored?.refreshToken).toBe(TOKEN_RESPONSE.refresh_token);
+
         expect(mock.calls).toEqual([{
             authorization: '',
             body: `grant_type=refresh_token&refresh_token=${SEEDED_REFRESH_TOKEN}`,
@@ -376,12 +380,14 @@ test.describe('refresh races', () => {
         expect(stored?.accessToken).toBe(RESEEDED_ACCESS_TOKEN);
         expect(stored?.email).toBe(RESEEDED_EMAIL);
         expect(stored?.refreshToken).toBe(RESEEDED_REFRESH_TOKEN);
+
         expect(mock.calls).toEqual([{
             authorization: '',
             body: `grant_type=refresh_token&refresh_token=${SEEDED_REFRESH_TOKEN}`,
             method: 'POST',
             path: '/token',
         }]);
+
         expect(mock.unmatched).toEqual([]);
     });
 
@@ -432,12 +438,14 @@ test.describe('confirmation flow', () => {
 
         expect(stored?.accessToken).toBe(TOKEN_RESPONSE.access_token);
         expect(stored?.email).toBe(CONFIRMED_EMAIL);
+
         expect(mock.calls).toEqual([{
             authorization: '',
             body: '{"token":"xyz","type":"signup"}',
             method: 'POST',
             path: '/verify',
         }]);
+
         expect(mock.unmatched).toEqual([]);
     });
 
@@ -480,6 +488,7 @@ test.describe('recovery flow', () => {
 
         expect(stored?.accessToken).toBe(TOKEN_RESPONSE.access_token);
         expect(stored?.email).toBe(RECOVERED_EMAIL);
+
         expect(mock.calls).toEqual([{
             authorization: '',
             body: '{"token":"abc","type":"recovery"}',
@@ -511,6 +520,7 @@ test.describe('recovery flow', () => {
             setter?.call(element, value);
             element.dispatchEvent(new Event('input', { bubbles: true }));
         }, 'this-password-is-far-too-long');
+
         await page.getByRole('button', { name: 'Set password' }).click();
         await expect(page.getByRole('alert')).toHaveText(PASSWORD_ERROR);
 
@@ -535,6 +545,7 @@ test.describe('recovery flow', () => {
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
         await expect(page.getByRole('complementary', { name: 'Admin sidebar' }).getByText('RE', { exact: true })).toBeVisible();
+
         expect(mock.calls).toEqual([
             { authorization: '', body: '{"token":"abc","type":"recovery"}', method: 'POST', path: '/verify' },
             { authorization: `Bearer ${TOKEN_RESPONSE.access_token}`, body: '{"password":"brand-new-pass"}', method: 'PUT', path: '/user' },
@@ -587,10 +598,12 @@ test.describe('recovery flow', () => {
         await expect(page.getByRole('alert')).toHaveText(SESSION_EXPIRED_ERROR);
         await expect(page.getByRole('button', { name: 'Back to sign in' })).toBeVisible();
         expect(await readSession(page)).toBeNull();
+
         expect(mock.calls).toEqual([
             { authorization: '', body: '{"token":"abc","type":"recovery"}', method: 'POST', path: '/verify' },
             { authorization: '', body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`, method: 'POST', path: '/token' },
         ]);
+
         expect(mock.unmatched).toEqual([]);
 
         await page.getByRole('button', { name: 'Back to sign in' }).click();
@@ -656,6 +669,7 @@ test.describe('invite flow', () => {
         const stored = await parseSession(page);
 
         expect(stored?.email).toBe(INVITED_EMAIL);
+
         expect(mock.calls).toEqual([
             { authorization: '', body: '{"token":"xyz","type":"signup"}', method: 'POST', path: '/verify' },
             { authorization: `Bearer ${TOKEN_RESPONSE.access_token}`, body: '', method: 'GET', path: '/user' },
@@ -687,6 +701,7 @@ test.describe('invite flow', () => {
         const stored = await parseSession(page);
 
         expect(stored?.email).toBe(INVITED_EMAIL);
+
         expect(mock.calls).toEqual([
             { authorization: '', body: '{"token":"xyz","type":"signup"}', method: 'POST', path: '/verify' },
             { authorization: '', body: '{"password":"welcome-aboard-1","token":"xyz","type":"signup"}', method: 'POST', path: '/verify' },
@@ -757,10 +772,12 @@ test.describe('session expiry during save', () => {
         await expect(page.getByRole('heading', { name: 'Edit event' })).toHaveCount(0);
         expect(await readSession(page)).toBeNull();
         expect(writes).toEqual([]);
+
         expect(mock.calls).toEqual([
             { authorization: '', body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`, method: 'POST', path: '/token' },
             { authorization: '', body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`, method: 'POST', path: '/token' },
         ]);
+
         expect(mock.unmatched).toEqual([]);
     });
 
@@ -790,10 +807,12 @@ test.describe('session expiry during save', () => {
         expect(stored?.email).toBe(ADMIN_EMAIL);
         expect(stored?.refreshToken).toBe(TOKEN_RESPONSE.refresh_token);
         expect(writes).toEqual([]);
+
         expect(mock.calls).toEqual([
             { authorization: '', body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`, method: 'POST', path: '/token' },
             { authorization: '', body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`, method: 'POST', path: '/token' },
         ]);
+
         expect(mock.unmatched).toEqual([]);
     });
 

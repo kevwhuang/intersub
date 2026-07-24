@@ -98,7 +98,7 @@ describe('Layout', () => {
 
     test('links the favicon and touch icon', () => {
         expect(html).toContain('<link href="/apple-touch-icon.png" rel="apple-touch-icon">');
-        expect(html).toContain('<link href="/favicon.ico" rel="icon" type="image/x-icon">');
+        expect(html).toContain('<link href="/favicon.png" rel="icon" type="image/png">');
     });
 
     test('embeds valid json-ld describing the site', () => {
@@ -128,64 +128,64 @@ describe('Layout', () => {
         expect(html.indexOf(SLOT)).toBeGreaterThan(html.indexOf('<body'));
         expect(html.indexOf(SLOT)).toBeLessThan(html.indexOf('</body>'));
     });
-});
 
-describe('language negotiation', () => {
-    test('serves chinese when the lang cookie is zh', async () => {
-        const negotiated = await renderWithHeaders({ cookie: 'lang=zh' });
+    describe('language negotiation', () => {
+        test('serves chinese when the lang cookie is zh', async () => {
+            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' });
 
-        expect(negotiated).toContain('<html lang="zh">');
-        expect(negotiated).toContain('<meta content="言际阁" property="og:site_name">');
-        expect(negotiated).toContain(`<meta content="${descriptions[HOME_DESCRIPTION]}" name="description">`);
+            expect(negotiated).toContain('<html lang="zh">');
+            expect(negotiated).toContain('<meta content="言际阁" property="og:site_name">');
+            expect(negotiated).toContain(`<meta content="${descriptions[HOME_DESCRIPTION]}" name="description">`);
+        });
+
+        test('keeps english when the lang cookie is en despite a chinese accept-language', async () => {
+            const negotiated = await renderWithHeaders({ 'accept-language': ZH_ACCEPT_LANGUAGE, 'cookie': 'lang=en' });
+
+            expect(negotiated).toContain('<html lang="en">');
+            expect(negotiated).toContain('<meta content="InterSub" property="og:site_name">');
+            expect(negotiated).toContain(`<meta content="${HOME_DESCRIPTION}" name="description">`);
+        });
+
+        test('serves chinese from accept-language when no cookie is set', async () => {
+            const negotiated = await renderWithHeaders({ 'accept-language': ZH_ACCEPT_LANGUAGE });
+
+            expect(negotiated).toContain('<html lang="zh">');
+            expect(negotiated).toContain('<meta content="言际阁" property="og:site_name">');
+            expect(negotiated).toContain(`<meta content="${descriptions[HOME_DESCRIPTION]}" name="description">`);
+        });
+
+        test('defaults to english without language signals', async () => {
+            const negotiated = await renderWithHeaders({});
+
+            expect(negotiated).toContain('<html lang="en">');
+            expect(negotiated).toContain('<meta content="InterSub" property="og:site_name">');
+            expect(negotiated).toContain(`<meta content="${HOME_DESCRIPTION}" name="description">`);
+        });
     });
 
-    test('keeps english when the lang cookie is en despite a chinese accept-language', async () => {
-        const negotiated = await renderWithHeaders({ 'accept-language': ZH_ACCEPT_LANGUAGE, 'cookie': 'lang=en' });
+    describe('title localization', () => {
+        test('serves the exact chinese title for a titles.json key', async () => {
+            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' });
 
-        expect(negotiated).toContain('<html lang="en">');
-        expect(negotiated).toContain('<meta content="InterSub" property="og:site_name">');
-        expect(negotiated).toContain(`<meta content="${HOME_DESCRIPTION}" name="description">`);
-    });
+            expect(negotiated).toContain(`<title>${titles[TITLE]}</title>`);
+            expect(negotiated).toContain(`<meta content="${TITLE}" name="title-en">`);
+            expect(negotiated).toContain(`<meta content="${titles[TITLE]}" property="og:title">`);
+        });
 
-    test('serves chinese from accept-language when no cookie is set', async () => {
-        const negotiated = await renderWithHeaders({ 'accept-language': ZH_ACCEPT_LANGUAGE });
+        test('composes the chinese title from the translated prefix when no exact key exists', async () => {
+            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, OUTCOMES_TITLE);
 
-        expect(negotiated).toContain('<html lang="zh">');
-        expect(negotiated).toContain('<meta content="言际阁" property="og:site_name">');
-        expect(negotiated).toContain(`<meta content="${descriptions[HOME_DESCRIPTION]}" name="description">`);
-    });
+            expect(negotiated).toContain('<title>成果案例 \u2014 InterSub</title>');
+            expect(negotiated).toContain(`<meta content="${OUTCOMES_TITLE}" name="title-en">`);
+            expect(negotiated).toContain('<meta content="成果案例 \u2014 InterSub" property="og:title">');
+        });
 
-    test('defaults to english without language signals', async () => {
-        const negotiated = await renderWithHeaders({});
+        test('keeps an untranslatable title in english', async () => {
+            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, UNTRANSLATED_TITLE);
 
-        expect(negotiated).toContain('<html lang="en">');
-        expect(negotiated).toContain('<meta content="InterSub" property="og:site_name">');
-        expect(negotiated).toContain(`<meta content="${HOME_DESCRIPTION}" name="description">`);
-    });
-});
-
-describe('title localization', () => {
-    test('serves the exact chinese title for a titles.json key', async () => {
-        const negotiated = await renderWithHeaders({ cookie: 'lang=zh' });
-
-        expect(negotiated).toContain(`<title>${titles[TITLE]}</title>`);
-        expect(negotiated).toContain(`<meta content="${TITLE}" name="title-en">`);
-        expect(negotiated).toContain(`<meta content="${titles[TITLE]}" property="og:title">`);
-    });
-
-    test('composes the chinese title from the translated prefix when no exact key exists', async () => {
-        const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, OUTCOMES_TITLE);
-
-        expect(negotiated).toContain('<title>成果案例 \u2014 InterSub</title>');
-        expect(negotiated).toContain(`<meta content="${OUTCOMES_TITLE}" name="title-en">`);
-        expect(negotiated).toContain('<meta content="成果案例 \u2014 InterSub" property="og:title">');
-    });
-
-    test('keeps an untranslatable title in english', async () => {
-        const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, UNTRANSLATED_TITLE);
-
-        expect(negotiated).toContain(`<title>${UNTRANSLATED_TITLE}</title>`);
-        expect(negotiated).toContain(`<meta content="${UNTRANSLATED_TITLE}" name="title-en">`);
-        expect(negotiated).toContain(`<meta content="${UNTRANSLATED_TITLE}" property="og:title">`);
+            expect(negotiated).toContain(`<title>${UNTRANSLATED_TITLE}</title>`);
+            expect(negotiated).toContain(`<meta content="${UNTRANSLATED_TITLE}" name="title-en">`);
+            expect(negotiated).toContain(`<meta content="${UNTRANSLATED_TITLE}" property="og:title">`);
+        });
     });
 });

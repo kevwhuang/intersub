@@ -19,5 +19,5 @@ Run each step in order:
 
 - Format: `type: lowercase description`, starting with a verb
 - Types: `chore` | `content` | `feat` | `fix` | `init` | `refactor`
-- Concise and general when appropriate
+- Prefer one concise, general description over enumerating changes
 - Always include `Co-Authored-By: Claude <noreply@anthropic.com>`

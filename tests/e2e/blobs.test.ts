@@ -1,5 +1,5 @@
-import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
+import { expect, test } from '@playwright/test';
 import { getStore } from '@netlify/blobs';
 import { join } from 'node:path';
 
@@ -37,12 +37,20 @@ async function sweepTestKeys(): Promise<void> {
     expect(remaining).toHaveLength(0);
 }
 
-describe.skipIf(!token)('netlify blobs', { timeout: TEST_TIMEOUT }, () => {
-    beforeAll(sweepTestKeys, TEST_TIMEOUT);
+test.describe('netlify blobs', () => {
+    test.skip(!token, 'NETLIFY_AUTH_TOKEN missing');
 
-    afterAll(sweepTestKeys, TEST_TIMEOUT);
+    test.beforeEach(() => test.setTimeout(TEST_TIMEOUT));
 
-    describe('events store', () => {
+    test.beforeAll(async () => {
+        await sweepTestKeys();
+    });
+
+    test.afterAll(async () => {
+        await sweepTestKeys();
+    });
+
+    test.describe('events store', () => {
         test('lists a non-empty set of date-shaped keys', async () => {
             const store = createEventualStore('events');
 
@@ -55,7 +63,7 @@ describe.skipIf(!token)('netlify blobs', { timeout: TEST_TIMEOUT }, () => {
         });
     });
 
-    describe('tests store', () => {
+    test.describe('tests store', () => {
         test('round-trips an object through setJSON and get', async () => {
             const key = `${PREFIX}roundtrip`;
             const payload = { active: true, count: 3, title: 'InterSub blob round trip' };

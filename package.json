@@ -1,6 +1,6 @@
 {
     "name": "intersub",
-    "version": "26.7.21",
+    "version": "26.7.23",
     "type": "module",
     "author": "Kevin Huang",
     "scripts": {
@@ -26,7 +26,8 @@
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
         "resend": "^6.18.0",
-        "tailwindcss": "^4.3.3"
+        "tailwindcss": "^4.3.3",
+        "vite": "^8.1.5"
     },
     "devDependencies": {
         "@astrojs/check": "^0.9.9",

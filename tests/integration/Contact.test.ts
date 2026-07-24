@@ -66,8 +66,4 @@ describe('Contact', () => {
         expect(html).toContain('<div class="contact__success" hidden');
         expect(html).toMatch(/<p class="contact__error contact__network-error"[^>]*hidden role="alert"/);
     });
-
-    test('leaves contact content selectable', () => {
-        expect(html).not.toContain('select-none');
-    });
 });

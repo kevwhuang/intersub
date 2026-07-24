@@ -23,6 +23,8 @@ describe('ScreenShell', () => {
 
         expect(html).toContain('alt="InterSub"');
         expect(html).toContain('src="/apple-touch-icon.png"');
+        expect(html).toContain('align-items:center');
+        expect(html).toContain('justify-content:center');
         expect(html).toContain('min-height:100vh');
         expect(html).toContain('max-width:420px');
         expect(html).toContain('background:var(--color-snow)');

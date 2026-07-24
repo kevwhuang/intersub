@@ -85,14 +85,12 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
 
     if (await isRateLimited(clientAddress)) return Response.json({ error: ERROR_RATE_LIMITED }, { status: 429 });
 
+    if (IS_DEV) return Response.json({ sent: true });
+
     const apiKey = import.meta.env.RESEND_API_KEY;
     const contactEmail = import.meta.env.CONTACT_EMAIL;
 
-    if (!apiKey || !contactEmail) {
-        if (IS_DEV) return Response.json({ sent: true });
-
-        return Response.json({ error: 'Email service not configured' }, { status: 503 });
-    }
+    if (!apiKey || !contactEmail) return Response.json({ error: 'Email service not configured' }, { status: 503 });
 
     const resend = new Resend(apiKey);
 
