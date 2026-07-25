@@ -9,7 +9,7 @@ describe('supabase', () => {
     test('importing the module yields a client without any network call', async () => {
         const fetchStub = vi.fn();
 
-        vi.stubEnv('SUPABASE_ANON_KEY', 'test-anon-key');
+        vi.stubEnv('SUPABASE_PUBLISHABLE_KEY', 'test-anon-key');
         vi.stubEnv('SUPABASE_URL', 'https://example.supabase.co');
         vi.stubGlobal('fetch', fetchStub);
 

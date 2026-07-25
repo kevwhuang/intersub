@@ -61,6 +61,11 @@ interface EventFormData {
     title: string;
 }
 
+interface ImportMetaEnv {
+    readonly SUPABASE_PUBLISHABLE_KEY: string;
+    readonly SUPABASE_URL: string;
+}
+
 interface OutcomeFormData {
     points: string;
     summary: string;
