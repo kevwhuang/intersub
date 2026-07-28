@@ -34,11 +34,8 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Outcome not found' }, { status: 404 });
     }
 
-    if (IS_DEV) {
-        deleteEntry('outcomes', id);
-    } else {
-        await getStore({ consistency: 'strong', name: 'outcomes' }).delete(String(id));
-    }
+    if (IS_DEV) deleteEntry('outcomes', id);
+    else await getStore({ consistency: 'strong', name: 'outcomes' }).delete(String(id));
 
     return Response.json({ deleted: true });
 };
@@ -92,11 +89,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     const data = { points, summary, title };
 
-    if (IS_DEV) {
-        writeEntry('outcomes', id, data);
-    } else {
-        await getStore({ consistency: 'strong', name: 'outcomes' }).setJSON(id, data);
-    }
+    if (IS_DEV) writeEntry('outcomes', id, data);
+    else await getStore({ consistency: 'strong', name: 'outcomes' }).setJSON(id, data);
 
     return Response.json({ id, ...data });
 };

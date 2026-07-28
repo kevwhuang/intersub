@@ -45,7 +45,14 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
                         value={form[field.key]}
                     >
                         <option value="">None</option>
-                        {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
+                        {field.options?.map(option => (
+                            <option
+                                key={option}
+                                value={option}
+                            >
+                                {option}
+                            </option>
+                        ))}
                     </select>
                 </div>
             );

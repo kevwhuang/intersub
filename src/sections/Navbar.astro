@@ -375,27 +375,21 @@ import { ROUTES } from '@lib/constants';
 
             link.classList.toggle('site-nav__link--active', isActive);
 
-            if (isActive) {
-                link.setAttribute('aria-current', 'page');
-            } else {
-                link.removeAttribute('aria-current');
-            }
+            if (isActive) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
 
             link.addEventListener('click', () => closeMenu(), { signal: controller.signal });
         });
 
         toggle?.addEventListener('click', () => {
-            if (menu?.classList.contains('site-nav__menu--open')) {
-                closeMenu();
-            } else {
-                openMenu();
-            }
+            if (menu?.classList.contains('site-nav__menu--open')) closeMenu();
+            else openMenu();
         }, { signal: controller.signal });
 
         document.addEventListener('keydown', handleKeyDown, { signal: controller.signal });
         document.addEventListener('mousedown', handleMouseDown, { signal: controller.signal });
-        window.matchMedia(MOBILE_QUERY).addEventListener('change', handleMediaChange, { signal: controller.signal });
         document.querySelector('[data-lang-toggle]')?.addEventListener('click', toggleLanguage, { signal: controller.signal });
+        window.matchMedia(MOBILE_QUERY).addEventListener('change', handleMediaChange, { signal: controller.signal });
     }
 
     function openMenu() {

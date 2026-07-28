@@ -13,7 +13,7 @@ export default class ErrorBoundary extends Component<{ children: React.ReactNode
         if (!this.state.hasError) return this.props.children;
 
         return (
-            <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', minHeight: '100vh', padding: 'clamp(48px, calc(30.67px + 5.42vw), 100px) 0' }}>
+            <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'center', minHeight: '100svh', padding: 'clamp(48px, calc(30.67px + 5.42vw), 100px) 0' }}>
                 <div style={{ margin: '0 auto', maxWidth: 620, padding: '0 var(--shell-pad)', textAlign: 'center', width: '100%' }}>
                     <p
                         aria-hidden="true"

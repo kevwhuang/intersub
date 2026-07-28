@@ -126,7 +126,7 @@ describe('parseDate', () => {
     test('returns a local-midnight date', () => {
         const date = parseDate('2026-06-15');
 
-        expect(date.getFullYear()).toBe(2026);
+        expect(date.getFullYear()).toBe(2_026);
         expect(date.getMonth()).toBe(5);
         expect(date.getDate()).toBe(15);
         expect(date.getHours()).toBe(0);

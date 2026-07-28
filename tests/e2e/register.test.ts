@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
+import type { Page } from '@playwright/test';
+
 interface EventEntry {
     title: string;
 }
@@ -20,14 +22,18 @@ function buildPrefill(title: string) {
     return `Hi! I'd like to sign up for \u201C${title}\u201D.\n\n`;
 }
 
+async function gotoReady(page: Page, path: string) {
+    await page.goto(path);
+    await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
+}
+
 test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
 test.describe('event registration', () => {
     test('links the register and back actions on the event detail page', async ({ page }) => {
-        await page.goto(`/events/${SLUG}`);
-        await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
+        await gotoReady(page, `/events/${SLUG}`);
 
         const actions = page.locator('.event-detail__actions');
 
@@ -36,8 +42,7 @@ test.describe('event registration', () => {
     });
 
     test('translates the register and back actions in chinese', async ({ page }) => {
-        await page.goto(`/events/${SLUG}`);
-        await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
+        await gotoReady(page, `/events/${SLUG}`);
 
         await page.locator('[data-lang-toggle]').click();
 
@@ -50,8 +55,7 @@ test.describe('event registration', () => {
     });
 
     test('prefills the contact message from the register action and strips the query', async ({ page }) => {
-        await page.goto(`/events/${SLUG}`);
-        await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
+        await gotoReady(page, `/events/${SLUG}`);
 
         await page.locator('.event-detail__actions').getByRole('link', { name: 'Register' }).click();
 
@@ -77,8 +81,7 @@ test.describe('event registration', () => {
             await route.fulfill({ json: { sent: true } });
         });
 
-        await page.goto(`/events/${SLUG}`);
-        await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
+        await gotoReady(page, `/events/${SLUG}`);
 
         await page.locator('.event-detail__actions').getByRole('link', { name: 'Register' }).click();
         await expect(page.locator('textarea[name="message"]')).toHaveValue(buildPrefill(event.title));
@@ -99,8 +102,7 @@ test.describe('event registration', () => {
     });
 
     test('leaves the contact message empty without an event query', async ({ page }) => {
-        await page.goto('/');
-        await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
+        await gotoReady(page, '/');
 
         await expect(page.locator('textarea[name="message"]')).toHaveValue('');
         await expect(page).toHaveURL('/');

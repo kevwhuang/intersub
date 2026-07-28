@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { AUTH_TOKEN_PATTERN, ERROR_GENERIC, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
+import { AUTH_TOKEN_PATTERN, ERROR_GENERIC, IS_DEV, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
 
 interface AuthUser {
     email?: string;
@@ -23,7 +23,7 @@ const IDENTITY_URL = typeof window !== 'undefined'
     ? `${window.location.origin}/.netlify/identity`
     : '';
 
-const IS_LOCAL = import.meta.env.DEV
+const IS_LOCAL = IS_DEV
     && typeof window !== 'undefined'
     && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
 
@@ -257,7 +257,7 @@ export function useAuth() {
         setError('');
 
         if (!password.trim() || password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
-            setError('Password must be 8\u201320 characters.');
+            setError(`Password must be ${PASSWORD_MIN}\u2013${PASSWORD_MAX} characters.`);
 
             return;
         }

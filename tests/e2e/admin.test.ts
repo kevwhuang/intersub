@@ -370,8 +370,8 @@ test.describe('delete modal', () => {
     });
 
     test('escape closes the dialog and restores focus', async ({ page }) => {
-        const writes = trackApiWrites(page);
         const deleteButton = getEventsTable(page).getByRole('row').nth(1).getByRole('button', { name: 'Delete' });
+        const writes = trackApiWrites(page);
 
         await deleteButton.click();
         await expect(page.getByRole('dialog', { name: 'Delete this item?' })).toBeVisible();
@@ -383,8 +383,8 @@ test.describe('delete modal', () => {
     });
 
     test('cancel closes the dialog and restores focus', async ({ page }) => {
-        const writes = trackApiWrites(page);
         const deleteButton = getEventsTable(page).getByRole('row').nth(1).getByRole('button', { name: 'Delete' });
+        const writes = trackApiWrites(page);
 
         await deleteButton.click();
 

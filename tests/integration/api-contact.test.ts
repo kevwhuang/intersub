@@ -80,6 +80,16 @@ function createContext(body: string, clientAddress = '127.0.0.1'): RouteContext 
     } as RouteContext;
 }
 
+async function importDevPost(send: SendMock): Promise<PostHandler> {
+    vi.resetModules();
+
+    mockResendClient(send);
+
+    const module = await import('../../src/pages/api/contact');
+
+    return module.POST;
+}
+
 async function importProductionPost(getStoreStub: () => RateStoreStub): Promise<PostHandler> {
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
@@ -96,6 +106,12 @@ async function importProductionPost(getStoreStub: () => RateStoreStub): Promise<
 }
 
 async function importSendPath(send: SendMock, apiKey = 'resend-key'): Promise<PostHandler> {
+    mockResendClient(send, apiKey);
+
+    return importProductionPost(() => buildRateStore({}));
+}
+
+function mockResendClient(send: SendMock, apiKey = 'resend-key'): void {
     vi.doMock('resend', () => ({
         Resend: class {
             emails = { send };
@@ -104,25 +120,6 @@ async function importSendPath(send: SendMock, apiKey = 'resend-key'): Promise<Po
 
     vi.stubEnv('CONTACT_EMAIL', CONTACT_TO);
     vi.stubEnv('RESEND_API_KEY', apiKey);
-
-    return importProductionPost(() => buildRateStore({}));
-}
-
-async function importDevPost(send: SendMock): Promise<PostHandler> {
-    vi.resetModules();
-
-    vi.doMock('resend', () => ({
-        Resend: class {
-            emails = { send };
-        },
-    }));
-
-    vi.stubEnv('CONTACT_EMAIL', CONTACT_TO);
-    vi.stubEnv('RESEND_API_KEY', 'resend-key');
-
-    const module = await import('../../src/pages/api/contact');
-
-    return module.POST;
 }
 
 async function postJson(body: Record<string, unknown>): Promise<Response> {

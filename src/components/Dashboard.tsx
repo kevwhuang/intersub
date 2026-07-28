@@ -684,7 +684,7 @@ function DashboardInner() {
     if (state.isLoading) return <ScreenLoading />;
 
     return (
-        <div style={{ background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <div style={{ background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', minHeight: '100svh' }}>
             <TopBar
                 isDrawerOpen={state.isDrawerOpen}
                 onSearchChange={value => set({ searchValue: value })}
@@ -730,7 +730,7 @@ function DashboardInner() {
 
 function ScreenLoading() {
     return (
-        <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100svh' }}>
             <Spinner size={64} />
             <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Loading&hellip;</p>
         </div>

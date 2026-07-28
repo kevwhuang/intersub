@@ -6,7 +6,7 @@ import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
 import QrCode from '@components/QrCode.astro';
 import logoEn from '@images/logos/logo_en.webp';
 import logoZh from '@images/logos/logo_zh.webp';
-import { ROUTES } from '@lib/constants';
+import { IS_DEV, ROUTES } from '@lib/constants';
 
 const ICONS: Record<(typeof SOCIALS)[number]['slug'], typeof IconApplePodcasts> = {
     'apple-podcasts': IconApplePodcasts,
@@ -47,7 +47,7 @@ const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
                         </a>
                     </li>
                 ))}
-                {import.meta.env.DEV && (
+                {IS_DEV && (
                     <li>
                         <a class="site-footer__link" href="/admin">Admin</a>
                     </li>

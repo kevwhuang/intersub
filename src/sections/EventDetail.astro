@@ -91,7 +91,7 @@ for (const block of rawBlocks) {
             data-scroll
             style={`background:${meta.cover};color:${meta.ink}`}
         >
-            {coverImage && <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1250]} />}
+            {coverImage && <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1_250]} />}
             {!coverImage && cover && <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />}
             {!coverImage && !cover && <span class="event-detail__cover-initials" aria-hidden="true">{initials}</span>}
         </div>
