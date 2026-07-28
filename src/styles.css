@@ -30,6 +30,7 @@
 
 .button:focus-visible {
     box-shadow: 0 0 0 3px var(--color-cobalt-20);
+    outline: none;
 }
 
 .button:hover {
@@ -62,6 +63,7 @@
 
 .button--outline:focus-visible {
     box-shadow: 0 0 0 3px var(--color-cobalt-20);
+    outline: none;
 }
 
 .button--outline:hover {
@@ -94,6 +96,7 @@
 
 .chip:focus-visible {
     box-shadow: 0 0 0 3px var(--color-cobalt-20);
+    outline: none;
 }
 
 .chip:hover {
@@ -191,7 +194,13 @@
 }
 
 .dashboard-button--danger-solid:active {
+    background: var(--color-red);
     filter: brightness(0.92);
+}
+
+.dashboard-button--danger-solid:disabled:hover {
+    background: var(--color-red);
+    border-color: var(--color-red);
 }
 
 .dashboard-button--danger-solid:hover {
@@ -364,12 +373,12 @@
 }
 
 .dashboard-nav--active {
-    background: color-mix(in srgb, var(--color-cobalt) 10%, var(--color-white));
+    background: var(--color-cobalt-10);
     color: var(--color-cobalt);
 }
 
 .dashboard-nav--active:hover {
-    background: color-mix(in srgb, var(--color-cobalt) 10%, var(--color-white));
+    background: var(--color-cobalt-10);
 }
 
 .dashboard-select {

@@ -7,7 +7,7 @@ export default function ScreenShell({ children, footer, subtitle, title }: {
     title: string;
 }) {
     return (
-        <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, display: 'flex', justifyContent: 'center', minHeight: '100vh', padding: 'clamp(24px, calc(16px + 2.5vw), 48px)' }}>
+        <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, display: 'flex', justifyContent: 'center', minHeight: '100svh', padding: 'clamp(24px, calc(16px + 2.5vw), 48px)' }}>
             <div style={{ maxWidth: 420, width: '100%' }}>
                 <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column', marginBottom: 'clamp(32px, calc(26.67px + 1.67vw), 48px)' }}>
                     <img alt="InterSub" height="56" src="/apple-touch-icon.png" style={{ borderRadius: 14 }} width="56" />

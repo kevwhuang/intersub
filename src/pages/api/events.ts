@@ -44,11 +44,8 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    if (IS_DEV) {
-        deleteEntry('events', id);
-    } else {
-        await getStore({ consistency: 'strong', name: 'events' }).delete(String(id));
-    }
+    if (IS_DEV) deleteEntry('events', id);
+    else await getStore({ consistency: 'strong', name: 'events' }).delete(String(id));
 
     return Response.json({ deleted: true });
 };
@@ -120,18 +117,12 @@ export const POST: APIRoute = async ({ request }) => {
     if (cover) data.cover = cover;
     if (level) data.level = level;
 
-    if (IS_DEV) {
-        writeEntry('events', id, data);
-    } else {
-        await getStore({ consistency: 'strong', name: 'events' }).setJSON(id, data);
-    }
+    if (IS_DEV) writeEntry('events', id, data);
+    else await getStore({ consistency: 'strong', name: 'events' }).setJSON(id, data);
 
     if (previousId && previousId !== id) {
-        if (IS_DEV) {
-            deleteEntry('events', previousId);
-        } else {
-            await getStore({ consistency: 'strong', name: 'events' }).delete(previousId);
-        }
+        if (IS_DEV) deleteEntry('events', previousId);
+        else await getStore({ consistency: 'strong', name: 'events' }).delete(previousId);
     }
 
     return Response.json({ id, ...data });

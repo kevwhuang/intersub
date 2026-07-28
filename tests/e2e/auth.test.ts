@@ -25,6 +25,7 @@ const ADMIN_EMAIL = 'admin@intersub.com';
 const AUTH_KEY = 'intersub_auth';
 const CONFIRMED_EMAIL = 'confirmed@intersub.com';
 const DEFAULT_BASE = 'http://localhost:8888';
+const EXPIRED_OFFSET_MS = -1_000;
 const IDENTITY_PATH = '/.netlify/identity';
 const INVALID_LINK_ERROR = 'This link is invalid or has expired.';
 const INVITED_EMAIL = 'invited@intersub.com';
@@ -38,6 +39,7 @@ const RESEEDED_REFRESH_TOKEN = 'reseeded-refresh-token';
 const SEEDED_EMAIL = 'stored@intersub.com';
 const SEEDED_REFRESH_TOKEN = 'stored-refresh-token';
 const SESSION_EXPIRED_ERROR = 'Session expired. Please sign in again.';
+const VALID_OFFSET_MS = 3_600_000;
 
 const TOKEN_RESPONSE = {
     access_token: 'fresh-access-token',
@@ -66,16 +68,16 @@ async function blockApiWrites(page: Page) {
 }
 
 async function expireSession(page: Page) {
-    await page.evaluate((key) => {
+    await page.evaluate(({ key, offset }) => {
         const raw = window.localStorage.getItem(key);
 
         if (!raw) return;
 
         const session = JSON.parse(raw) as StoredSession;
 
-        session.expiresAt = Date.now() - 1_000;
+        session.expiresAt = Date.now() + offset;
         window.localStorage.setItem(key, JSON.stringify(session));
-    }, AUTH_KEY);
+    }, { key: AUTH_KEY, offset: EXPIRED_OFFSET_MS });
 }
 
 function getAdminUrl(baseURL: string | undefined, hash = '') {
@@ -130,14 +132,14 @@ async function readSession(page: Page) {
 }
 
 async function reseedValidSession(page: Page) {
-    await page.evaluate(({ accessToken, email, key, refreshToken }) => {
+    await page.evaluate(({ accessToken, email, key, offset, refreshToken }) => {
         window.localStorage.setItem(key, JSON.stringify({
             accessToken,
             email,
-            expiresAt: Date.now() + 3_600_000,
+            expiresAt: Date.now() + offset,
             refreshToken,
         }));
-    }, { accessToken: RESEEDED_ACCESS_TOKEN, email: RESEEDED_EMAIL, key: AUTH_KEY, refreshToken: RESEEDED_REFRESH_TOKEN });
+    }, { accessToken: RESEEDED_ACCESS_TOKEN, email: RESEEDED_EMAIL, key: AUTH_KEY, offset: VALID_OFFSET_MS, refreshToken: RESEEDED_REFRESH_TOKEN });
 }
 
 async function seedSession(page: Page, offsetMs: number) {
@@ -281,7 +283,7 @@ test.describe('stored sessions', () => {
     test('skips login when a valid session is stored', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, () => null);
 
-        await seedSession(page, 3_600_000);
+        await seedSession(page, VALID_OFFSET_MS);
         await page.goto(getAdminUrl(baseURL));
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
@@ -296,7 +298,7 @@ test.describe('stored sessions', () => {
             return null;
         });
 
-        await seedSession(page, -1_000);
+        await seedSession(page, EXPIRED_OFFSET_MS);
         await page.goto(getAdminUrl(baseURL));
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
@@ -324,7 +326,7 @@ test.describe('stored sessions', () => {
             return null;
         });
 
-        await seedSession(page, -1_000);
+        await seedSession(page, EXPIRED_OFFSET_MS);
         await page.goto(getAdminUrl(baseURL));
 
         await expect(page.getByLabel('Email')).toBeVisible();
@@ -347,7 +349,7 @@ test.describe('stored sessions', () => {
     test('sign out clears the stored session and returns to login', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, () => null);
 
-        await seedSession(page, 3_600_000);
+        await seedSession(page, VALID_OFFSET_MS);
         await page.goto(getAdminUrl(baseURL));
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
 
@@ -369,7 +371,7 @@ test.describe('refresh races', () => {
             return { json: TOKEN_RESPONSE, status: 200 };
         });
 
-        await seedSession(page, -1_000);
+        await seedSession(page, EXPIRED_OFFSET_MS);
         await page.goto(getAdminUrl(baseURL));
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
@@ -400,7 +402,7 @@ test.describe('refresh races', () => {
             return { json: { error: 'invalid_grant' }, status: 401 };
         });
 
-        await seedSession(page, -1_000);
+        await seedSession(page, EXPIRED_OFFSET_MS);
         await page.goto(getAdminUrl(baseURL));
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();

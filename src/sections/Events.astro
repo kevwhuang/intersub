@@ -114,7 +114,7 @@ const locationFilters = ['all', ...locations];
                             class="events__card-cover"
                             style={`background:${meta.cover};color:${meta.ink}`}
                         >
-                            {event.cover && coverImage && <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1250]} />}
+                            {event.cover && coverImage && <Image class="events__card-image" alt="" loading="lazy" sizes="(min-width: 768px) 33vw, 100vw" src={coverImage} widths={[480, 800, 1_250]} />}
                             {event.cover && !coverImage && <img class="events__card-image" alt="" decoding="async" loading="lazy" src={resolveCover(event.cover)} />}
                             {!event.cover && <span class="events__card-initials" aria-hidden="true">{initials}</span>}
                         </div>

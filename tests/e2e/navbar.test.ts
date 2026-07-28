@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+const MOBILE_VIEWPORT = { height: 667, width: 375 } as const;
+
 test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 });
@@ -91,7 +93,7 @@ test.describe('navbar navigation', () => {
 });
 
 test.describe('navbar mobile menu', () => {
-    test.use({ viewport: { height: 667, width: 375 } });
+    test.use({ viewport: MOBILE_VIEWPORT });
 
     test.beforeEach(async ({ page }) => {
         await page.goto('/');

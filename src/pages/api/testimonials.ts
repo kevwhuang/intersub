@@ -34,11 +34,8 @@ export const DELETE: APIRoute = async ({ request }) => {
         return Response.json({ error: 'Testimonial not found' }, { status: 404 });
     }
 
-    if (IS_DEV) {
-        deleteEntry('testimonials', id);
-    } else {
-        await getStore({ consistency: 'strong', name: 'testimonials' }).delete(String(id));
-    }
+    if (IS_DEV) deleteEntry('testimonials', id);
+    else await getStore({ consistency: 'strong', name: 'testimonials' }).delete(String(id));
 
     return Response.json({ deleted: true });
 };
@@ -94,11 +91,8 @@ export const POST: APIRoute = async ({ request }) => {
         id = slug && !testimonials.some(entry => String(entry.id) === slug) ? slug : `${slug || 'testimonial'}-${Date.now()}`;
     }
 
-    if (IS_DEV) {
-        writeEntry('testimonials', id, data);
-    } else {
-        await getStore({ consistency: 'strong', name: 'testimonials' }).setJSON(id, data);
-    }
+    if (IS_DEV) writeEntry('testimonials', id, data);
+    else await getStore({ consistency: 'strong', name: 'testimonials' }).setJSON(id, data);
 
     return Response.json({ id, ...data });
 };
