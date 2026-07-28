@@ -25,7 +25,6 @@ const LOAD_ERROR = 'Failed to load data';
 const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
 const RENAMED_TITLE = 'Alpha Negotiation Lab (Edited)';
 const SAVE_ERROR = 'Failed to save';
-const VALID_COVER = '/images/events/x.webp';
 
 const SYNTHETIC_EVENTS: SyntheticEvent[] = [
     {
@@ -47,6 +46,8 @@ const SYNTHETIC_EVENTS: SyntheticEvent[] = [
         title: 'Beta Presentation Studio',
     },
 ];
+
+const VALID_COVER = '/images/events/x.webp';
 
 const [shanghaiEvent, suzhouEvent] = SYNTHETIC_EVENTS;
 

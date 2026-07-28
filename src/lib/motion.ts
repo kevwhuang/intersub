@@ -54,4 +54,6 @@ export async function initMotion() {
     await document.fonts.ready;
 
     ScrollTrigger.refresh();
+
+    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
 }
