@@ -9,7 +9,7 @@ const SOCIAL_URLS = [
     'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411',
 ] as const;
 
-const WECHAT_URL = 'https://u.wechat.com/MIhe6eduSSoNWiw9INP9YEQ?s=2';
+const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
 
 describe('Footer', () => {
     let html: string;
