@@ -1,8 +1,6 @@
 import FormField from '@components/dashboard/FormField';
 import Spinner from '@components/Spinner';
-import { FONT_MONO, STYLES, TOUCH_TARGET } from '@lib/constants';
-
-const PADDING_COMPACT = '11px 14px';
+import { STYLES, TOUCH_TARGET } from '@lib/constants';
 
 export default function EditForm<Values extends Record<keyof Values, string>>({ editingId, entity, fieldRows, form, formErrors, isMobile, isSaving, onCancel, onDelete, onSave, onUpdate }: {
     editingId: string;
@@ -41,7 +39,7 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
                         className={inputClassName}
                         aria-describedby={describedBy}
                         onChange={handleChange}
-                        style={{ ...STYLES.inputBase, appearance: 'none', background: STYLES.colorSurface, padding: PADDING_COMPACT }}
+                        style={{ ...STYLES.inputBase, appearance: 'none', background: STYLES.colorSurface }}
                         value={form[field.key]}
                     >
                         <option value="">None</option>
@@ -60,12 +58,12 @@ export default function EditForm<Values extends Record<keyof Values, string>>({ 
 
         if (field.kind === 'textarea') {
             return (
-                <textarea className={inputClassName} aria-describedby={describedBy} onChange={handleChange} rows={field.rows} style={{ ...STYLES.inputBase, ...(field.isMonospace ? { fontFamily: FONT_MONO, fontSize: 12 } : {}), lineHeight: 1.6, minHeight: field.minHeight ?? 140, resize: 'vertical' }} value={form[field.key]} />
+                <textarea className={inputClassName} aria-describedby={describedBy} onChange={handleChange} rows={field.rows} style={{ ...STYLES.inputBase, lineHeight: 1.6, minHeight: field.minHeight ?? 140, resize: 'vertical' }} value={form[field.key]} />
             );
         }
 
         return (
-            <input className={inputClassName} aria-describedby={describedBy} onChange={handleChange} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { appearance: 'none', minWidth: 0, padding: PADDING_COMPACT } : {}) }} type={field.kind === 'date' ? 'date' : undefined} value={form[field.key]} />
+            <input className={inputClassName} aria-describedby={describedBy} onChange={handleChange} style={{ ...STYLES.inputBase, ...(field.kind === 'date' ? { appearance: 'none', minWidth: 0 } : {}) }} type={field.kind === 'date' ? 'date' : undefined} value={form[field.key]} />
         );
     }
 

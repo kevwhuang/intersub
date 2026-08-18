@@ -11,7 +11,10 @@ export const FOCUSABLE_SELECTOR = 'a, button';
 export const FONT_HEADING = 'var(--font-heading)';
 export const FONT_MONO = 'var(--font-mono)';
 export const IS_DEV = import.meta.env.DEV;
+export const JSON_HEADERS = { 'Content-Type': 'application/json' } as const;
+export const LANG_EN = 'en';
 export const LANG_KEY = 'lang';
+export const LANG_ZH = 'zh';
 export const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Cohort'] as const;
 export const MESSAGE_MAX = 2_000;
 export const NAME_MAX = 100;
@@ -33,7 +36,7 @@ export const STYLES = {
     border: '1px solid var(--color-silver-strong)',
     borderDivider: '1px solid var(--color-silver)',
     borderRadiusLarge: 16,
-    borderRadiusSmall: 9,
+    borderRadiusSmall: 8,
     buttonNew: {
         alignItems: 'center',
         display: 'inline-flex',
@@ -139,6 +142,10 @@ export const STYLES = {
         marginBottom: 8,
     } as React.CSSProperties,
     overlayBackdrop: 'var(--color-slate-45)',
+    panelBase: {
+        margin: '0 auto',
+        maxWidth: 'var(--width-shell)',
+    } as React.CSSProperties,
     rowBase: {
         alignItems: 'center',
         borderBottom: '1px solid var(--color-silver-light)',

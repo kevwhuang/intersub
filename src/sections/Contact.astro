@@ -4,14 +4,14 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 
 <section
     id="contact"
-    class="contact section"
+    class="contact section isolate"
     aria-labelledby="contact-title"
 >
-    <div class="contact__ring contact__ring--1" aria-hidden="true" />
-    <div class="contact__ring contact__ring--2" aria-hidden="true" />
-    <div class="contact__ring contact__ring--3" aria-hidden="true" />
-    <div class="contact__ring contact__ring--4" aria-hidden="true" />
-    <div class="contact__ring contact__ring--5" aria-hidden="true" />
+    <div class="contact__ring contact__ring--1 -z-1" aria-hidden="true" />
+    <div class="contact__ring contact__ring--2 -z-1" aria-hidden="true" />
+    <div class="contact__ring contact__ring--3 -z-1" aria-hidden="true" />
+    <div class="contact__ring contact__ring--4 -z-1" aria-hidden="true" />
+    <div class="contact__ring contact__ring--5 -z-1" aria-hidden="true" />
     <div class="contact__inner shell">
         <div data-scroll>
             <h2 id="contact-title" class="contact__title" data-i18n="Get in touch">Get in touch</h2>
@@ -109,9 +109,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 
     .contact__inner {
         max-width: 620px;
-        position: relative;
         text-align: center;
-        z-index: 1;
     }
 
     .contact__intro {
@@ -131,7 +129,6 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         border-radius: 50%;
         pointer-events: none;
         position: absolute;
-        z-index: 0;
     }
 
     .contact__ring--1 {
@@ -199,6 +196,18 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
         margin: 0 0 18px;
     }
 
+    .label {
+        color: var(--color-slate);
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .label__required {
+        color: var(--color-cobalt);
+    }
+
     @media (max-width: 1024px) {
         .contact__ring {
             display: none;
@@ -207,7 +216,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
 </style>
 
 <script>
-    import { EMAIL_PATTERN, ERROR_GENERIC, ERROR_RATE_LIMITED } from '@lib/constants';
+    import { EMAIL_PATTERN, ERROR_GENERIC, ERROR_RATE_LIMITED, JSON_HEADERS } from '@lib/constants';
     import { translate } from '@lib/i18n';
 
     interface ContactRefs {
@@ -291,7 +300,7 @@ import { EMAIL_MAX, MESSAGE_MAX, NAME_MAX, WECHAT_MAX } from '@lib/constants';
                     name: refs.nameInput?.value.trim(),
                     wechat: refs.wechatInput?.value.trim(),
                 }),
-                headers: { 'Content-Type': 'application/json' },
+                headers: JSON_HEADERS,
                 method: 'POST',
             });
 

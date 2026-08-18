@@ -12,28 +12,25 @@ const TITLE_PROP_PATTERN = /title=(?:"([^"]*)"|\{'([^']*)'\})/g;
 const UNICODE_ESCAPE_PATTERN = /\\u([\da-f]{4})/gi;
 
 const contentRoot = join(process.cwd(), 'src/content');
-const pagesRoot = join(process.cwd(), 'src/pages');
-const srcRoot = join(process.cwd(), 'src');
-
-const translationsRoot = join(contentRoot, 'translations');
-
 const events = loadCollection('events');
 const outcomes = loadCollection('outcomes');
+const pagesRoot = join(process.cwd(), 'src/pages');
+const srcRoot = join(process.cwd(), 'src');
 const testimonials = loadCollection('testimonials');
 
+const adminPage = join(pagesRoot, 'admin.astro');
+const sourceFiles = walk(srcRoot);
+const translationsRoot = join(contentRoot, 'translations');
+
+const astroFiles = sourceFiles.filter(file => file.endsWith('.astro'));
 const descriptionTranslations = loadTranslation('descriptions.json');
 const outcomesTranslations = loadTranslation('outcomes.json');
+const sourceText = normalize(sourceFiles.map(file => readFileSync(file, 'utf-8')).join('\n'));
 const testimonialsTranslations = loadTranslation('testimonials.json');
 const titleTranslations = loadTranslation('titles.json');
 const translationFiles = readdirSync(translationsRoot).filter(file => file.endsWith('.json')).sort();
 const uiTranslations = loadTranslation('ui.json');
 
-const sourceFiles = walk(srcRoot);
-
-const astroFiles = sourceFiles.filter(file => file.endsWith('.astro'));
-const sourceText = normalize(sourceFiles.map(file => readFileSync(file, 'utf-8')).join('\n'));
-
-const adminPage = join(pagesRoot, 'admin.astro');
 const pageFiles = astroFiles.filter(file => file.startsWith(pagesRoot));
 
 const publicPages = pageFiles.filter(file => file !== adminPage);
@@ -93,7 +90,9 @@ describe('files', () => {
         for (const file of translationFiles) {
             const parsed = loadTranslation(file);
 
-            for (const value of Object.values(parsed)) expect(typeof value, file).toBe('string');
+            for (const value of Object.values(parsed)) {
+                expect(typeof value, file).toBe('string');
+            }
         }
     });
 
@@ -191,12 +190,16 @@ describe('ui', () => {
         const keys = new Set<string>();
 
         for (const file of astroFiles) {
-            for (const match of readFileSync(file, 'utf-8').matchAll(LITERAL_KEY_PATTERN)) keys.add(match[1]);
+            for (const match of readFileSync(file, 'utf-8').matchAll(LITERAL_KEY_PATTERN)) {
+                keys.add(match[1]);
+            }
         }
 
         expect(keys.size).toBeGreaterThan(0);
 
-        for (const key of keys) expect(key in uiTranslations, `missing: ${key}`).toBe(true);
+        for (const key of keys) {
+            expect(key in uiTranslations, `missing: ${key}`).toBe(true);
+        }
     });
 
     test('every key is used in source or bound content values', () => {

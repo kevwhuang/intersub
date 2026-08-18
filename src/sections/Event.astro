@@ -34,6 +34,7 @@ function parseEventContent(markdown: string) {
         const trimmed = line.trim();
 
         if (!trimmed) continue;
+
         if (trimmed.startsWith('## ')) blocks.push({ content: trimmed.slice(3), type: 'h' });
         else if (trimmed.startsWith('- ')) blocks.push({ content: trimmed.slice(2), type: 'li' });
         else blocks.push({ content: trimmed, type: 'p' });
@@ -51,52 +52,52 @@ for (const block of rawBlocks) {
 }
 ---
 
-<article class="event-detail">
+<article class="event">
     <div class="shell">
         <a
-            class="event-detail__back"
+            class="event__back"
             href="/events"
         >
             <span aria-hidden="true">&larr;</span>
             <span data-i18n="All events">All events</span>
         </a>
-        <h1 class="event-detail__title" data-scroll>{title}</h1>
+        <h1 class="event__title" data-scroll>{title}</h1>
         <dl
-            class="event-detail__meta"
+            class="event__meta"
             data-scroll
         >
             <div>
-                <dt class="event-detail__meta-label" data-i18n="Date">Date</dt>
-                <dd class="event-detail__meta-value">
+                <dt class="event__meta-label" data-i18n="Date">Date</dt>
+                <dd class="event__meta-value">
                     <time data-i18n-date={date} datetime={date}>{formatDate(date)}</time>
                 </dd>
             </div>
             {time && (
                 <div>
-                    <dt class="event-detail__meta-label" data-i18n="Time">Time</dt>
-                    <dd class="event-detail__meta-value">{time}</dd>
+                    <dt class="event__meta-label" data-i18n="Time">Time</dt>
+                    <dd class="event__meta-value">{time}</dd>
                 </div>
             )}
             <div>
-                <dt class="event-detail__meta-label" data-i18n="Location">Location</dt>
-                <dd class="event-detail__meta-value" data-i18n={location}>{location}</dd>
+                <dt class="event__meta-label" data-i18n="Location">Location</dt>
+                <dd class="event__meta-value" data-i18n={location}>{location}</dd>
             </div>
             <div>
-                <dt class="event-detail__meta-label" data-i18n="Who">Who</dt>
-                <dd class="event-detail__meta-value" data-i18n={who}>{who}</dd>
+                <dt class="event__meta-label" data-i18n="Who">Who</dt>
+                <dd class="event__meta-value" data-i18n={who}>{who}</dd>
             </div>
         </dl>
         <div
-            class="event-detail__cover"
+            class="event__cover"
             data-scroll
             style={`background:${meta.cover};color:${meta.ink}`}
         >
-            {coverImage && <Image class="event-detail__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1_250]} />}
-            {!coverImage && cover && <img class="event-detail__cover-image" alt="" decoding="async" src={resolveCover(cover)} />}
-            {!coverImage && !cover && <span class="event-detail__cover-initials" aria-hidden="true">{initials}</span>}
+            {coverImage && <Image class="event__cover-image" alt="" priority sizes="(min-width: 1408px) 1152px, 100vw" src={coverImage} widths={[640, 960, 1_250]} />}
+            {!coverImage && cover && <img class="event__cover-image" alt="" decoding="async" src={resolveCover(cover)} />}
+            {!coverImage && !cover && <span class="event__cover-initials" aria-hidden="true">{initials}</span>}
         </div>
         <div
-            class="event-detail__content prose"
+            class="event__content prose"
             data-scroll
         >
             {groupedBlocks.map((group) => {
@@ -107,17 +108,17 @@ for (const block of rawBlocks) {
             })}
         </div>
         <div
-            class="event-detail__actions"
+            class="event__actions"
             data-scroll
         >
             <a
-                class="button event-detail__action"
+                class="button event__action"
                 href={`/?event=${encodeURIComponent(title)}#contact`}
             >
                 <span data-i18n="Register">Register</span>
             </a>
             <a
-                class="button button--outline event-detail__action"
+                class="button button--outline event__action"
                 href="/events"
             >
                 <span data-i18n="Back to all">Back to all</span>
@@ -127,12 +128,12 @@ for (const block of rawBlocks) {
 </article>
 
 <style>
-    .event-detail {
+    .event {
         padding-bottom: var(--section-padding);
         padding-top: calc(var(--header-height) + clamp(28px, calc(22.67px + 1.67vw), 44px));
     }
 
-    .event-detail__actions {
+    .event__actions {
         align-items: center;
         border-top: 1px solid var(--color-silver);
         display: flex;
@@ -141,7 +142,7 @@ for (const block of rawBlocks) {
         padding-top: 36px;
     }
 
-    .event-detail__back {
+    .event__back {
         align-items: center;
         color: var(--color-slate-faint);
         display: inline-flex;
@@ -156,24 +157,24 @@ for (const block of rawBlocks) {
             opacity var(--duration-fast) ease;
     }
 
-    .event-detail__back:active {
+    .event__back:active {
         opacity: 0.7;
     }
 
-    .event-detail__back:focus-visible {
+    .event__back:focus-visible {
         box-shadow: 0 0 0 3px var(--color-cobalt-20);
         outline: none;
     }
 
-    .event-detail__back:hover {
+    .event__back:hover {
         color: var(--color-cobalt);
     }
 
-    .event-detail__content {
+    .event__content {
         margin-bottom: 48px;
     }
 
-    .event-detail__cover {
+    .event__cover {
         align-items: center;
         aspect-ratio: 2.5;
         border: 1px solid var(--color-silver);
@@ -184,14 +185,14 @@ for (const block of rawBlocks) {
         overflow: hidden;
     }
 
-    .event-detail__cover-image {
+    .event__cover-image {
         height: 100%;
         object-fit: cover;
         object-position: left top;
         width: 100%;
     }
 
-    .event-detail__cover-initials {
+    .event__cover-initials {
         font-family: var(--font-heading);
         font-size: clamp(60px, calc(40px + 6.25vw), 120px);
         font-weight: 700;
@@ -199,7 +200,7 @@ for (const block of rawBlocks) {
         opacity: 0.26;
     }
 
-    .event-detail__meta {
+    .event__meta {
         border-bottom: 1px solid var(--color-silver);
         border-top: 1px solid var(--color-silver);
         display: flex;
@@ -209,7 +210,7 @@ for (const block of rawBlocks) {
         padding: 22px 0;
     }
 
-    .event-detail__meta-label {
+    .event__meta-label {
         color: var(--color-slate-ghost);
         font-family: var(--font-mono);
         font-size: 10px;
@@ -218,30 +219,79 @@ for (const block of rawBlocks) {
         text-transform: uppercase;
     }
 
-    .event-detail__meta-value {
+    .event__meta-value {
         color: var(--color-slate);
         font-size: 16px;
         font-weight: 600;
         margin: 0;
+        overflow-wrap: anywhere;
     }
 
-    .event-detail__title {
+    .event__title {
         color: var(--color-slate);
         font-size: clamp(32px, calc(26.67px + 1.67vw), 48px);
         font-weight: 700;
         letter-spacing: -0.025em;
         line-height: 1.06;
         margin: 0 0 28px;
+        overflow-wrap: anywhere;
         text-wrap: balance;
     }
 
+    .prose {
+        overflow-wrap: anywhere;
+    }
+
+    .prose h2 {
+        font-size: clamp(20px, calc(18.67px + 0.42vw), 24px);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0 0 14px;
+        padding-top: 34px;
+    }
+
+    .prose li {
+        align-items: flex-start;
+        color: var(--color-slate-soft);
+        display: flex;
+        font-size: 16px;
+        gap: 12px;
+        line-height: 1.6;
+    }
+
+    .prose li::before {
+        background: var(--color-cobalt);
+        border-radius: 50%;
+        content: '';
+        flex: none;
+        height: 6px;
+        transform: translateY(8px);
+        width: 6px;
+    }
+
+    .prose p {
+        color: var(--color-slate-soft);
+        font-size: 16px;
+        line-height: 1.7;
+        margin: 0 0 18px;
+    }
+
+    .prose ul {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        list-style: none;
+        margin: 0 0 18px;
+        padding: 0;
+    }
+
     @media (max-width: 768px) {
-        .event-detail__action {
+        .event__action {
             justify-content: center;
             width: 100%;
         }
 
-        .event-detail__actions {
+        .event__actions {
             flex-direction: column;
         }
     }

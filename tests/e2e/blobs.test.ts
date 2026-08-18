@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { getStore } from '@netlify/blobs';
 import { join } from 'node:path';
 
-const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_PATTERN = /^\d{4}_\d{2}_\d{2}$/;
 const PREFIX = `vitest-${process.pid}-`;
 const SITE_ID = 'ea8a2c98-379a-437b-9062-94c97995a975';
 const SWEEP_PREFIX = 'vitest-';
@@ -59,7 +59,7 @@ test.describe('netlify blobs', () => {
             const keys = blobs.map(blob => blob.key);
 
             expect(keys.length).toBeGreaterThan(0);
-            expect(keys.filter(key => !DATE_KEY.test(key))).toEqual([]);
+            expect(keys.filter(key => !DATE_PATTERN.test(key))).toEqual([]);
         });
     });
 

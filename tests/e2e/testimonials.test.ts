@@ -39,6 +39,23 @@ function loadTranslations(file: string) {
     return JSON.parse(readFileSync(join(CONTENT_DIR, 'translations', file), 'utf-8')) as Translations;
 }
 
+async function scrollTestimonialsIntoView(page: Page) {
+    const section = page.locator('[data-testimonials]');
+
+    await section.scrollIntoViewIfNeeded();
+
+    await section.evaluate(element => new Promise<void>((resolve) => {
+        const observer = new IntersectionObserver((entries) => {
+            if (!entries.some(entry => entry.isIntersecting)) return;
+
+            observer.disconnect();
+            resolve();
+        });
+
+        observer.observe(element);
+    }));
+}
+
 function waitForPageInit(page: Page) {
     const getInlineOpacity = () => page.locator('.testimonials__eyebrow').evaluate(element => element.style.opacity);
 
@@ -145,7 +162,22 @@ test.describe('testimonials', () => {
             await waitForPageInit(page);
         });
 
-        test('advances to the next slide after the rotate interval', async ({ page }) => {
+        test('keeps the first slide active until the section scrolls into view', async ({ page }) => {
+            await page.clock.fastForward(ROTATE_TICK * 3);
+
+            await expect(page.locator('[data-slide="0"]')).toHaveClass(ACTIVE_SLIDE);
+            await expect(page.locator('.testimonials__slide--active')).toHaveCount(1);
+            await expect(page.locator('[data-dot="0"]')).toHaveClass(ACTIVE_DOT);
+
+            await scrollTestimonialsIntoView(page);
+            await page.clock.fastForward(ROTATE_TICK);
+
+            await expect(page.locator('[data-slide="1"]')).toHaveClass(ACTIVE_SLIDE);
+            await expect(page.locator('.testimonials__slide--active')).toHaveCount(1);
+        });
+
+        test('advances to the next slide once the section is in view and the rotate interval elapses', async ({ page }) => {
+            await scrollTestimonialsIntoView(page);
             await anchorAtSlide(page, 0);
             await page.clock.fastForward(ROTATE_TICK);
 
@@ -155,6 +187,7 @@ test.describe('testimonials', () => {
         });
 
         test('wraps back to the first slide after the last', async ({ page }) => {
+            await scrollTestimonialsIntoView(page);
             await anchorAtSlide(page, 0);
 
             for (const [index] of testimonials.entries()) {
@@ -169,6 +202,7 @@ test.describe('testimonials', () => {
         });
 
         test('rotates onward from a clicked slide', async ({ page }) => {
+            await scrollTestimonialsIntoView(page);
             await anchorAtSlide(page, testimonials.length - 1);
             await page.clock.fastForward(ROTATE_TICK);
 
@@ -176,6 +210,7 @@ test.describe('testimonials', () => {
         });
 
         test('pauses while hovered and resumes when the pointer leaves', async ({ page }) => {
+            await scrollTestimonialsIntoView(page);
             await anchorAtSlide(page, 0);
             await page.locator('[data-testimonials]').hover();
             await page.clock.fastForward(ROTATE_TICK);
@@ -190,6 +225,7 @@ test.describe('testimonials', () => {
         });
 
         test('pauses while a dot is focused and resumes when focus leaves', async ({ page }) => {
+            await scrollTestimonialsIntoView(page);
             await anchorAtSlide(page, 0);
             await page.locator('[data-lang-toggle]').focus();
             await page.locator('[data-dot="0"]').focus();

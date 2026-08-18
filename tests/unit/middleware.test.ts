@@ -72,7 +72,9 @@ describe('onRequest', () => {
 
         expect(response).toBeInstanceOf(Response);
         expect(response.status).toBe(500);
+
         await expect(response.json()).resolves.toEqual({ error: 'Internal server error' });
+
         expect(rewrite).not.toHaveBeenCalled();
     });
 

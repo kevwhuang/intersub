@@ -3,9 +3,9 @@ import { describe, expect, test, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import TestimonialRow from '../../src/components/dashboard/TestimonialRow';
-import testimonialHerry from '../../src/content/testimonials/herry-j-consultant.json';
+import testimonialHerry from '../../src/content/testimonials/herry_j_consultant.json';
 
-const TESTIMONIAL: AdminTestimonial = { ...testimonialHerry, id: 'herry-j-consultant' };
+const TESTIMONIAL: AdminTestimonial = { ...testimonialHerry, id: 'herry_j_consultant' };
 
 function renderRow(testimonial: AdminTestimonial, isMobile = false) {
     return renderToStaticMarkup(createElement(TestimonialRow, { isMobile, onDelete: vi.fn(), onEdit: vi.fn(), testimonial }));

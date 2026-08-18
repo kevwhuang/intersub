@@ -1,21 +1,21 @@
 ---
 import { Image } from 'astro:assets';
 
-import IconApplePodcasts from '@components/IconApplePodcasts.astro';
+import IconPodcasts from '@components/IconPodcasts.astro';
 import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
-import QrCode from '@components/QrCode.astro';
+import Qr from '@components/Qr.astro';
 import logoEn from '@images/logos/logo_en.webp';
 import logoZh from '@images/logos/logo_zh.webp';
 import { IS_DEV, ROUTES } from '@lib/constants';
 
-const ICONS: Record<(typeof SOCIALS)[number]['slug'], typeof IconApplePodcasts> = {
-    'apple-podcasts': IconApplePodcasts,
-    'xiaoyuzhou': IconXiaoyuzhou,
+const ICONS: Record<(typeof SOCIALS)[number]['slug'], typeof IconPodcasts> = {
+    podcasts: IconPodcasts,
+    xiaoyuzhou: IconXiaoyuzhou,
 };
 
 const SOCIALS = [
     { href: 'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411', label: 'Xiaoyuzhou (小宇宙)', slug: 'xiaoyuzhou' },
-    { href: 'https://podcasts.apple.com/cn/podcast/id1856157603', label: 'Apple Podcasts', slug: 'apple-podcasts' },
+    { href: 'https://podcasts.apple.com/cn/podcast/id1856157603', label: 'Apple Podcasts', slug: 'podcasts' },
 ] as const;
 
 const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
@@ -28,7 +28,7 @@ const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
 >
     <div class="shell site-footer__inner grid items-start">
         <div>
-            <div class="site-footer__brand flex items-center">
+            <div class="site-footer__brand flex items-center gap-[14px] mb-[14px]">
                 <Image class="site-footer__wordmark" alt="InterSub" densities={[1, 2]} height={32} lang="en" quality="max" src={logoEn} />
                 <Image class="site-footer__wordmark" alt="言际阁" densities={[1, 2]} height={32} lang="zh" quality="max" src={logoZh} />
             </div>
@@ -84,7 +84,7 @@ const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
                     href={WECHAT_URL}
                     target="_blank"
                 >
-                    <QrCode size={128} />
+                    <Qr size={128} />
                 </a>
             </div>
         </div>
@@ -110,11 +110,6 @@ const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
         gap: 8px 24px;
         justify-content: space-between;
         padding-block: 28px;
-    }
-
-    .site-footer__brand {
-        gap: 14px;
-        margin-bottom: 14px;
     }
 
     .site-footer__connect {

@@ -34,6 +34,11 @@ describe('Outcomes', () => {
         html = await container.renderToString(Outcomes);
     });
 
+    test('wires the section to a rendered heading id via aria-labelledby', () => {
+        expect(html).toMatch(/<section[^>]*aria-labelledby="outcomes-title"/);
+        expect(html).toMatch(/<h2 id="outcomes-title"[^>]*data-i18n="Outcomes"[^>]*>Outcomes<\/h2>/);
+    });
+
     test('renders one card per outcome sorted by numeric id', () => {
         const titles = [...html.matchAll(/<h3 class="outcomes__card-title" data-i18n="([^"]*)"/g)].map(match => match[1]);
 
@@ -59,5 +64,10 @@ describe('Outcomes', () => {
                 expect(html).toContain(`>${escapeText(point)}</li>`);
             }
         }
+    });
+
+    test('marks the header and staggers the grid for scroll animation', () => {
+        expect(html).toMatch(/<div class="outcomes__header" data-scroll[^>]*>/);
+        expect(html).toMatch(/<div class="outcomes__grid" data-scroll data-scroll-stagger="0\.1"[^>]*>/);
     });
 });

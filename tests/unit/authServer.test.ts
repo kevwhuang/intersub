@@ -57,6 +57,7 @@ describe('verifyAuth', () => {
         const verify = await importProduction('');
 
         await expect(verify(buildRequest('Bearer abc123'))).resolves.toBe(false);
+
         expect(fetchStub).not.toHaveBeenCalled();
     });
 

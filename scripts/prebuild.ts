@@ -28,7 +28,9 @@ if (SITE_ID && TOKEN) {
         const files = await readdir(directory);
 
         await Promise.all(
-            files.filter(file => file.endsWith('.json')).map(file => uploadFile(store, join(directory, file), parse(file).name)),
+            files
+                .filter(file => file.endsWith('.json'))
+                .map(file => uploadFile(store, join(directory, file), parse(file).name)),
         );
     }
 }

@@ -86,9 +86,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (!id) {
-        const slug = `${name}-${role}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const slug = `${name}-${role}`.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '');
 
-        id = slug && !testimonials.some(entry => String(entry.id) === slug) ? slug : `${slug || 'testimonial'}-${Date.now()}`;
+        id = slug && !testimonials.some(entry => String(entry.id) === slug) ? slug : `${slug || 'testimonial'}_${Date.now()}`;
     }
 
     if (IS_DEV) writeEntry('testimonials', id, data);

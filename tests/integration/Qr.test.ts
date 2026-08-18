@@ -1,15 +1,15 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, test } from 'vitest';
 
-import QrCode from '../../src/components/QrCode.astro';
+import Qr from '../../src/components/Qr.astro';
 
-describe('QrCode', () => {
+describe('Qr', () => {
     let html: string;
 
     beforeAll(async () => {
         const container = await AstroContainer.create();
 
-        html = await container.renderToString(QrCode);
+        html = await container.renderToString(Qr);
     });
 
     test('renders a labeled svg qr code', () => {
@@ -29,7 +29,7 @@ describe('QrCode', () => {
     test('scales to the size prop', async () => {
         const container = await AstroContainer.create();
 
-        const sized = await container.renderToString(QrCode, { props: { size: 64 } });
+        const sized = await container.renderToString(Qr, { props: { size: 64 } });
 
         expect(sized).toContain('height="64"');
         expect(sized).toContain('width="64"');

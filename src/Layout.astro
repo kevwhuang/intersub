@@ -12,7 +12,7 @@ import { ClientRouter } from 'astro:transitions';
 
 import '@/global.css';
 import '@/styles.css';
-import { LANG_KEY } from '@lib/constants';
+import { LANG_EN, LANG_KEY, LANG_ZH } from '@lib/constants';
 import { translateDescription, translateTitle } from '@lib/i18n';
 
 interface Props {
@@ -24,15 +24,15 @@ interface Props {
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 const cookieLang = Astro.cookies.get(LANG_KEY)?.value;
 const { description, noindex, title } = Astro.props;
+const ogImageUrl = `${Astro.site}og.png`;
 const preferredLang = Astro.request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
 
-const isChinese = cookieLang === 'zh' || (cookieLang !== 'en' && preferredLang.startsWith('zh'));
+const isChinese = cookieLang === LANG_ZH || (cookieLang !== LANG_EN && preferredLang.startsWith(LANG_ZH));
 
-const htmlLang = isChinese ? 'zh' : 'en';
+const htmlLang = isChinese ? LANG_ZH : LANG_EN;
 const localizedDescription = translateDescription(description, isChinese);
 const localizedSiteName = translateTitle('InterSub', isChinese);
 const localizedTitle = translateTitle(title, isChinese);
-const ogImageUrl = `${Astro.site}og.png`;
 const ogLocale = isChinese ? 'zh_CN' : 'en_US';
 const ogLocaleAlternate = isChinese ? 'en_US' : 'zh_CN';
 
@@ -83,7 +83,7 @@ Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
         />
         <ClientRouter />
     </head>
-    <body class="flex flex-col min-h-screen antialiased font-sans bg-white text-slate">
+    <body class="flex flex-col min-h-svh antialiased font-sans bg-white text-slate">
         <slot />
     </body>
 </html>

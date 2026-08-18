@@ -42,6 +42,7 @@ describe('ScreenShell', () => {
 
         expect(html).toContain('margin:0 0 24px');
         expect(html).not.toContain('margin:0 0 6px');
+        expect(html).not.toContain('<p');
     });
 
     test('renders the subtitle under a tightened heading when given', () => {

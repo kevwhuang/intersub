@@ -9,10 +9,11 @@ export const prerender = false;
 
 <Layout
     description="An unexpected error occurred on InterSub. Please try again or return to the homepage to browse business English coaching and events."
+    noindex
     title={'Server Error \u2014 InterSub'}
 >
     <Navbar />
-    <main class="flex flex-col flex-1">
+    <main class="flex flex-1 flex-col">
         <ErrorServer />
     </main>
     <Footer />

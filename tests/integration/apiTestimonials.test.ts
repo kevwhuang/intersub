@@ -1,7 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
-import { basename, join } from 'node:path';
-import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { DELETE, GET, POST } from '../../src/pages/api/testimonials';
 
@@ -17,8 +16,16 @@ interface BlobStoreStub {
     setJSON: Mock<(key: string, value: Record<string, unknown>) => Promise<void>>;
 }
 
-const SENTINEL_ID = 'test-sentinel-qa-robot';
-const TESTIMONIAL_ID = 'herry-j-consultant';
+const SENTINEL_ID = 'test_sentinel_qa_robot';
+
+const SENTINEL_TESTIMONIAL = {
+    industry: 'Software Testing',
+    name: 'Test Sentinel',
+    quote: 'Sentinel lifecycle quote for automated tests.',
+    role: 'QA Robot',
+} as const;
+
+const TESTIMONIAL_ID = 'herry_j_consultant';
 const UPDATED_QUOTE = 'Updated sentinel lifecycle quote.';
 
 const testimonialsDir = join(process.cwd(), 'src/content/testimonials');
@@ -27,15 +34,7 @@ const testimonialPath = join(testimonialsDir, `${TESTIMONIAL_ID}.json`);
 
 const existingTestimonial: Record<string, unknown> = JSON.parse(readFileSync(testimonialPath, 'utf-8'));
 
-const sentinelTestimonial = {
-    industry: 'Software Testing',
-    name: 'Test Sentinel',
-    quote: 'Sentinel lifecycle quote for automated tests.',
-    role: 'QA Robot',
-};
-
-let committedNames: string[] = [];
-let committedSnapshot: Record<string, string> = {};
+let baselineSnapshot: Record<string, string> = {};
 
 function buildBlobStore(payloads: Record<string, Record<string, unknown>>): BlobStoreStub {
     return {
@@ -62,7 +61,7 @@ function createContext(method: string, body?: string): RouteContext {
 }
 
 async function createSentinel(): Promise<void> {
-    const response = await postJson(sentinelTestimonial);
+    const response = await postJson(SENTINEL_TESTIMONIAL);
 
     const result: Record<string, unknown> = await response.json();
 
@@ -74,10 +73,10 @@ async function deleteJson(id: string): Promise<Response> {
     return DELETE(createContext('DELETE', JSON.stringify({ id })));
 }
 
-async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promise<RoutesModule> {
+async function importProductionRoutes(getStoreStub: () => BlobStoreStub, isAuthorized = true): Promise<RoutesModule> {
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
-    vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => true) }));
+    vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => isAuthorized) }));
 
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
@@ -88,24 +87,12 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     return import('../../src/pages/api/testimonials');
 }
 
-function listCommittedFiles(): string[] {
-    return execSync('git ls-files src/content/testimonials', { encoding: 'utf-8' })
-        .split('\n')
-        .map(line => basename(line))
-        .filter(file => file.endsWith('.json'))
-        .sort();
-}
-
 async function postJson(body: Record<string, unknown>): Promise<Response> {
     return POST(createContext('POST', JSON.stringify(body)));
 }
 
 function removeSentinel() {
     rmSync(join(testimonialsDir, `${SENTINEL_ID}.json`), { force: true });
-}
-
-function snapshotCommitted(): Record<string, string> {
-    return Object.fromEntries(committedNames.map(file => [file, readFileSync(join(testimonialsDir, file), 'utf-8')]));
 }
 
 function snapshotTree(): Record<string, string> {
@@ -117,27 +104,39 @@ function snapshotTree(): Record<string, string> {
 }
 
 beforeAll(() => {
-    committedNames = listCommittedFiles();
+    removeSentinel();
 
-    for (const file of readdirSync(testimonialsDir)) {
-        if (file.endsWith('.json') && !committedNames.includes(file)) {
-            rmSync(join(testimonialsDir, file), { force: true });
-        }
-    }
-
-    committedSnapshot = snapshotCommitted();
+    baselineSnapshot = snapshotTree();
 });
 
 afterAll(() => {
     removeSentinel();
 
-    expect(snapshotCommitted()).toEqual(committedSnapshot);
+    expect(snapshotTree()).toEqual(baselineSnapshot);
     expect(existsSync(join(testimonialsDir, `${SENTINEL_ID}.json`))).toBe(false);
 });
 
 describe('DELETE', () => {
+    test('rejects a malformed body', async () => {
+        const response = await DELETE(createContext('DELETE', '{'));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(result.error).toBe('Invalid request body');
+    });
+
+    test('rejects a missing id', async () => {
+        const response = await DELETE(createContext('DELETE', JSON.stringify({})));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(result.error).toBe('Missing id');
+    });
+
     test('rejects an unknown id', async () => {
-        const response = await DELETE(createContext('DELETE', JSON.stringify({ id: 'unknown-person' })));
+        const response = await DELETE(createContext('DELETE', JSON.stringify({ id: 'unknown_person' })));
 
         const result: Record<string, unknown> = await response.json();
 
@@ -177,6 +176,15 @@ describe('POST', () => {
         expect(after).toBe(before);
     });
 
+    test('rejects a malformed body', async () => {
+        const response = await POST(createContext('POST', '{'));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(result.error).toBe('Invalid request body');
+    });
+
     test('rejects a blank industry', async () => {
         const response = await postJson({ ...existingTestimonial, id: TESTIMONIAL_ID, industry: '' });
 
@@ -214,7 +222,7 @@ describe('POST', () => {
     });
 
     test('rejects an unknown id', async () => {
-        const response = await postJson({ ...existingTestimonial, id: 'unknown-person' });
+        const response = await postJson({ ...existingTestimonial, id: 'unknown_person' });
 
         const result: Record<string, unknown> = await response.json();
 
@@ -244,7 +252,7 @@ describe('lifecycle', () => {
 
             const bytes = readFileSync(join(testimonialsDir, `${SENTINEL_ID}.json`), 'utf-8');
 
-            expect(bytes).toBe(JSON.stringify(sentinelTestimonial, null, 4));
+            expect(bytes).toBe(JSON.stringify(SENTINEL_TESTIMONIAL, null, 4));
         } finally {
             removeSentinel();
         }
@@ -254,7 +262,7 @@ describe('lifecycle', () => {
         try {
             await createSentinel();
 
-            const response = await postJson(sentinelTestimonial);
+            const response = await postJson(SENTINEL_TESTIMONIAL);
 
             const result: Record<string, unknown> = await response.json();
 
@@ -269,7 +277,7 @@ describe('lifecycle', () => {
         try {
             await createSentinel();
 
-            const response = await postJson({ ...sentinelTestimonial, id: SENTINEL_ID, quote: UPDATED_QUOTE });
+            const response = await postJson({ ...SENTINEL_TESTIMONIAL, id: SENTINEL_ID, quote: UPDATED_QUOTE });
 
             const result: Record<string, unknown> = await response.json();
 
@@ -331,10 +339,10 @@ describe('production blobs', () => {
         const routes = await importProductionRoutes(getStoreStub);
 
         const response = await routes.POST(createContext('POST', JSON.stringify({
-            industry: `  ${sentinelTestimonial.industry}  `,
-            name: `  ${sentinelTestimonial.name}  `,
-            quote: `  ${sentinelTestimonial.quote}  `,
-            role: `  ${sentinelTestimonial.role}  `,
+            industry: `  ${SENTINEL_TESTIMONIAL.industry}  `,
+            name: `  ${SENTINEL_TESTIMONIAL.name}  `,
+            quote: `  ${SENTINEL_TESTIMONIAL.quote}  `,
+            role: `  ${SENTINEL_TESTIMONIAL.role}  `,
         })));
 
         const result: Record<string, unknown> = await response.json();
@@ -342,14 +350,14 @@ describe('production blobs', () => {
         expect(response.status).toBe(200);
         expect(result.id).toBe(SENTINEL_ID);
         expect(getStoreStub).toHaveBeenCalledWith({ consistency: 'strong', name: 'testimonials' });
-        expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(SENTINEL_ID, sentinelTestimonial);
+        expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(SENTINEL_ID, SENTINEL_TESTIMONIAL);
         expect(existsSync(join(testimonialsDir, `${SENTINEL_ID}.json`))).toBe(false);
     });
 
     test('rejects an update that collides with another entry on name and role', async () => {
         const store = buildBlobStore({
-            'other-person': { industry: 'Finance', name: 'Other Person', quote: 'Great.', role: 'Director' },
-            [SENTINEL_ID]: { ...sentinelTestimonial },
+            other_person: { industry: 'Finance', name: 'Other Person', quote: 'Great.', role: 'Director' },
+            [SENTINEL_ID]: { ...SENTINEL_TESTIMONIAL },
         });
 
         const routes = await importProductionRoutes(() => store);
@@ -376,33 +384,53 @@ describe('production blobs', () => {
 
         const routes = await importProductionRoutes(() => store);
 
-        const response = await routes.POST(createContext('POST', JSON.stringify({ ...sentinelTestimonial })));
+        const response = await routes.POST(createContext('POST', JSON.stringify({ ...SENTINEL_TESTIMONIAL })));
 
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
-        expect(String(result.id)).toMatch(new RegExp(`^${SENTINEL_ID}-\\d{13}$`));
-        expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(String(result.id), sentinelTestimonial);
+        expect(String(result.id)).toMatch(new RegExp(`^${SENTINEL_ID}_\\d{13}$`));
+        expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(String(result.id), SENTINEL_TESTIMONIAL);
     });
 
     test('falls back to a timestamped testimonial id when the name and role slugify to nothing', async () => {
+        const cjkTestimonial = { industry: 'Software Testing', name: '测试', quote: 'Sentinel quote.', role: '机器人' };
         const store = buildBlobStore({});
 
         const routes = await importProductionRoutes(() => store);
-
-        const cjkTestimonial = { industry: 'Software Testing', name: '测试', quote: 'Sentinel quote.', role: '机器人' };
 
         const response = await routes.POST(createContext('POST', JSON.stringify(cjkTestimonial)));
 
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(200);
-        expect(String(result.id)).toMatch(/^testimonial-\d{13}$/);
+        expect(String(result.id)).toMatch(/^testimonial_\d{13}$/);
         expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(String(result.id), cjkTestimonial);
     });
 
+    test('rejects an unauthenticated write with 401', async () => {
+        const store = buildBlobStore({});
+
+        const routes = await importProductionRoutes(() => store, false);
+
+        const postResponse = await routes.POST(createContext('POST', JSON.stringify(SENTINEL_TESTIMONIAL)));
+
+        const postResult: Record<string, unknown> = await postResponse.json();
+
+        const deleteResponse = await routes.DELETE(createContext('DELETE', JSON.stringify({ id: SENTINEL_ID })));
+
+        const deleteResult: Record<string, unknown> = await deleteResponse.json();
+
+        expect(postResponse.status).toBe(401);
+        expect(postResult.error).toBe('Unauthorized');
+        expect(deleteResponse.status).toBe(401);
+        expect(deleteResult.error).toBe('Unauthorized');
+        expect(store.setJSON).not.toHaveBeenCalled();
+        expect(store.delete).not.toHaveBeenCalled();
+    });
+
     test('deletes a testimonial from the blob store by its string id', async () => {
-        const store = buildBlobStore({ [SENTINEL_ID]: { ...sentinelTestimonial } });
+        const store = buildBlobStore({ [SENTINEL_ID]: { ...SENTINEL_TESTIMONIAL } });
 
         const getStoreStub = vi.fn(() => store);
 
@@ -420,8 +448,8 @@ describe('production blobs', () => {
 
     test('lists blob-backed testimonials through the loader', async () => {
         const store = buildBlobStore({
-            'first-client': { industry: 'Technology', name: 'Ada', quote: 'Excellent.', role: 'CTO' },
-            'second-client': { industry: 'Finance', name: 'Lin', quote: 'Superb.', role: 'Director' },
+            first_client: { industry: 'Technology', name: 'Ada', quote: 'Excellent.', role: 'CTO' },
+            second_client: { industry: 'Finance', name: 'Lin', quote: 'Superb.', role: 'Director' },
         });
 
         const routes = await importProductionRoutes(() => store);
@@ -431,9 +459,9 @@ describe('production blobs', () => {
         const testimonials: Record<string, unknown>[] = await response.json();
 
         expect(response.status).toBe(200);
-        expect(testimonials.map(entry => entry.id)).toEqual(['first-client', 'second-client']);
+        expect(testimonials.map(entry => entry.id)).toEqual(['first_client', 'second_client']);
         expect(store.list).toHaveBeenCalledTimes(1);
-        expect(store.get).toHaveBeenCalledWith('first-client', { type: 'json' });
-        expect(store.get).toHaveBeenCalledWith('second-client', { type: 'json' });
+        expect(store.get).toHaveBeenCalledWith('first_client', { type: 'json' });
+        expect(store.get).toHaveBeenCalledWith('second_client', { type: 'json' });
     });
 });

@@ -1,14 +1,15 @@
 ---
-import EventDetail from '@sections/EventDetail.astro';
+import Event from '@sections/Event.astro';
 import Footer from '@sections/Footer.astro';
 import Layout from '@/Layout.astro';
 import Navbar from '@sections/Navbar.astro';
 import { getEvents } from '@lib/store';
 
 const events = await getEvents();
+
 const { slug } = Astro.params;
 
-const event = events.find(entry => entry.date === slug);
+const event = events.find(entry => entry.id === slug);
 
 if (!event) return Astro.rewrite('/404');
 
@@ -22,8 +23,8 @@ export const prerender = false;
     title={`${title} \u2014 InterSub`}
 >
     <Navbar />
-    <main class="flex flex-col flex-1">
-        <EventDetail event={event} />
+    <main class="flex flex-1 flex-col">
+        <Event event={event} />
     </main>
     <Footer />
 </Layout>

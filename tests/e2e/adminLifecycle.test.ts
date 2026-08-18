@@ -28,7 +28,7 @@ const SENTINEL = {
     title: 'Sentinel Lifecycle Event',
 } as const;
 
-const SENTINEL_ID = SENTINEL.date;
+const SENTINEL_ID = SENTINEL.date.replaceAll('-', '_');
 
 const TESTIMONIAL_SENTINEL = {
     industry: 'Quality Assurance',
@@ -37,7 +37,7 @@ const TESTIMONIAL_SENTINEL = {
     role: 'QA Robot',
 } as const;
 
-const TESTIMONIAL_SENTINEL_ID = 'ui-sentinel-qa-robot';
+const TESTIMONIAL_SENTINEL_ID = 'ui_sentinel_qa_robot';
 const TESTIMONIAL_UPDATED_QUOTE = 'Sentinel testimonial quote after editing.';
 const UPDATED_TITLE = 'Sentinel Renamed Session';
 
@@ -47,9 +47,9 @@ const committedSnapshots = new Map<string, string>();
 const committedTestimonialIds = listCommittedIds('src/content/testimonials');
 const eventsDir = fileURLToPath(new URL('../../src/content/events', import.meta.url));
 const outcomesDir = fileURLToPath(new URL('../../src/content/outcomes', import.meta.url));
+const testimonialsDir = fileURLToPath(new URL('../../src/content/testimonials', import.meta.url));
 
 const sentinelPath = join(eventsDir, `${SENTINEL_ID}.json`);
-const testimonialsDir = fileURLToPath(new URL('../../src/content/testimonials', import.meta.url));
 
 function expectCommittedIntact(directory: string, ids: string[]) {
     for (const id of ids) {
@@ -68,7 +68,7 @@ function listCommittedIds(directory: string) {
         .trim()
         .split('\n')
         .filter(file => file.endsWith('.json'))
-        .map(file => basename(file, '.json'));
+        .map(file => basename(file, '.json').replaceAll('-', '_'));
 }
 
 async function removeSentinel(request: APIRequestContext) {
@@ -85,6 +85,7 @@ async function removeTestimonialSentinel(request: APIRequestContext) {
 
 async function settleAfterWrite(page: Page) {
     const deadline = Date.now() + RELOAD_TIMEOUT;
+
     let lastLoad = Date.now();
 
     function handleLoad() {
@@ -93,7 +94,9 @@ async function settleAfterWrite(page: Page) {
 
     page.on('load', handleLoad);
 
-    while (Date.now() < deadline && Date.now() - lastLoad < RELOAD_QUIET) await page.waitForTimeout(RELOAD_POLL);
+    while (Date.now() < deadline && Date.now() - lastLoad < RELOAD_QUIET) {
+        await page.waitForTimeout(RELOAD_POLL);
+    }
 
     page.off('load', handleLoad);
 }
@@ -127,6 +130,7 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ request }) => {
     await removeSentinel(request);
     await removeTestimonialSentinel(request);
+
     sweepCollection(eventsDir, committedEventIds);
     sweepCollection(outcomesDir, committedOutcomeIds);
     sweepCollection(testimonialsDir, committedTestimonialIds);
@@ -169,8 +173,7 @@ test.describe('event lifecycle', () => {
             await expect(cells.nth(3)).toHaveText(SENTINEL.location);
             await expect(cells.nth(4)).toHaveText(SENTINEL.level);
 
-            const persisted: { id: string; time: string; title: string }[]
-                = await (await request.get('/api/events')).json();
+            const persisted: { id: string; time: string; title: string }[] = await (await request.get('/api/events')).json();
 
             const entry = persisted.find(event => event.id === SENTINEL_ID);
 
@@ -243,6 +246,7 @@ test.describe('event lifecycle', () => {
         await page.getByRole('button', { name: 'Cancel' }).click();
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
         await expect(getPanelRow(page, 'Events', SENTINEL.title)).toHaveCount(0);
+
         expect(writes).toEqual([]);
     });
 
@@ -251,7 +255,9 @@ test.describe('event lifecycle', () => {
 
         const ids = events.map(event => event.id);
 
-        for (const id of committedEventIds) expect(ids).toContain(id);
+        for (const id of committedEventIds) {
+            expect(ids).toContain(id);
+        }
 
         expect(ids).not.toContain(SENTINEL_ID);
         expect(existsSync(sentinelPath)).toBe(false);
@@ -287,8 +293,7 @@ test.describe('outcome lifecycle', () => {
             await expect(cells.nth(1)).toHaveText(OUTCOME_SENTINEL.summary);
             await expect(cells.nth(2)).toHaveText(String(OUTCOME_SENTINEL.points.length));
 
-            const persisted: { id: string; points: string[]; title: string }[]
-                = await (await request.get('/api/outcomes')).json();
+            const persisted: { id: string; points: string[]; title: string }[] = await (await request.get('/api/outcomes')).json();
 
             const created = persisted.find(outcome => outcome.title === OUTCOME_SENTINEL.title);
 
@@ -344,7 +349,9 @@ test.describe('outcome lifecycle', () => {
 
         const ids = outcomes.map(outcome => outcome.id);
 
-        for (const id of committedOutcomeIds) expect(ids).toContain(id);
+        for (const id of committedOutcomeIds) {
+            expect(ids).toContain(id);
+        }
 
         expect(outcomes.some(outcome => outcome.title === OUTCOME_SENTINEL.title)).toBe(false);
 
@@ -426,6 +433,7 @@ test.describe('testimonial lifecycle', () => {
             expect(existsSync(sentinelFile)).toBe(false);
         } finally {
             await removeTestimonialSentinel(request);
+
             sweepCollection(testimonialsDir, committedTestimonialIds);
         }
     });
@@ -435,7 +443,9 @@ test.describe('testimonial lifecycle', () => {
 
         const ids = testimonials.map(testimonial => testimonial.id);
 
-        for (const id of committedTestimonialIds) expect(ids).toContain(id);
+        for (const id of committedTestimonialIds) {
+            expect(ids).toContain(id);
+        }
 
         expect(ids).not.toContain(TESTIMONIAL_SENTINEL_ID);
         expect(existsSync(join(testimonialsDir, `${TESTIMONIAL_SENTINEL_ID}.json`))).toBe(false);

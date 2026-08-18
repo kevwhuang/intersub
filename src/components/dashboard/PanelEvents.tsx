@@ -18,7 +18,7 @@ const EVENT_FORM_ROWS: EditFormField<EventFormData>[][] = [
         { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
     ],
     [{ errorMessage: 'Cover must be a URL or internal image path.', key: 'cover', kind: 'input', label: 'Cover' }],
-    [{ errorMessage: 'Content is required.', isMonospace: true, key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
+    [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
 ];
 
 export default function PanelEvents({ activeLevel, activeLocation, activeTiming, allEvents, editingEventId, eventForm, eventFormErrors, events, isMobile, isSaving, locations, onCancelEdit, onLevelChange, onLocationChange, onRequestDelete, onSave, onSort, onStartEdit, onStartNew, onTimingChange, onUpdate, sortDirection, sortKey }: {
@@ -83,7 +83,7 @@ export default function PanelEvents({ activeLevel, activeLocation, activeTiming,
     }
 
     return (
-        <div style={{ margin: '0 auto', maxWidth: 1_280 }}>
+        <div style={STYLES.panelBase}>
             <div style={{ marginBottom: 24 }}>
                 <h1 style={STYLES.headingPanel}>Events</h1>
                 <div style={{ color: STYLES.colorGhost, display: 'flex', flexWrap: 'wrap', fontFamily: FONT_MONO, fontSize: 12, gap: '4px 8px', letterSpacing: '.06em', textTransform: 'lowercase' }}>

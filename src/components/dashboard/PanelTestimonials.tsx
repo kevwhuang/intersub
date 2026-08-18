@@ -65,7 +65,7 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
     }
 
     return (
-        <div style={{ margin: '0 auto', maxWidth: 1_280 }}>
+        <div style={STYLES.panelBase}>
             <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
                 <div>
                     <h1 style={STYLES.headingPanel}>Testimonials</h1>

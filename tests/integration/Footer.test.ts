@@ -64,7 +64,9 @@ describe('Footer', () => {
             expect(social).toContain('target="_blank"');
         }
 
-        for (const url of SOCIAL_URLS) expect(html).toContain(`href="${url}"`);
+        for (const url of SOCIAL_URLS) {
+            expect(html).toContain(`href="${url}"`);
+        }
     });
 
     test('renders the wechat qr code linked to the wechat url', () => {

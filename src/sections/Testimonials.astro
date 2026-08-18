@@ -123,6 +123,7 @@ const testimonials = await getTestimonials();
         color: var(--color-slate-pale);
         display: block;
         font-size: 12px;
+        overflow-wrap: anywhere;
     }
 
     .testimonials__inner {
@@ -135,6 +136,7 @@ const testimonials = await getTestimonials();
         font-size: 16px;
         font-weight: 700;
         margin-bottom: 6px;
+        overflow-wrap: anywhere;
     }
 
     .testimonials__quote {
@@ -145,6 +147,7 @@ const testimonials = await getTestimonials();
         letter-spacing: -0.015em;
         line-height: 1.32;
         margin: 0 0 32px;
+        overflow-wrap: anywhere;
         text-wrap: balance;
     }
 
@@ -153,6 +156,7 @@ const testimonials = await getTestimonials();
         display: block;
         font-size: 16px;
         margin-bottom: 2px;
+        overflow-wrap: anywhere;
     }
 
     .testimonials__slide {
@@ -182,10 +186,12 @@ const testimonials = await getTestimonials();
     const ROTATE_INTERVAL = 5_200;
 
     let controller: AbortController;
+    let observer: IntersectionObserver | undefined;
     let testimonialInterval: ReturnType<typeof setInterval> | undefined;
 
     function initTestimonials() {
         if (controller) controller.abort();
+        if (observer) observer.disconnect();
         if (testimonialInterval) clearInterval(testimonialInterval);
 
         controller = new AbortController();
@@ -225,14 +231,18 @@ const testimonials = await getTestimonials();
         }, { signal: controller.signal });
 
         section.addEventListener('focusout', (event) => {
-            if (!(event.relatedTarget instanceof Node) || !section.contains(event.relatedTarget)) {
-                rotator.isPaused = false;
-            }
+            if (!(event.relatedTarget instanceof Node) || !section.contains(event.relatedTarget)) rotator.isPaused = false;
         }, { signal: controller.signal });
 
-        labelDots(dots);
-        resetInterval(rotator);
+        observer = new IntersectionObserver((entries, sectionObserver) => {
+            if (!entries.some(entry => entry.isIntersecting)) return;
 
+            resetInterval(rotator);
+            sectionObserver.disconnect();
+        });
+
+        labelDots(dots);
+        observer.observe(section);
         window.addEventListener('lang:change', () => labelDots(dots), { signal: controller.signal });
     }
 
@@ -244,6 +254,7 @@ const testimonials = await getTestimonials();
 
     function resetInterval(rotator: Rotator) {
         if (testimonialInterval) clearInterval(testimonialInterval);
+
         testimonialInterval = setInterval(() => {
             if (!rotator.isPaused) showSlide(rotator, (rotator.currentIndex + 1) % rotator.slides.length);
         }, ROTATE_INTERVAL);
@@ -262,6 +273,7 @@ const testimonials = await getTestimonials();
     }
 
     document.addEventListener('astro:before-swap', () => {
+        if (observer) observer.disconnect();
         if (testimonialInterval) clearInterval(testimonialInterval);
     });
 

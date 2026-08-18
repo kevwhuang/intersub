@@ -1,5 +1,5 @@
 ---
-import MethodCurve from '@components/MethodCurve.astro';
+import Curve from '@components/Curve.astro';
 
 const METHOD_BLOCKS = [
     {
@@ -35,7 +35,7 @@ const METHOD_BLOCKS = [
     data-i18n-aria="Our method"
 >
     <div class="method__inner shell">
-        <MethodCurve />
+        <Curve />
         {METHOD_BLOCKS.map((block, index) => (
             <div
                 class:list={['method__block', { 'method__block--indent': index % 2 === 1 }]}

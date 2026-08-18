@@ -39,7 +39,6 @@ const RESEEDED_REFRESH_TOKEN = 'reseeded-refresh-token';
 const SEEDED_EMAIL = 'stored@intersub.com';
 const SEEDED_REFRESH_TOKEN = 'stored-refresh-token';
 const SESSION_EXPIRED_ERROR = 'Session expired. Please sign in again.';
-const VALID_OFFSET_MS = 3_600_000;
 
 const TOKEN_RESPONSE = {
     access_token: 'fresh-access-token',
@@ -47,6 +46,8 @@ const TOKEN_RESPONSE = {
     refresh_token: 'fresh-refresh-token',
     token_type: 'bearer',
 };
+
+const VALID_OFFSET_MS = 3_600_000;
 
 async function blockApiWrites(page: Page) {
     const writes: string[] = [];
@@ -61,6 +62,7 @@ async function blockApiWrites(page: Page) {
         }
 
         writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
+
         await route.abort();
     });
 
@@ -105,6 +107,7 @@ async function mockIdentity(page: Page, respond: IdentityResponder): Promise<Ide
 
         if (!reply) {
             mock.unmatched.push(`${call.method} ${call.path}`);
+
             await route.abort();
 
             return;
@@ -180,6 +183,7 @@ test.describe('login screen', () => {
         await expect(page.getByLabel('Password')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
         await expect(page.getByRole('link', { name: 'Back to site' })).toBeVisible();
+
         expect(mock.calls).toEqual([]);
     });
 
@@ -190,14 +194,13 @@ test.describe('login screen', () => {
         await page.getByRole('button', { name: 'Sign in' }).click();
 
         await expect(page.getByRole('alert')).toHaveText('Email and password are required.');
+
         expect(mock.calls).toEqual([]);
     });
 
     test('shows an invalid-credentials error when the password grant returns 401', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') {
-                return { json: { error: 'invalid_grant' }, status: 401 };
-            }
+            if (call.method === 'POST' && call.path === '/token') return { json: { error: 'invalid_grant' }, status: 401 };
 
             return null;
         });
@@ -221,9 +224,7 @@ test.describe('login screen', () => {
 
     test('shows a generic error when the password grant returns 500', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') {
-                return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
-            }
+            if (call.method === 'POST' && call.path === '/token') return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
 
             return null;
         });
@@ -234,6 +235,7 @@ test.describe('login screen', () => {
         await page.getByRole('button', { name: 'Sign in' }).click();
 
         await expect(page.getByRole('alert')).toHaveText('Something went wrong. Please try again.');
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
@@ -256,8 +258,9 @@ test.describe('login screen', () => {
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
         await expect(page.getByRole('complementary', { name: 'Admin sidebar' }).getByText('AD', { exact: true })).toBeVisible();
 
-        const stored = await parseSession(page);
         const after = Date.now();
+
+        const stored = await parseSession(page);
 
         expect(stored?.accessToken).toBe(TOKEN_RESPONSE.access_token);
         expect(stored?.email).toBe(ADMIN_EMAIL);
@@ -275,6 +278,7 @@ test.describe('login screen', () => {
         await page.reload();
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
+
         expect(mock.calls).toHaveLength(1);
     });
 });
@@ -288,6 +292,7 @@ test.describe('stored sessions', () => {
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
         await expect(page.getByRole('complementary', { name: 'Admin sidebar' }).getByText('ST', { exact: true })).toBeVisible();
+
         expect(mock.calls).toEqual([]);
     });
 
@@ -319,9 +324,7 @@ test.describe('stored sessions', () => {
 
     test('clears the session and shows login when the refresh grant returns 401', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') {
-                return { json: { error: 'invalid_grant' }, status: 401 };
-            }
+            if (call.method === 'POST' && call.path === '/token') return { json: { error: 'invalid_grant' }, status: 401 };
 
             return null;
         });
@@ -332,6 +335,7 @@ test.describe('stored sessions', () => {
         await expect(page.getByLabel('Email')).toBeVisible();
         await expect(page.getByRole('alert')).toHaveCount(0);
         expect(await readSession(page)).toBeNull();
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
@@ -343,6 +347,7 @@ test.describe('stored sessions', () => {
         await page.goto(getAdminUrl(baseURL));
 
         await expect(page.getByLabel('Email')).toBeVisible();
+
         expect(mock.calls).toEqual([]);
     });
 
@@ -357,6 +362,7 @@ test.describe('stored sessions', () => {
 
         await expect(page.getByLabel('Email')).toBeVisible();
         expect(await readSession(page)).toBeNull();
+
         expect(mock.calls).toEqual([]);
     });
 });
@@ -423,9 +429,7 @@ test.describe('refresh races', () => {
 test.describe('confirmation flow', () => {
     test('a valid confirmation token verifies a signup and signs in without the set-password screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: CONFIRMED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: CONFIRMED_EMAIL }, status: 200 };
 
             return null;
         });
@@ -453,9 +457,7 @@ test.describe('confirmation flow', () => {
 
     test('an invalid confirmation token shows an error on the login screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { code: 404, msg: 'Confirmation token not found' }, status: 404 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 404, msg: 'Confirmation token not found' }, status: 404 };
 
             return null;
         });
@@ -465,6 +467,7 @@ test.describe('confirmation flow', () => {
         await expect(page.getByRole('alert')).toHaveText(INVALID_LINK_ERROR);
         await expect(page.getByLabel('Email')).toBeVisible();
         expect(await readSession(page)).toBeNull();
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
@@ -473,9 +476,7 @@ test.describe('confirmation flow', () => {
 test.describe('recovery flow', () => {
     test('a valid recovery token opens the set-password screen and strips the hash', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
 
             return null;
         });
@@ -501,9 +502,7 @@ test.describe('recovery flow', () => {
 
     test('rejects passwords shorter than 8 or longer than 20 characters without identity traffic', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
 
             return null;
         });
@@ -532,9 +531,7 @@ test.describe('recovery flow', () => {
 
     test('a valid password completes recovery through the identity user endpoint', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
 
             if (call.method === 'PUT' && call.path === '/user') return { json: {}, status: 200 };
 
@@ -556,13 +553,9 @@ test.describe('recovery flow', () => {
 
     test('a failed password update shows an error and keeps the set-password screen open', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
 
-            if (call.method === 'PUT' && call.path === '/user') {
-                return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
-            }
+            if (call.method === 'PUT' && call.path === '/user') return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
 
             return null;
         });
@@ -573,19 +566,16 @@ test.describe('recovery flow', () => {
 
         await expect(page.getByRole('alert')).toHaveText('Failed to set password.');
         await expect(page.getByRole('heading', { name: 'Set your password' })).toBeVisible();
+
         expect(mock.calls).toHaveLength(2);
         expect(mock.unmatched).toEqual([]);
     });
 
     test('an expired session during set-password returns to login with a session error', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/token') {
-                return { json: { error: 'invalid_grant' }, status: 401 };
-            }
+            if (call.method === 'POST' && call.path === '/token') return { json: { error: 'invalid_grant' }, status: 401 };
 
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
 
             return null;
         });
@@ -615,9 +605,7 @@ test.describe('recovery flow', () => {
 
     test('an invalid recovery token shows an error on the login screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { code: 404, msg: 'Recovery token not found' }, status: 404 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 404, msg: 'Recovery token not found' }, status: 404 };
 
             return null;
         });
@@ -627,15 +615,14 @@ test.describe('recovery flow', () => {
         await expect(page.getByRole('alert')).toHaveText(INVALID_LINK_ERROR);
         await expect(page.getByLabel('Email')).toBeVisible();
         expect(await readSession(page)).toBeNull();
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
 
     test('cancel returns to the dashboard when recovery already signed in', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { ...TOKEN_RESPONSE, email: RECOVERED_EMAIL }, status: 200 };
 
             return null;
         });
@@ -647,6 +634,7 @@ test.describe('recovery flow', () => {
 
         await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
         await expect(page.getByRole('complementary', { name: 'Admin sidebar' }).getByText('RE', { exact: true })).toBeVisible();
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
@@ -682,9 +670,7 @@ test.describe('invite flow', () => {
         const mock = await mockIdentity(page, (call) => {
             if (call.method !== 'POST' || call.path !== '/verify') return null;
 
-            if (call.body.includes('"password"')) {
-                return { json: { ...TOKEN_RESPONSE, email: INVITED_EMAIL }, status: 200 };
-            }
+            if (call.body.includes('"password"')) return { json: { ...TOKEN_RESPONSE, email: INVITED_EMAIL }, status: 200 };
 
             return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
         });
@@ -712,9 +698,7 @@ test.describe('invite flow', () => {
 
     test('an invite probe returning 404 shows an invalid-link error instead of the set-password screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { code: 404, msg: 'Invite token not found' }, status: 404 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 404, msg: 'Invite token not found' }, status: 404 };
 
             return null;
         });
@@ -725,15 +709,14 @@ test.describe('invite flow', () => {
         await expect(page.getByLabel('Email')).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Set your password' })).toHaveCount(0);
         expect(await readSession(page)).toBeNull();
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
 
     test('cancel with a pending invite returns to the sign-in screen', async ({ baseURL, page }) => {
         const mock = await mockIdentity(page, (call) => {
-            if (call.method === 'POST' && call.path === '/verify') {
-                return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
-            }
+            if (call.method === 'POST' && call.path === '/verify') return { json: { code: 500, msg: 'Internal server error' }, status: 500 };
 
             return null;
         });
@@ -746,6 +729,7 @@ test.describe('invite flow', () => {
         await expect(page.getByLabel('Email')).toBeVisible();
         await expect(page.getByLabel('Password')).toBeVisible();
         await expect(page.getByRole('alert')).toHaveCount(0);
+
         expect(mock.calls).toHaveLength(1);
         expect(mock.unmatched).toEqual([]);
     });
@@ -773,11 +757,22 @@ test.describe('session expiry during save', () => {
         await expect(page.getByLabel('Password')).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Edit event' })).toHaveCount(0);
         expect(await readSession(page)).toBeNull();
+
         expect(writes).toEqual([]);
 
         expect(mock.calls).toEqual([
-            { authorization: '', body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`, method: 'POST', path: '/token' },
-            { authorization: '', body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`, method: 'POST', path: '/token' },
+            {
+                authorization: '',
+                body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`,
+                method: 'POST',
+                path: '/token',
+            },
+            {
+                authorization: '',
+                body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`,
+                method: 'POST',
+                path: '/token',
+            },
         ]);
 
         expect(mock.unmatched).toEqual([]);
@@ -811,8 +806,18 @@ test.describe('session expiry during save', () => {
         expect(writes).toEqual([]);
 
         expect(mock.calls).toEqual([
-            { authorization: '', body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`, method: 'POST', path: '/token' },
-            { authorization: '', body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`, method: 'POST', path: '/token' },
+            {
+                authorization: '',
+                body: `grant_type=password&username=${encodeURIComponent(ADMIN_EMAIL)}&password=correct-password`,
+                method: 'POST',
+                path: '/token',
+            },
+            {
+                authorization: '',
+                body: `grant_type=refresh_token&refresh_token=${TOKEN_RESPONSE.refresh_token}`,
+                method: 'POST',
+                path: '/token',
+            },
         ]);
 
         expect(mock.unmatched).toEqual([]);
@@ -843,6 +848,7 @@ test.describe('session expiry during save', () => {
         await expect(page.getByText(SESSION_EXPIRED_ERROR)).toHaveCount(0);
         await expect(page.getByLabel('Email')).toHaveCount(0);
         expect(await readSession(page)).toBeNull();
+
         expect(writes).toEqual([]);
         expect(mock.calls).toHaveLength(2);
         expect(mock.unmatched).toEqual([]);

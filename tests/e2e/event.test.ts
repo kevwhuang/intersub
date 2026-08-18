@@ -1,7 +1,7 @@
+import { basename, join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 interface ContentBlock {
     content: string;
@@ -10,7 +10,9 @@ interface ContentBlock {
 
 interface EventEntry {
     content: string;
+    cover?: string;
     date: string;
+    id: string;
     level?: string;
     location: string;
     time: string;
@@ -18,21 +20,41 @@ interface EventEntry {
 }
 
 const CONTENT_DIR = fileURLToPath(new URL('../../src/content', import.meta.url));
-const SLUG = '2026-06-15';
 
-const event = JSON.parse(readFileSync(join(CONTENT_DIR, 'events', `${SLUG}.json`), 'utf-8')) as EventEntry;
+const events = readdirSync(join(CONTENT_DIR, 'events'))
+    .filter(file => file.endsWith('.json'))
+    .map(file => ({ ...JSON.parse(readFileSync(join(CONTENT_DIR, 'events', file), 'utf-8')), id: basename(file, '.json') }) as EventEntry)
+    .sort((entryA, entryB) => entryB.date.localeCompare(entryA.date));
+
 const uiTranslations = JSON.parse(readFileSync(join(CONTENT_DIR, 'translations', 'ui.json'), 'utf-8')) as Translations;
+
+const [event] = events.filter(entry => entry.cover);
 
 const blocks = parseEventContent(event.content);
 const documentTitle = `${event.title} \u2014 InterSub`;
 const metaLabels = ['Date', ...event.time ? ['Time'] : [], 'Location', 'Who'];
 const who = event.level ?? 'Everyone';
 
-const headings = blocks.filter(block => block.type === 'h').map(block => block.content);
+const headings = blocks
+    .filter(block => block.type === 'h')
+    .map(block => block.content);
+
 const listGroupCount = blocks.filter((block, index) => block.type === 'li' && blocks[index - 1]?.type !== 'li').length;
-const listItems = blocks.filter(block => block.type === 'li').map(block => block.content);
-const metaValues = [new Date(`${event.date}T00:00:00`).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }), ...event.time ? [event.time] : [], event.location, who];
-const paragraphs = blocks.filter(block => block.type === 'p').map(block => block.content);
+
+const listItems = blocks
+    .filter(block => block.type === 'li')
+    .map(block => block.content);
+
+const metaValues = [
+    new Date(`${event.date}T00:00:00`).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+    ...event.time ? [event.time] : [],
+    event.location,
+    who,
+];
+
+const paragraphs = blocks
+    .filter(block => block.type === 'p')
+    .map(block => block.content);
 
 function formatDateZh(date: string) {
     const [year, month, day] = date.split('-').map(Number);
@@ -47,6 +69,7 @@ function parseEventContent(markdown: string) {
         const trimmed = line.trim();
 
         if (!trimmed) continue;
+
         if (trimmed.startsWith('## ')) parsed.push({ content: trimmed.slice(3), type: 'h' });
         else if (trimmed.startsWith('- ')) parsed.push({ content: trimmed.slice(2), type: 'li' });
         else parsed.push({ content: trimmed, type: 'p' });
@@ -59,17 +82,17 @@ test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
-test.describe('event detail page', () => {
+test.describe('event page', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto(`/events/${SLUG}`);
+        await page.goto(`/events/${event.id}`);
         await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
     });
 
     test('renders the title and meta rows', async ({ page }) => {
         await expect(page).toHaveTitle(documentTitle);
-        await expect(page.locator('.event-detail__title')).toHaveText(event.title);
+        await expect(page.locator('.event__title')).toHaveText(event.title);
 
-        const meta = page.locator('.event-detail__meta');
+        const meta = page.locator('.event__meta');
 
         await expect(meta.locator('dt')).toHaveText(metaLabels);
         await expect(meta.locator('dd')).toHaveText(metaValues);
@@ -77,14 +100,14 @@ test.describe('event detail page', () => {
     });
 
     test('shows the cover image', async ({ page }) => {
-        const cover = page.locator('.event-detail__cover-image');
+        const cover = page.locator('.event__cover-image');
 
         await expect(cover).toBeVisible();
-        expect(await cover.getAttribute('src')).toContain(SLUG);
+        expect(await cover.getAttribute('src')).toContain(event.id);
     });
 
     test('renders the markdown content as headings, lists, and paragraphs', async ({ page }) => {
-        const content = page.locator('.event-detail__content');
+        const content = page.locator('.event__content');
 
         await expect(content.locator('h2')).toHaveText(headings);
         await expect(content.locator('ul')).toHaveCount(listGroupCount);
@@ -93,14 +116,14 @@ test.describe('event detail page', () => {
     });
 
     test('returns to the catalog from the back link', async ({ page }) => {
-        await page.locator('.event-detail__back').click();
+        await page.locator('.event__back').click();
 
         await expect(page).toHaveURL('/events');
         await expect(page.locator('#events-title')).toHaveText('Events');
     });
 
     test('renders the 404 page for an unknown slug', async ({ page }) => {
-        const response = await page.goto('/events/1999-01-01');
+        const response = await page.goto('/events/1999_01_01');
 
         expect(response?.status()).toBe(404);
 
@@ -113,13 +136,13 @@ test.describe('event detail page', () => {
 
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');
         await expect(page).toHaveTitle(documentTitle);
-        await expect(page.locator('.event-detail__title')).toHaveText(event.title);
+        await expect(page.locator('.event__title')).toHaveText(event.title);
 
-        const meta = page.locator('.event-detail__meta');
+        const meta = page.locator('.event__meta');
 
         await expect(meta.locator('dt')).toHaveText(metaLabels.map(label => uiTranslations[label] ?? label));
         await expect(meta.locator('time')).toHaveText(formatDateZh(event.date));
         await expect(meta.locator('dd').last()).toHaveText(uiTranslations[who] ?? who);
-        await expect(page.locator('.event-detail__content h2')).toHaveText(headings);
+        await expect(page.locator('.event__content h2')).toHaveText(headings);
     });
 });

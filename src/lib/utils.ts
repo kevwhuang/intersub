@@ -8,10 +8,30 @@ interface LevelMeta {
 }
 
 const LEVEL_META: Record<string, LevelMeta> = {
-    Advanced: { background: 'var(--color-rose)', cover: 'var(--color-rose-cover)', foreground: 'var(--color-crimson)', ink: 'var(--color-crimson)' },
-    Beginner: { background: 'var(--color-mint)', cover: 'var(--color-mint-cover)', foreground: 'var(--color-teal)', ink: 'var(--color-teal)' },
-    Cohort: { background: 'var(--color-cobalt-10)', cover: 'var(--color-cobalt-10)', foreground: 'var(--color-cobalt)', ink: 'var(--color-cobalt)' },
-    Intermediate: { background: 'var(--color-cream)', cover: 'var(--color-cream-cover)', foreground: 'var(--color-amber)', ink: 'var(--color-amber)' },
+    Advanced: {
+        background: 'var(--color-rose)',
+        cover: 'var(--color-rose-cover)',
+        foreground: 'var(--color-crimson)',
+        ink: 'var(--color-crimson)',
+    },
+    Beginner: {
+        background: 'var(--color-mint)',
+        cover: 'var(--color-mint-cover)',
+        foreground: 'var(--color-teal)',
+        ink: 'var(--color-teal)',
+    },
+    Cohort: {
+        background: 'var(--color-cobalt-10)',
+        cover: 'var(--color-cobalt-10)',
+        foreground: 'var(--color-cobalt)',
+        ink: 'var(--color-cobalt)',
+    },
+    Intermediate: {
+        background: 'var(--color-cream)',
+        cover: 'var(--color-cream-cover)',
+        foreground: 'var(--color-amber)',
+        ink: 'var(--color-amber)',
+    },
 };
 
 const TIMEZONE = 'Asia/Shanghai';
@@ -31,7 +51,12 @@ export function getInitials(title: string): string {
 }
 
 export function getLevelMeta(level: string): LevelMeta {
-    return LEVEL_META[level] ?? { background: 'var(--color-silver)', cover: 'var(--color-silver-light)', foreground: 'var(--color-slate-muted)', ink: 'var(--color-slate-muted)' };
+    return LEVEL_META[level] ?? {
+        background: 'var(--color-silver)',
+        cover: 'var(--color-silver-light)',
+        foreground: 'var(--color-slate-muted)',
+        ink: 'var(--color-slate-muted)',
+    };
 }
 
 export function getToday(): string {

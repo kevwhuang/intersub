@@ -1,15 +1,15 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeAll, describe, expect, test } from 'vitest';
 
-import IconApplePodcasts from '../../src/components/IconApplePodcasts.astro';
+import IconPodcasts from '../../src/components/IconPodcasts.astro';
 
-describe('IconApplePodcasts', () => {
+describe('IconPodcasts', () => {
     let html: string;
 
     beforeAll(async () => {
         const container = await AstroContainer.create();
 
-        html = await container.renderToString(IconApplePodcasts);
+        html = await container.renderToString(IconPodcasts);
     });
 
     test('renders a hidden svg icon', () => {
@@ -29,7 +29,7 @@ describe('IconApplePodcasts', () => {
     test('scales to the size prop', async () => {
         const container = await AstroContainer.create();
 
-        const sized = await container.renderToString(IconApplePodcasts, { props: { size: 24 } });
+        const sized = await container.renderToString(IconPodcasts, { props: { size: 24 } });
 
         expect(sized).toContain('height="24"');
         expect(sized).toContain('width="24"');

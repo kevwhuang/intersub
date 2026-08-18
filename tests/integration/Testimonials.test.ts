@@ -37,6 +37,10 @@ describe('Testimonials', () => {
         html = await container.renderToString(Testimonials);
     });
 
+    test('labels the section for assistive tech with an i18n hook', () => {
+        expect(html).toMatch(/<section[^>]*aria-label="Client testimonials"[^>]*data-i18n-aria="Client testimonials"[^>]*data-testimonials/);
+    });
+
     test('renders one slide per testimonial with the first active', () => {
         expect(html.split('data-slide=').length - 1).toBe(testimonials.length);
         expect(html.split('testimonials__slide--active').length - 1).toBe(1);

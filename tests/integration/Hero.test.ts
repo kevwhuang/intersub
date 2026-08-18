@@ -39,8 +39,8 @@ describe('Hero', () => {
     });
 
     test('hides the decorative background and overlay from assistive tech', () => {
-        expect(html).toContain('class="hero__background absolute" aria-hidden="true"');
-        expect(html).toContain('class="hero__overlay absolute" aria-hidden="true"');
+        expect(html).toContain('class="hero__background absolute -z-2" aria-hidden="true"');
+        expect(html).toContain('class="hero__overlay absolute -z-1" aria-hidden="true"');
     });
 
     test('renders the headline with highlighted words and an i18n html hook', () => {

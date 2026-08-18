@@ -1,7 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
-import { basename, join } from 'node:path';
-import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { DELETE, GET, POST } from '../../src/pages/api/events';
 
@@ -17,13 +16,23 @@ interface BlobStoreStub {
     setJSON: Mock<(key: string, value: Record<string, unknown>) => Promise<void>>;
 }
 
-const EVENT_ID = '2026-06-15';
-const SENTINEL_ID = '1990-01-01';
-const SENTINEL_RENAMED_ID = '1990-01-02';
-
-const SENTINEL_IDS = [SENTINEL_ID, SENTINEL_RENAMED_ID];
+const EVENT_ID = '2026_06_15';
+const SENTINEL_DATE = '1990-01-01';
+const SENTINEL_ID = '1990_01_01';
+const SENTINEL_RENAMED_DATE = '1990-01-02';
+const SENTINEL_RENAMED_ID = '1990_01_02';
 const SENTINEL_TIME = '09:00\u201311:00';
 const UPDATED_TITLE = 'Updated Sentinel Event';
+
+const SENTINEL_EVENT = {
+    content: 'Sentinel lifecycle event for automated tests.',
+    date: SENTINEL_DATE,
+    location: 'Sentinel Test Lab',
+    time: '9:00-11:00',
+    title: 'Sentinel Lifecycle Event',
+} as const;
+
+const SENTINEL_IDS = [SENTINEL_ID, SENTINEL_RENAMED_ID];
 
 const eventsDir = join(process.cwd(), 'src/content/events');
 
@@ -31,16 +40,7 @@ const eventPath = join(eventsDir, `${EVENT_ID}.json`);
 
 const existingEvent: Record<string, unknown> = JSON.parse(readFileSync(eventPath, 'utf-8'));
 
-const sentinelEvent = {
-    content: 'Sentinel lifecycle event for automated tests.',
-    date: SENTINEL_ID,
-    location: 'Sentinel Test Lab',
-    time: '9:00-11:00',
-    title: 'Sentinel Lifecycle Event',
-};
-
-let committedNames: string[] = [];
-let committedSnapshot: Record<string, string> = {};
+let baselineSnapshot: Record<string, string> = {};
 
 function buildBlobStore(payloads: Record<string, Record<string, unknown>>): BlobStoreStub {
     return {
@@ -67,7 +67,7 @@ function createContext(method: string, body?: string): RouteContext {
 }
 
 async function createSentinel(): Promise<void> {
-    const response = await postJson(sentinelEvent);
+    const response = await postJson(SENTINEL_EVENT);
 
     expect(response.status).toBe(200);
 }
@@ -76,10 +76,10 @@ async function deleteJson(id: string): Promise<Response> {
     return DELETE(createContext('DELETE', JSON.stringify({ id })));
 }
 
-async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promise<RoutesModule> {
+async function importProductionRoutes(getStoreStub: () => BlobStoreStub, isAuthorized = true): Promise<RoutesModule> {
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
-    vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => true) }));
+    vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => isAuthorized) }));
 
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
@@ -90,24 +90,14 @@ async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promis
     return import('../../src/pages/api/events');
 }
 
-function listCommittedFiles(): string[] {
-    return execSync('git ls-files src/content/events', { encoding: 'utf-8' })
-        .split('\n')
-        .map(line => basename(line))
-        .filter(file => file.endsWith('.json'))
-        .sort();
-}
-
 async function postJson(body: Record<string, unknown>): Promise<Response> {
     return POST(createContext('POST', JSON.stringify(body)));
 }
 
 function removeSentinels() {
-    for (const id of SENTINEL_IDS) rmSync(join(eventsDir, `${id}.json`), { force: true });
-}
-
-function snapshotCommitted(): Record<string, string> {
-    return Object.fromEntries(committedNames.map(file => [file, readFileSync(join(eventsDir, file), 'utf-8')]));
+    for (const id of SENTINEL_IDS) {
+        rmSync(join(eventsDir, `${id}.json`), { force: true });
+    }
 }
 
 function snapshotTree(): Record<string, string> {
@@ -119,19 +109,15 @@ function snapshotTree(): Record<string, string> {
 }
 
 beforeAll(() => {
-    committedNames = listCommittedFiles();
+    removeSentinels();
 
-    for (const file of readdirSync(eventsDir)) {
-        if (file.endsWith('.json') && !committedNames.includes(file)) rmSync(join(eventsDir, file), { force: true });
-    }
-
-    committedSnapshot = snapshotCommitted();
+    baselineSnapshot = snapshotTree();
 });
 
 afterAll(() => {
     removeSentinels();
 
-    expect(snapshotCommitted()).toEqual(committedSnapshot);
+    expect(snapshotTree()).toEqual(baselineSnapshot);
     expect(SENTINEL_IDS.some(id => existsSync(join(eventsDir, `${id}.json`)))).toBe(false);
 });
 
@@ -155,7 +141,7 @@ describe('DELETE', () => {
     });
 
     test('rejects an unknown id', async () => {
-        const response = await DELETE(createContext('DELETE', JSON.stringify({ id: '1999-01-01' })));
+        const response = await DELETE(createContext('DELETE', JSON.stringify({ id: '1999_01_01' })));
 
         const result: Record<string, unknown> = await response.json();
 
@@ -296,7 +282,7 @@ describe('POST', () => {
     });
 
     test('rejects an unknown previous id', async () => {
-        const response = await postJson({ ...existingEvent, id: '1999-01-01' });
+        const response = await postJson({ ...existingEvent, id: '1999_01_01' });
 
         const result: Record<string, unknown> = await response.json();
 
@@ -317,18 +303,18 @@ describe('POST', () => {
 describe('lifecycle', () => {
     test('creates a sentinel event with a normalized time', async () => {
         try {
-            const response = await postJson(sentinelEvent);
+            const response = await postJson(SENTINEL_EVENT);
 
             const result: Record<string, unknown> = await response.json();
 
             const bytes = readFileSync(join(eventsDir, `${SENTINEL_ID}.json`), 'utf-8');
 
             const expected = JSON.stringify({
-                content: sentinelEvent.content,
-                date: sentinelEvent.date,
-                location: sentinelEvent.location,
+                content: SENTINEL_EVENT.content,
+                date: SENTINEL_EVENT.date,
+                location: SENTINEL_EVENT.location,
                 time: SENTINEL_TIME,
-                title: sentinelEvent.title,
+                title: SENTINEL_EVENT.title,
             }, null, 4);
 
             const listResponse = await GET(createContext('GET'));
@@ -349,7 +335,7 @@ describe('lifecycle', () => {
         try {
             await createSentinel();
 
-            const response = await postJson({ ...sentinelEvent, date: SENTINEL_RENAMED_ID, id: SENTINEL_ID });
+            const response = await postJson({ ...SENTINEL_EVENT, date: SENTINEL_RENAMED_DATE, id: SENTINEL_ID });
 
             const result: Record<string, unknown> = await response.json();
 
@@ -366,7 +352,7 @@ describe('lifecycle', () => {
         try {
             await createSentinel();
 
-            const response = await postJson({ ...sentinelEvent, id: SENTINEL_ID, title: UPDATED_TITLE });
+            const response = await postJson({ ...SENTINEL_EVENT, id: SENTINEL_ID, title: UPDATED_TITLE });
 
             const result: Record<string, unknown> = await response.json();
 
@@ -428,7 +414,7 @@ describe('production blobs', () => {
 
         const routes = await importProductionRoutes(getStoreStub);
 
-        const response = await routes.POST(createContext('POST', JSON.stringify(sentinelEvent)));
+        const response = await routes.POST(createContext('POST', JSON.stringify(SENTINEL_EVENT)));
 
         const result: Record<string, unknown> = await response.json();
 
@@ -437,22 +423,22 @@ describe('production blobs', () => {
         expect(getStoreStub).toHaveBeenCalledWith({ consistency: 'strong', name: 'events' });
 
         expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(SENTINEL_ID, {
-            content: sentinelEvent.content,
-            date: sentinelEvent.date,
-            location: sentinelEvent.location,
+            content: SENTINEL_EVENT.content,
+            date: SENTINEL_EVENT.date,
+            location: SENTINEL_EVENT.location,
             time: SENTINEL_TIME,
-            title: sentinelEvent.title,
+            title: SENTINEL_EVENT.title,
         });
 
         expect(existsSync(join(eventsDir, `${SENTINEL_ID}.json`))).toBe(false);
     });
 
     test('renames an event by writing the new key and deleting the previous one', async () => {
-        const store = buildBlobStore({ [SENTINEL_ID]: { ...sentinelEvent } });
+        const store = buildBlobStore({ [SENTINEL_ID]: { ...SENTINEL_EVENT } });
 
         const routes = await importProductionRoutes(() => store);
 
-        const response = await routes.POST(createContext('POST', JSON.stringify({ ...sentinelEvent, date: SENTINEL_RENAMED_ID, id: SENTINEL_ID })));
+        const response = await routes.POST(createContext('POST', JSON.stringify({ ...SENTINEL_EVENT, date: SENTINEL_RENAMED_DATE, id: SENTINEL_ID })));
 
         const result: Record<string, unknown> = await response.json();
 
@@ -460,19 +446,40 @@ describe('production blobs', () => {
         expect(result.id).toBe(SENTINEL_RENAMED_ID);
 
         expect(store.setJSON).toHaveBeenCalledExactlyOnceWith(SENTINEL_RENAMED_ID, {
-            content: sentinelEvent.content,
-            date: SENTINEL_RENAMED_ID,
-            location: sentinelEvent.location,
+            content: SENTINEL_EVENT.content,
+            date: SENTINEL_RENAMED_DATE,
+            location: SENTINEL_EVENT.location,
             time: SENTINEL_TIME,
-            title: sentinelEvent.title,
+            title: SENTINEL_EVENT.title,
         });
 
         expect(store.delete).toHaveBeenCalledExactlyOnceWith(SENTINEL_ID);
         expect(SENTINEL_IDS.some(id => existsSync(join(eventsDir, `${id}.json`)))).toBe(false);
     });
 
+    test('rejects an unauthenticated write with 401', async () => {
+        const store = buildBlobStore({});
+
+        const routes = await importProductionRoutes(() => store, false);
+
+        const postResponse = await routes.POST(createContext('POST', JSON.stringify(SENTINEL_EVENT)));
+
+        const postResult: Record<string, unknown> = await postResponse.json();
+
+        const deleteResponse = await routes.DELETE(createContext('DELETE', JSON.stringify({ id: SENTINEL_ID })));
+
+        const deleteResult: Record<string, unknown> = await deleteResponse.json();
+
+        expect(postResponse.status).toBe(401);
+        expect(postResult.error).toBe('Unauthorized');
+        expect(deleteResponse.status).toBe(401);
+        expect(deleteResult.error).toBe('Unauthorized');
+        expect(store.setJSON).not.toHaveBeenCalled();
+        expect(store.delete).not.toHaveBeenCalled();
+    });
+
     test('deletes an event from the blob store by its string id', async () => {
-        const store = buildBlobStore({ [SENTINEL_ID]: { ...sentinelEvent } });
+        const store = buildBlobStore({ [SENTINEL_ID]: { ...SENTINEL_EVENT } });
 
         const getStoreStub = vi.fn(() => store);
 

@@ -5,14 +5,12 @@ import placeholderTranslations from '@content/translations/placeholders.json';
 import testimonialsTranslations from '@content/translations/testimonials.json';
 import titleTranslations from '@content/translations/titles.json';
 import uiTranslations from '@content/translations/ui.json';
-import { LANG_KEY } from '@lib/constants';
+import { LANG_EN, LANG_KEY, LANG_ZH } from '@lib/constants';
 import { parseDate } from '@lib/utils';
 
 const DESCRIPTION_TRANSLATIONS: Record<string, string> = descriptionTranslations;
 const HTML_TRANSLATIONS: Record<string, string> = htmlTranslations;
-const LANG_EN = 'en';
 const LANG_MAX_AGE = 31_536_000;
-const LANG_ZH = 'zh';
 const PLACEHOLDER_TRANSLATIONS: Record<string, string> = placeholderTranslations;
 const TITLE_SUFFIX = ' \u2014 InterSub';
 const TITLE_TRANSLATIONS: Record<string, string> = titleTranslations;
@@ -68,11 +66,8 @@ export function applyLanguage() {
 
         if (!element.dataset.i18nHtmlOriginal) element.dataset.i18nHtmlOriginal = element.innerHTML;
 
-        if (isChinese && HTML_TRANSLATIONS[key]) {
-            element.innerHTML = HTML_TRANSLATIONS[key];
-        } else if (element.dataset.i18nHtmlOriginal) {
-            element.innerHTML = element.dataset.i18nHtmlOriginal;
-        }
+        if (isChinese && HTML_TRANSLATIONS[key]) element.innerHTML = HTML_TRANSLATIONS[key];
+        else if (element.dataset.i18nHtmlOriginal) element.innerHTML = element.dataset.i18nHtmlOriginal;
     });
 
     document.querySelectorAll<HTMLElement>('[data-i18n-date]').forEach((element) => {

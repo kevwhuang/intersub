@@ -27,6 +27,7 @@ async function routeContact(page: Page, respond: (route: Route) => Promise<void>
 
     await page.route('**/api/contact', async (route) => {
         calls.push(route.request().url());
+
         await respond(route);
     });
 
@@ -40,6 +41,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('contact form', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
+        await expect(page.locator('[data-lang-toggle]')).toHaveText(/./);
     });
 
     test('shows required errors inline on empty submit', async ({ page }) => {

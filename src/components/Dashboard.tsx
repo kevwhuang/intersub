@@ -10,7 +10,7 @@ import ScreenSetPassword from '@components/dashboard/ScreenSetPassword';
 import Sidebar from '@components/dashboard/Sidebar';
 import Spinner from '@components/Spinner';
 import TopBar from '@components/dashboard/TopBar';
-import { COVER_PATH_PATTERN, STYLES, TIME_PATTERN, TOPBAR_HEIGHT, URL_PATTERN, Z_INDEX } from '@lib/constants';
+import { COVER_PATH_PATTERN, JSON_HEADERS, STYLES, TIME_PATTERN, TOPBAR_HEIGHT, URL_PATTERN, Z_INDEX } from '@lib/constants';
 import { getToday } from '@lib/utils';
 import { useAuth } from '@lib/authClient';
 
@@ -49,7 +49,6 @@ interface DashboardState {
 }
 
 const DELETE_ERROR = 'Failed to delete';
-const JSON_HEADERS = { 'Content-Type': 'application/json' } as const;
 const LOAD_ERROR = 'Failed to load data';
 const MOBILE_BREAKPOINT = 1_024;
 const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
@@ -85,9 +84,13 @@ function getFailureMessage(fallback: string) {
 function getInitialPanel() {
     if (typeof window === 'undefined') return 'events';
 
-    const stored = localStorage.getItem(PANEL_KEY);
+    try {
+        const stored = localStorage.getItem(PANEL_KEY);
 
-    return stored === 'outcomes' || stored === 'testimonials' ? stored : 'events';
+        return stored === 'outcomes' || stored === 'testimonials' ? stored : 'events';
+    } catch {
+        return 'events';
+    }
 }
 
 function mergeFormFields<FormValues>(form: FormValues, errors: Record<string, boolean>, fields: Partial<FormValues>) {
@@ -219,17 +222,14 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
         scrollToTop();
 
+        const cover = state.eventForm.cover.trim();
         const errors: Record<string, boolean> = {};
 
         if (!state.eventForm.title.trim()) errors.title = true;
         if (!state.eventForm.date) errors.date = true;
         if (!state.eventForm.location.trim()) errors.location = true;
         if (!TIME_PATTERN.test(state.eventForm.time.trim())) errors.time = true;
-
-        if (state.eventForm.cover.trim() && !COVER_PATH_PATTERN.test(state.eventForm.cover.trim()) && !URL_PATTERN.test(state.eventForm.cover.trim())) {
-            errors.cover = true;
-        }
-
+        if (cover && !COVER_PATH_PATTERN.test(cover) && !URL_PATTERN.test(cover)) errors.cover = true;
         if (!state.eventForm.content.trim()) errors.content = true;
 
         if (Object.keys(errors).length) {
@@ -243,7 +243,12 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
         if (!isNew && state.editingEventId) body.id = state.editingEventId;
 
-        await submitEntity(PANEL_META.event.endpoint, body, { editingEventId: null, eventForm: null, eventFormErrors: {} }, isNew ? 'Event created' : 'Changes saved');
+        await submitEntity(
+            PANEL_META.event.endpoint,
+            body,
+            { editingEventId: null, eventForm: null, eventFormErrors: {} },
+            isNew ? 'Event created' : 'Changes saved',
+        );
     }
 
     async function handleSaveOutcome() {
@@ -264,13 +269,26 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
         }
 
         const isNew = state.editingOutcomeId === 'new';
-        const points = state.outcomeForm.points.split('\n').map(line => line.trim()).filter(Boolean);
 
-        const body: Omit<OutcomeFormData, 'points'> & { id?: string; points: string[] } = { points, summary: state.outcomeForm.summary, title: state.outcomeForm.title };
+        const points = state.outcomeForm.points
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean);
+
+        const body: Omit<OutcomeFormData, 'points'> & { id?: string; points: string[] } = {
+            points,
+            summary: state.outcomeForm.summary,
+            title: state.outcomeForm.title,
+        };
 
         if (!isNew && state.editingOutcomeId) body.id = state.editingOutcomeId;
 
-        await submitEntity(PANEL_META.outcome.endpoint, body, { editingOutcomeId: null, outcomeForm: null, outcomeFormErrors: {} }, isNew ? 'Outcome created' : 'Changes saved');
+        await submitEntity(
+            PANEL_META.outcome.endpoint,
+            body,
+            { editingOutcomeId: null, outcomeForm: null, outcomeFormErrors: {} },
+            isNew ? 'Outcome created' : 'Changes saved',
+        );
     }
 
     async function handleSaveTestimonial() {
@@ -296,7 +314,12 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
         if (!isNew && state.editingTestimonialId) body.id = state.editingTestimonialId;
 
-        await submitEntity(PANEL_META.testimonial.endpoint, body, { editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} }, isNew ? 'Testimonial created' : 'Changes saved');
+        await submitEntity(
+            PANEL_META.testimonial.endpoint,
+            body,
+            { editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} },
+            isNew ? 'Testimonial created' : 'Changes saved',
+        );
     }
 
     function handleStartEventEdit(id: string) {
@@ -306,7 +329,15 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
         set({
             editingEventId: id,
-            eventForm: { content: entry.content, cover: entry.cover || '', date: entry.date, level: entry.level || '', location: entry.location, time: entry.time || '', title: entry.title },
+            eventForm: {
+                content: entry.content,
+                cover: entry.cover || '',
+                date: entry.date,
+                level: entry.level || '',
+                location: entry.location,
+                time: entry.time || '',
+                title: entry.title,
+            },
             eventFormErrors: {},
         });
 
@@ -314,7 +345,12 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
     }
 
     function handleStartNewEvent() {
-        set({ editingEventId: 'new', eventForm: { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' }, eventFormErrors: {} });
+        set({
+            editingEventId: 'new',
+            eventForm: { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' },
+            eventFormErrors: {},
+        });
+
         scrollToTop();
     }
 
@@ -333,7 +369,12 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
         if (!outcome) return;
 
-        set({ editingOutcomeId: id, outcomeForm: { points: outcome.points.join('\n'), summary: outcome.summary, title: outcome.title }, outcomeFormErrors: {} });
+        set({
+            editingOutcomeId: id,
+            outcomeForm: { points: outcome.points.join('\n'), summary: outcome.summary, title: outcome.title },
+            outcomeFormErrors: {},
+        });
+
         scrollToTop();
     }
 
@@ -342,7 +383,12 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
 
         if (!testimonial) return;
 
-        set({ editingTestimonialId: id, testimonialForm: { industry: testimonial.industry, name: testimonial.name, quote: testimonial.quote, role: testimonial.role }, testimonialFormErrors: {} });
+        set({
+            editingTestimonialId: id,
+            testimonialForm: { industry: testimonial.industry, name: testimonial.name, quote: testimonial.quote, role: testimonial.role },
+            testimonialFormErrors: {},
+        });
+
         scrollToTop();
     }
 
@@ -515,7 +561,11 @@ function DashboardInner() {
         .filter(entry =>
             (state.activeLevel === 'all' || entry.level === state.activeLevel)
             && (state.activeLocation === 'all' || entry.location === state.activeLocation)
-            && (state.activeTiming === 'all' || (state.activeTiming === 'upcoming' && entry.date >= today) || (state.activeTiming === 'past' && entry.date < today))
+            && (
+                state.activeTiming === 'all'
+                || (state.activeTiming === 'upcoming' && entry.date >= today)
+                || (state.activeTiming === 'past' && entry.date < today)
+            )
             && (!query || entry.location.toLowerCase().includes(query) || entry.title.toLowerCase().includes(query)),
         )
         .sort((entryA, entryB) => {
@@ -552,7 +602,11 @@ function DashboardInner() {
     });
 
     const filteredTestimonials = (query
-        ? state.testimonials.filter(testimonial => testimonial.industry.toLowerCase().includes(query) || testimonial.name.toLowerCase().includes(query) || testimonial.role.toLowerCase().includes(query))
+        ? state.testimonials.filter(testimonial =>
+                testimonial.industry.toLowerCase().includes(query)
+                || testimonial.name.toLowerCase().includes(query)
+                || testimonial.role.toLowerCase().includes(query),
+            )
         : state.testimonials
     ).slice().sort((testimonialA, testimonialB) => {
         const key = state.sortKey === 'industry' || state.sortKey === 'role' ? state.sortKey : 'name';
@@ -577,7 +631,16 @@ function DashboardInner() {
                 return;
             }
 
-            set({ confirmDeleteId: null, editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, testimonialForm: null });
+            set({
+                confirmDeleteId: null,
+                editingEventId: null,
+                editingOutcomeId: null,
+                editingTestimonialId: null,
+                eventForm: null,
+                outcomeForm: null,
+                testimonialForm: null,
+            });
+
             fetchData();
             showToast(`${label} deleted`);
         } catch {
@@ -589,12 +652,36 @@ function DashboardInner() {
 
     function handleLogout() {
         auth.handleLogout();
-        set({ editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, isDrawerOpen: false, outcomeForm: null, testimonialForm: null });
+
+        set({
+            editingEventId: null,
+            editingOutcomeId: null,
+            editingTestimonialId: null,
+            eventForm: null,
+            isDrawerOpen: false,
+            outcomeForm: null,
+            testimonialForm: null,
+        });
     }
 
     function handleSelectPanel(key: PanelKey) {
-        localStorage.setItem(PANEL_KEY, key);
-        set({ activePanel: key, editingEventId: null, editingOutcomeId: null, editingTestimonialId: null, eventForm: null, outcomeForm: null, sortDirection: 'asc', sortKey: key === 'testimonials' ? 'name' : 'title', testimonialForm: null });
+        set({
+            activePanel: key,
+            editingEventId: null,
+            editingOutcomeId: null,
+            editingTestimonialId: null,
+            eventForm: null,
+            outcomeForm: null,
+            sortDirection: 'asc',
+            sortKey: key === 'testimonials' ? 'name' : 'title',
+            testimonialForm: null,
+        });
+
+        try {
+            localStorage.setItem(PANEL_KEY, key);
+        } catch {
+            return;
+        }
     }
 
     function handleToggleSort(field: string) {
@@ -692,7 +779,20 @@ function DashboardInner() {
                 searchValue={state.searchValue}
             />
             <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
-                {isMobile && state.isDrawerOpen && <button className="dashboard-backdrop" aria-label="Close navigation" onClick={() => set({ isDrawerOpen: false })} style={{ border: 'none', inset: `${TOPBAR_HEIGHT}px 0 0 0`, position: 'fixed', zIndex: Z_INDEX.overlay }} type="button" />}
+                {isMobile && state.isDrawerOpen && (
+                    <button
+                        className="dashboard-backdrop"
+                        aria-label="Close navigation"
+                        onClick={() => set({ isDrawerOpen: false })}
+                        style={{
+                            border: 'none',
+                            inset: `${TOPBAR_HEIGHT}px 0 0 0`,
+                            position: 'fixed',
+                            zIndex: Z_INDEX.overlay,
+                        }}
+                        type="button"
+                    />
+                )}
                 <Sidebar
                     activePanel={state.activePanel}
                     isDrawerOpen={state.isDrawerOpen}
@@ -719,7 +819,27 @@ function DashboardInner() {
                 <div
                     aria-live="polite"
                     role="status"
-                    style={{ alignItems: 'center', animation: 'dashboard__toast-in var(--duration-slow) ease-out both', background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground, border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`, borderRadius: 12, bottom: 36, boxShadow: STYLES.shadowToast, color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess, display: 'flex', fontSize: 16, fontWeight: 600, justifyContent: 'center', left: '50%', maxWidth: 'calc(100vw - 48px)', padding: '12px 24px', position: 'fixed', textAlign: 'center', transform: 'translateX(-50%)', zIndex: Z_INDEX.toast }}
+                    style={{
+                        alignItems: 'center',
+                        animation: 'dashboard__toast-in var(--duration-slow) ease-out both',
+                        background: state.isToastError ? STYLES.colorErrorBackground : STYLES.colorSuccessBackground,
+                        border: `1px solid ${state.isToastError ? STYLES.colorError : STYLES.colorSuccess}`,
+                        borderRadius: 12,
+                        bottom: 36,
+                        boxShadow: STYLES.shadowToast,
+                        color: state.isToastError ? STYLES.colorError : STYLES.colorSuccess,
+                        display: 'flex',
+                        fontSize: 16,
+                        fontWeight: 600,
+                        justifyContent: 'center',
+                        left: '50%',
+                        maxWidth: 'calc(100dvw - 48px)',
+                        padding: '12px 24px',
+                        position: 'fixed',
+                        textAlign: 'center',
+                        transform: 'translateX(-50%)',
+                        zIndex: Z_INDEX.toast,
+                    }}
                 >
                     {state.toast}
                 </div>
@@ -730,7 +850,17 @@ function DashboardInner() {
 
 function ScreenLoading() {
     return (
-        <div style={{ alignItems: 'center', background: STYLES.colorSurfaceRaised, display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'center', minHeight: '100svh' }}>
+        <div
+            style={{
+                alignItems: 'center',
+                background: STYLES.colorSurfaceRaised,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                justifyContent: 'center',
+                minHeight: '100svh',
+            }}
+        >
             <Spinner size={64} />
             <p style={{ color: STYLES.colorGhost, fontSize: 16, margin: 0 }}>Loading&hellip;</p>
         </div>

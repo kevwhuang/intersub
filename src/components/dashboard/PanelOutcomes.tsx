@@ -7,7 +7,7 @@ import { FONT_MONO, STYLES } from '@lib/constants';
 const OUTCOME_FORM_ROWS: EditFormField<OutcomeFormData>[][] = [
     [{ errorMessage: 'Title is required.', key: 'title', kind: 'input', label: 'Title', required: true }],
     [{ errorMessage: 'Summary is required.', key: 'summary', kind: 'textarea', label: 'Summary', required: true, rows: 3 }],
-    [{ errorMessage: 'At least one outcome is required.', isMonospace: true, key: 'points', kind: 'textarea', label: 'Outcomes', labelSuffix: '\u00B7 one per line', required: true, rows: 5 }],
+    [{ errorMessage: 'At least one outcome is required.', key: 'points', kind: 'textarea', label: 'Outcomes', labelSuffix: '\u00B7 one per line', required: true, rows: 5 }],
 ];
 
 export default function PanelOutcomes({ editingOutcomeId, isMobile, isSaving, onCancelEdit, onRequestDelete, onSave, onSort, onStartEdit, onStartNew, onUpdate, outcomeForm, outcomeFormErrors, outcomes, sortDirection, sortKey }: {
@@ -64,7 +64,7 @@ export default function PanelOutcomes({ editingOutcomeId, isMobile, isSaving, on
     }
 
     return (
-        <div style={{ margin: '0 auto', maxWidth: 1_280 }}>
+        <div style={STYLES.panelBase}>
             <div style={{ alignItems: 'flex-end', display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between', marginBottom: 24 }}>
                 <div>
                     <h1 style={STYLES.headingPanel}>Outcomes</h1>

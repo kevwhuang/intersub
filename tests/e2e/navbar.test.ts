@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+const DESKTOP_VIEWPORT = { height: 720, width: 1_280 } as const;
 const MOBILE_VIEWPORT = { height: 667, width: 375 } as const;
 
 test.beforeEach(async ({ page }) => {
@@ -78,8 +79,10 @@ test.describe('navbar navigation', () => {
         await expect(page.locator('[data-lang-toggle]')).toHaveText('EN');
     });
 
-    test('shows both wordmark variants in either language', async ({ page }) => {
+    test('shows both wordmark variants in either language above the mobile breakpoint', async ({ page }) => {
         const header = page.locator('.site-header');
+
+        await page.setViewportSize(DESKTOP_VIEWPORT);
 
         await expect(header.locator('img[alt="InterSub"]')).toBeVisible();
         await expect(header.locator('img[alt="言际阁"]')).toBeVisible();
@@ -192,5 +195,18 @@ test.describe('navbar mobile menu', () => {
         await expect(page).toHaveURL('/events');
         await expect(page.locator('[data-nav-menu]')).toBeHidden();
         await expect(page.locator('[data-nav-toggle]')).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    test('keeps only the intersub wordmark visible in either language', async ({ page }) => {
+        const header = page.locator('.site-header');
+
+        await expect(header.locator('img[alt="InterSub"]')).toBeVisible();
+        await expect(header.locator('img[alt="言际阁"]')).toBeHidden();
+
+        await page.locator('[data-lang-toggle]').click();
+
+        await expect(page.locator('html')).toHaveAttribute('lang', 'zh');
+        await expect(header.locator('img[alt="InterSub"]')).toBeVisible();
+        await expect(header.locator('img[alt="言际阁"]')).toBeHidden();
     });
 });

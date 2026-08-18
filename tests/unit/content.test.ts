@@ -24,14 +24,48 @@ const OUTCOME_FIELDS = ['summary', 'title'] as const;
 const TESTIMONIAL_FIELDS = ['industry', 'name', 'quote', 'role'] as const;
 
 const contentRoot = join(process.cwd(), 'src/content');
-const srcRoot = join(process.cwd(), 'src');
-
+const eventParser = collections.events.schema as SchemaParser;
 const events = loadCollection('events');
+const outcomeParser = collections.outcomes.schema as SchemaParser;
 const outcomes = loadCollection('outcomes');
+const srcRoot = join(process.cwd(), 'src');
+const testimonialParser = collections.testimonials.schema as SchemaParser;
 const testimonials = loadCollection('testimonials');
 const translations = loadCollection('translations');
 
 const allEntries = [...events, ...outcomes, ...testimonials, ...translations];
+
+function buildEvent(overrides: Record<string, unknown> = {}) {
+    return {
+        content: 'A hands-on session on workplace negotiation.',
+        cover: '/images/events/2026_06_15.webp',
+        date: '2026-06-15',
+        level: LEVELS[0],
+        location: 'Online',
+        time: '19:00-21:00',
+        title: 'Negotiation Workshop',
+        ...overrides,
+    };
+}
+
+function buildOutcome(overrides: Record<string, unknown> = {}) {
+    return {
+        points: ['Led a quarterly review in English.'],
+        summary: 'From silent meetings to leading them.',
+        title: 'Finance Director',
+        ...overrides,
+    };
+}
+
+function buildTestimonial(overrides: Record<string, unknown> = {}) {
+    return {
+        industry: 'Technology',
+        name: 'Ada',
+        quote: 'The coaching changed how I run meetings.',
+        role: 'CTO',
+        ...overrides,
+    };
+}
 
 function expectSchemaSuccess(entries: Entry[], schema: unknown) {
     const parser = schema as SchemaParser;
@@ -77,13 +111,15 @@ describe('events', () => {
 
     test('date matches the filename stem and YYYY-MM-DD', () => {
         for (const { data, stem } of events) {
-            expect(data.date).toBe(stem);
-            expect(stem).toMatch(DATE_PATTERN);
+            expect(stem).toBe(String(data.date).replaceAll('-', '_'));
+            expect(data.date).toMatch(DATE_PATTERN);
         }
     });
 
     test('time matches the shared time pattern', () => {
-        for (const { data, name } of events) expect(String(data.time), `${name} time`).toMatch(TIME_PATTERN);
+        for (const { data, name } of events) {
+            expect(String(data.time), `${name} time`).toMatch(TIME_PATTERN);
+        }
     });
 
     test('optional level is a known level', () => {
@@ -106,6 +142,17 @@ describe('events', () => {
             expect(isExternal || isInternal, `${name} cover`).toBe(true);
 
             if (isInternal) expect(existsSync(join(srcRoot, cover)), `${name} cover file`).toBe(true);
+        }
+    });
+
+    test('every event image is referenced by an event cover', () => {
+        const covers = new Set(events.map(({ data }) => String(data.cover ?? '')));
+        const imageFiles = readdirSync(join(srcRoot, 'images/events'));
+
+        expect(imageFiles.length).toBeGreaterThan(0);
+
+        for (const file of imageFiles) {
+            expect(covers.has(`/images/events/${file}`), file).toBe(true);
         }
     });
 });
@@ -138,7 +185,9 @@ describe('outcomes', () => {
     });
 
     test('ids are numeric', () => {
-        for (const { stem } of outcomes) expect(stem).toMatch(ID_PATTERN);
+        for (const { stem } of outcomes) {
+            expect(stem).toMatch(ID_PATTERN);
+        }
     });
 });
 
@@ -155,7 +204,9 @@ describe('testimonials', () => {
     });
 
     test('id equals the slugified name and role', () => {
-        for (const { data, stem } of testimonials) expect(stem).toBe(`${data.name}-${data.role}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+        for (const { data, stem } of testimonials) {
+            expect(stem).toBe(`${data.name}-${data.role}`.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, ''));
+        }
     });
 });
 
@@ -171,18 +222,52 @@ describe('schemas', () => {
     test('every testimonials file parses against the testimonials collection schema', () => {
         expectSchemaSuccess(testimonials, collections.testimonials.schema);
     });
+
+    test('accepts the crafted event, outcome, and testimonial baselines', () => {
+        expect(eventParser.safeParse(buildEvent()).success).toBe(true);
+        expect(outcomeParser.safeParse(buildOutcome()).success).toBe(true);
+        expect(testimonialParser.safeParse(buildTestimonial()).success).toBe(true);
+    });
+
+    test('rejects an event missing its date', () => {
+        expect(eventParser.safeParse(buildEvent({ date: undefined })).success).toBe(false);
+    });
+
+    test('rejects an event with a non-string time', () => {
+        expect(eventParser.safeParse(buildEvent({ time: 1_900 })).success).toBe(false);
+    });
+
+    test('rejects an event with an unknown level', () => {
+        expect(eventParser.safeParse(buildEvent({ level: 'Expert' })).success).toBe(false);
+    });
+
+    test('rejects an outcome with an empty points array', () => {
+        expect(outcomeParser.safeParse(buildOutcome({ points: [] })).success).toBe(false);
+    });
+
+    test('rejects an outcome with a non-string point', () => {
+        expect(outcomeParser.safeParse(buildOutcome({ points: [42] })).success).toBe(false);
+    });
+
+    test('rejects a testimonial missing its role', () => {
+        expect(testimonialParser.safeParse(buildTestimonial({ role: undefined })).success).toBe(false);
+    });
+
+    test('rejects a testimonial with a non-string quote', () => {
+        expect(testimonialParser.safeParse(buildTestimonial({ quote: 7 })).success).toBe(false);
+    });
 });
 
 describe('json files', () => {
     test('files end without a trailing newline', () => {
-        for (const { name, raw } of allEntries) expect(raw.endsWith('\n'), name).toBe(false);
+        for (const { name, raw } of allEntries) {
+            expect(raw.endsWith('\n'), name).toBe(false);
+        }
     });
 
-    test('keys contain no curly apostrophes', () => {
-        for (const { data, name } of allEntries) {
-            for (const key of Object.keys(data)) {
-                expect(CURLY_APOSTROPHE_PATTERN.test(key), `${name} ${key}`).toBe(false);
-            }
+    test('files contain no curly apostrophes', () => {
+        for (const { name, raw } of allEntries) {
+            expect(CURLY_APOSTROPHE_PATTERN.test(raw), name).toBe(false);
         }
     });
 });

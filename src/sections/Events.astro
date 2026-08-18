@@ -86,7 +86,12 @@ const locationFilters = ['all', ...locations];
                     </ul>
                 </div>
             </div>
-            <p class="events__count" aria-atomic="true" aria-live="polite" data-count>
+            <p
+                class="events__count"
+                aria-atomic="true"
+                aria-live="polite"
+                data-count
+            >
                 {events.length} {events.length === 1 ? 'event' : 'events'}
             </p>
         </div>
@@ -108,7 +113,7 @@ const locationFilters = ['all', ...locations];
                         data-card-date={event.date}
                         data-card-level={event.level}
                         data-card-location={event.location}
-                        href={`/events/${event.date}`}
+                        href={`/events/${event.id}`}
                     >
                         <div
                             class="events__card-cover"
@@ -190,7 +195,7 @@ const locationFilters = ['all', ...locations];
     .events__card:hover {
         border-color: var(--color-silver-hover);
         box-shadow: 0 12px 32px var(--color-slate-15);
-        transform: translateY(-3px);
+        transform: translateY(-4px);
     }
 
     .events__card-body {
@@ -254,12 +259,14 @@ const locationFilters = ['all', ...locations];
         letter-spacing: -0.01em;
         line-height: 1.22;
         margin: 0 0 16px;
+        overflow-wrap: anywhere;
     }
 
     .events__card-value {
         color: var(--color-slate);
         font-weight: 600;
         margin: 0;
+        overflow-wrap: anywhere;
         text-align: right;
     }
 
@@ -345,6 +352,7 @@ const locationFilters = ['all', ...locations];
 </style>
 
 <script>
+    import { LANG_ZH } from '@lib/constants';
     import { getToday } from '@lib/utils';
     import { translate } from '@lib/i18n';
 
@@ -454,7 +462,7 @@ const locationFilters = ['all', ...locations];
         });
 
         if (state.countElement) {
-            const isChinese = document.documentElement.lang === 'zh';
+            const isChinese = document.documentElement.lang === LANG_ZH;
             const unit = translate(visibleCount === 1 ? 'event' : 'events');
 
             state.countElement.textContent = isChinese ? `${visibleCount}${unit}` : `${visibleCount} ${unit}`;

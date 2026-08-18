@@ -26,30 +26,29 @@ const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
 const RENAMED_TITLE = 'Alpha Negotiation Lab (Edited)';
 const SAVE_ERROR = 'Failed to save';
 
-const SYNTHETIC_EVENTS: SyntheticEvent[] = [
-    {
-        content: 'Synthetic Shanghai session for dashboard error testing.',
-        date: '2030-03-05',
-        id: '2030-03-05',
-        level: 'Advanced',
-        location: 'Shanghai',
-        time: '19:00-21:00',
-        title: 'Alpha Negotiation Lab',
-    },
-    {
-        content: 'Synthetic Suzhou session for dashboard error testing.',
-        date: '2030-04-12',
-        id: '2030-04-12',
-        level: 'Beginner',
-        location: 'Suzhou',
-        time: '10:00-12:00',
-        title: 'Beta Presentation Studio',
-    },
-];
+const SHANGHAI_EVENT = {
+    content: 'Synthetic Shanghai session for dashboard error testing.',
+    date: '2030-03-05',
+    id: '2030_03_05',
+    level: 'Advanced',
+    location: 'Shanghai',
+    time: '19:00-21:00',
+    title: 'Alpha Negotiation Lab',
+};
+
+const SUZHOU_EVENT = {
+    content: 'Synthetic Suzhou session for dashboard error testing.',
+    date: '2030-04-12',
+    id: '2030_04_12',
+    level: 'Beginner',
+    location: 'Suzhou',
+    time: '10:00-12:00',
+    title: 'Beta Presentation Studio',
+};
 
 const VALID_COVER = '/images/events/x.webp';
 
-const [shanghaiEvent, suzhouEvent] = SYNTHETIC_EVENTS;
+const SYNTHETIC_EVENTS: SyntheticEvent[] = [SHANGHAI_EVENT, SUZHOU_EVENT];
 
 function getEventsTable(page: Page) {
     return page.getByRole('table', { name: 'Events' });
@@ -113,6 +112,7 @@ test.describe('load failure', () => {
         await expect(page.getByRole('status')).toHaveText(LOAD_ERROR);
         await expect(page.getByText('0 events')).toBeVisible();
         await expect(page.getByText('No events found')).toBeVisible();
+
         expect(mutations).toEqual([]);
     });
 });
@@ -130,25 +130,29 @@ test.describe('save failures', () => {
         await expect(page.getByRole('status')).toHaveText(SAVE_ERROR);
         await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
         await expect(page.getByLabel('Title')).toHaveValue(RENAMED_TITLE);
-        await expect(page.getByLabel('Date')).toHaveValue(shanghaiEvent.date);
-        await expect(page.getByLabel('Time')).toHaveValue(shanghaiEvent.time);
-        await expect(page.getByLabel('Location')).toHaveValue(shanghaiEvent.location);
-        await expect(page.getByLabel('Content')).toHaveValue(shanghaiEvent.content);
+        await expect(page.getByLabel('Date')).toHaveValue(SHANGHAI_EVENT.date);
+        await expect(page.getByLabel('Time')).toHaveValue(SHANGHAI_EVENT.time);
+        await expect(page.getByLabel('Location')).toHaveValue(SHANGHAI_EVENT.location);
+        await expect(page.getByLabel('Content')).toHaveValue(SHANGHAI_EVENT.content);
+
         expect(mutations).toEqual(['POST /api/events']);
     });
 
     test('a 409 response surfaces the duplicate-date error from the API', async ({ page }) => {
-        const mutations = await mockDashboardApi(page, { onMutation: route => route.fulfill({ json: { error: DUPLICATE_DATE_ERROR }, status: 409 }) });
+        const mutations = await mockDashboardApi(page, {
+            onMutation: route => route.fulfill({ json: { error: DUPLICATE_DATE_ERROR }, status: 409 }),
+        });
 
         await openDashboard(page);
         await openFirstEventEdit(page);
 
-        await page.getByLabel('Date').fill(suzhouEvent.date);
+        await page.getByLabel('Date').fill(SUZHOU_EVENT.date);
         await page.getByRole('button', { name: 'Save changes' }).click();
 
         await expect(page.getByRole('status')).toHaveText(DUPLICATE_DATE_ERROR);
         await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
-        await expect(page.getByLabel('Date')).toHaveValue(suzhouEvent.date);
+        await expect(page.getByLabel('Date')).toHaveValue(SUZHOU_EVENT.date);
+
         expect(mutations).toEqual(['POST /api/events']);
     });
 });
@@ -165,6 +169,7 @@ test.describe('cover validation', () => {
 
         await expect(page.getByText(COVER_ERROR)).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
+
         expect(mutations).toEqual([]);
 
         await page.getByLabel('Cover').fill(VALID_COVER);
@@ -175,6 +180,7 @@ test.describe('cover validation', () => {
         await expect(page.getByRole('status')).toHaveText(SAVE_ERROR);
         await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
         await expect(page.getByLabel('Cover')).toHaveValue(VALID_COVER);
+
         expect(mutations).toEqual(['POST /api/events']);
     });
 });
@@ -193,7 +199,8 @@ test.describe('offline save', () => {
 
         await expect(page.getByRole('status')).toHaveText(OFFLINE_ERROR);
         await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
-        await expect(page.getByLabel('Title')).toHaveValue(shanghaiEvent.title);
+        await expect(page.getByLabel('Title')).toHaveValue(SHANGHAI_EVENT.title);
+
         expect(mutations).toEqual(['POST /api/events']);
 
         await context.setOffline(false);
@@ -220,7 +227,8 @@ test.describe('delete failure', () => {
 
         await expect(dialog).toBeHidden();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(SYNTHETIC_EVENTS.length + 1);
-        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(shanghaiEvent.title);
+        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(SHANGHAI_EVENT.title);
+
         expect(mutations).toEqual(['DELETE /api/events']);
     });
 });
@@ -234,18 +242,19 @@ test.describe('synthetic filters', () => {
         await expect(page.getByText('2 locations', { exact: true })).toBeVisible();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(SYNTHETIC_EVENTS.length + 1);
 
-        await page.getByRole('button', { name: suzhouEvent.location }).click();
+        await page.getByRole('button', { name: SUZHOU_EVENT.location }).click();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(2);
-        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(suzhouEvent.title);
-        await expect(page.getByText(shanghaiEvent.title)).toHaveCount(0);
+        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(SUZHOU_EVENT.title);
+        await expect(page.getByText(SHANGHAI_EVENT.title)).toHaveCount(0);
 
-        await page.getByRole('button', { name: shanghaiEvent.location }).click();
+        await page.getByRole('button', { name: SHANGHAI_EVENT.location }).click();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(2);
-        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(shanghaiEvent.title);
-        await expect(page.getByText(suzhouEvent.title)).toHaveCount(0);
+        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(SHANGHAI_EVENT.title);
+        await expect(page.getByText(SUZHOU_EVENT.title)).toHaveCount(0);
 
         await page.getByRole('button', { name: 'Everywhere' }).click();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(SYNTHETIC_EVENTS.length + 1);
+
         expect(mutations).toEqual([]);
     });
 
@@ -254,13 +263,13 @@ test.describe('synthetic filters', () => {
 
         await openDashboard(page);
 
-        await page.getByRole('button', { name: shanghaiEvent.level }).click();
+        await page.getByRole('button', { name: SHANGHAI_EVENT.level }).click();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(2);
-        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(shanghaiEvent.title);
+        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(SHANGHAI_EVENT.title);
 
-        await page.getByRole('button', { name: suzhouEvent.level }).click();
+        await page.getByRole('button', { name: SUZHOU_EVENT.level }).click();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(2);
-        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(suzhouEvent.title);
+        await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(SUZHOU_EVENT.title);
 
         await page.getByRole('button', { name: 'Intermediate' }).click();
         await expect(page.getByText('No events found')).toBeVisible();
@@ -268,14 +277,15 @@ test.describe('synthetic filters', () => {
 
         await page.getByRole('button', { name: 'Everyone' }).click();
         await expect(getEventsTable(page).getByRole('row')).toHaveCount(SYNTHETIC_EVENTS.length + 1);
+
         expect(mutations).toEqual([]);
     });
 });
 
 test.describe('stale fetch race', () => {
     test('discards a stale refetch that resolves after a newer one', async ({ page }) => {
-        const freshEvent = { ...shanghaiEvent, title: 'Fresh Refetch Title' };
-        const staleEvent = { ...shanghaiEvent, title: 'Stale Refetch Title' };
+        const freshEvent = { ...SHANGHAI_EVENT, title: 'Fresh Refetch Title' };
+        const staleEvent = { ...SHANGHAI_EVENT, title: 'Stale Refetch Title' };
 
         let eventsCalls = 0;
         let releaseStale = () => {};
@@ -303,7 +313,7 @@ test.describe('stale fetch race', () => {
                 return;
             }
 
-            eventsCalls += 1;
+            eventsCalls++;
 
             if (eventsCalls === 1) {
                 await route.fulfill({ json: SYNTHETIC_EVENTS });
@@ -314,6 +324,7 @@ test.describe('stale fetch race', () => {
             if (eventsCalls === 2) {
                 await staleGate;
                 await route.fulfill({ json: [staleEvent] });
+
                 staleServed = true;
 
                 return;
@@ -338,6 +349,7 @@ test.describe('stale fetch race', () => {
         await expect.poll(() => staleServed).toBe(true);
         await expect(getEventsTable(page).getByText('Fresh Refetch Title')).toBeVisible();
         await expect(getEventsTable(page).getByText('Stale Refetch Title')).toHaveCount(0);
+
         expect(eventsCalls).toBe(3);
     });
 });
