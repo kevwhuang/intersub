@@ -20,7 +20,7 @@ export default function TopBar({ isDrawerOpen, onSearchChange, onToggleDrawer, s
             </button>
             <label style={{ flex: 1 }}>
                 <span className="sr-only">Search</span>
-                <input className="dashboard-input" onChange={event => onSearchChange(event.target.value)} placeholder="Search&hellip;" style={{ background: STYLES.colorSurfaceRaised, borderRadius: STYLES.borderRadiusSmall, color: STYLES.colorInk, fontSize: 16, padding: '9px 12px 9px 14px', width: '100%' }} value={searchValue} />
+                <input className="dashboard-input" onChange={event => onSearchChange(event.target.value)} placeholder="Search&hellip;" style={{ background: STYLES.colorSurfaceRaised, borderRadius: STYLES.borderRadiusSmall, color: STYLES.colorInk, fontSize: 16, padding: '10px 12px 10px 14px', width: '100%' }} value={searchValue} />
             </label>
         </header>
     );

@@ -1,12 +1,13 @@
+import { basename, join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 
 import type { Page } from '@playwright/test';
 
 interface EventEntry {
     date: string;
+    id: string;
     title: string;
 }
 
@@ -16,7 +17,7 @@ const ZH_ACCEPT_LANGUAGE = 'zh-CN,zh;q=0.9';
 
 const events = readdirSync(join(CONTENT_DIR, 'events'))
     .filter(file => file.endsWith('.json'))
-    .map(file => JSON.parse(readFileSync(join(CONTENT_DIR, 'events', file), 'utf-8')) as EventEntry)
+    .map(file => ({ ...JSON.parse(readFileSync(join(CONTENT_DIR, 'events', file), 'utf-8')), id: basename(file, '.json') }) as EventEntry)
     .sort((entryA, entryB) => entryB.date.localeCompare(entryA.date));
 
 const htmlTranslations = loadTranslations('html.json');
@@ -135,7 +136,7 @@ test.describe('i18n', () => {
         await expect(page.locator('html')).toHaveAttribute('lang', 'zh');
 
         for (const event of events) {
-            const card = page.locator(`[data-card][href="/events/${event.date}"]`);
+            const card = page.locator(`[data-card][href="/events/${event.id}"]`);
 
             await expect(card.locator('time')).toHaveText(formatDateZh(event.date));
             await expect(card.locator('.events__card-title')).toHaveText(event.title);
@@ -157,6 +158,7 @@ test.describe('i18n', () => {
 
         await expect(page.locator('html')).toHaveAttribute('lang', 'en');
         expect(await heroSubtitle.textContent()).toBe(originalSubtitle);
+
         expect(originalSubtitle).toBe(HERO_SUBTITLE);
     });
 });

@@ -46,6 +46,10 @@ describe('Events', () => {
         expect(html.split(SUBTITLE).length - 1).toBe(2);
     });
 
+    test('labels the catalog section for assistive tech with an i18n hook', () => {
+        expect(html).toMatch(/<section[^>]*aria-label="Event catalog"[^>]*data-events[^>]*data-i18n-aria="Event catalog"/);
+    });
+
     test('renders timing, location, and level filter chips under when, where, and who labels', () => {
         for (const group of FILTER_GROUPS) {
             expect(html).toContain(`<p class="events__filter-label" data-i18n="${group}"`);
@@ -132,7 +136,7 @@ describe('Events', () => {
 
     test('links each card to its event page', () => {
         for (const event of events) {
-            expect(html).toContain(`href="/events/${event.date}"`);
+            expect(html).toContain(`href="/events/${event.id}"`);
         }
     });
 });

@@ -12,7 +12,7 @@ function createContext(method: string, path: string): RouteContext {
 }
 
 describe('api path', () => {
-    test('responds 404 to any method and path', async () => {
+    test('responds 404 to an unknown path', async () => {
         const response = await ALL(createContext('GET', 'unknown'));
 
         expect(response.status).toBe(404);

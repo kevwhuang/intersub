@@ -5,6 +5,12 @@ import Layout from '../../src/Layout.astro';
 import descriptions from '../../src/content/translations/descriptions.json';
 import titles from '../../src/content/translations/titles.json';
 
+interface LayoutProps {
+    description: string;
+    noindex?: boolean;
+    title: string;
+}
+
 const DESCRIPTION = 'InterSub helps corporate teams communicate confidently in English.';
 const HOME_DESCRIPTION = 'Business English training for Chinese professionals. Private coaching, team workshops, and focused events. Founded by Lydia Zhu.';
 const OUTCOMES_TITLE = 'Outcomes \u2014 InterSub';
@@ -20,8 +26,9 @@ class SiteAwareUrl extends URL {
     }
 }
 
-async function renderWithHeaders(headers: Record<string, string>, title = TITLE) {
+async function renderWithHeaders(headers: Record<string, string>, overrides: Partial<LayoutProps> = {}) {
     const container = await AstroContainer.create();
+
     const request = new Request('http://localhost/', { headers });
 
     vi.stubGlobal('URL', SiteAwareUrl);
@@ -29,7 +36,7 @@ async function renderWithHeaders(headers: Record<string, string>, title = TITLE)
     try {
         return await container.renderToString(Layout, {
             partial: false,
-            props: { description: HOME_DESCRIPTION, title },
+            props: { description: HOME_DESCRIPTION, title: TITLE, ...overrides },
             request,
             slots: { default: SLOT },
         });
@@ -62,7 +69,7 @@ describe('Layout', () => {
         expect(html).toContain('<html lang="en">');
         expect(html).toContain('<head>');
         expect(html).toContain('</head>');
-        expect(html).toContain('<body class="flex flex-col min-h-screen antialiased font-sans bg-white text-slate">');
+        expect(html).toContain('<body class="flex flex-col min-h-svh antialiased font-sans bg-white text-slate">');
         expect(html).toContain('</body></html>');
     });
 
@@ -94,6 +101,16 @@ describe('Layout', () => {
         expect(html).toContain('<meta content="Kevin Huang" name="author">');
         expect(html).toContain('<meta content="#ffffff" name="theme-color">');
         expect(html).toContain('property="og:image"');
+    });
+
+    test('marks the page indexable by default', () => {
+        expect(html).toContain('<meta content="index, follow" name="robots">');
+    });
+
+    test('noindexes the page when the noindex prop is set', async () => {
+        const noindexed = await renderWithHeaders({}, { noindex: true });
+
+        expect(noindexed).toContain('<meta content="noindex, nofollow" name="robots">');
     });
 
     test('links the favicon and touch icon', () => {
@@ -136,6 +153,8 @@ describe('Layout', () => {
             expect(negotiated).toContain('<html lang="zh">');
             expect(negotiated).toContain('<meta content="言际阁" property="og:site_name">');
             expect(negotiated).toContain(`<meta content="${descriptions[HOME_DESCRIPTION]}" name="description">`);
+            expect(negotiated).toContain('<meta content="zh_CN" property="og:locale">');
+            expect(negotiated).toContain('<meta content="en_US" property="og:locale:alternate">');
         });
 
         test('keeps english when the lang cookie is en despite a chinese accept-language', async () => {
@@ -144,6 +163,8 @@ describe('Layout', () => {
             expect(negotiated).toContain('<html lang="en">');
             expect(negotiated).toContain('<meta content="InterSub" property="og:site_name">');
             expect(negotiated).toContain(`<meta content="${HOME_DESCRIPTION}" name="description">`);
+            expect(negotiated).toContain('<meta content="en_US" property="og:locale">');
+            expect(negotiated).toContain('<meta content="zh_CN" property="og:locale:alternate">');
         });
 
         test('serves chinese from accept-language when no cookie is set', async () => {
@@ -152,6 +173,8 @@ describe('Layout', () => {
             expect(negotiated).toContain('<html lang="zh">');
             expect(negotiated).toContain('<meta content="言际阁" property="og:site_name">');
             expect(negotiated).toContain(`<meta content="${descriptions[HOME_DESCRIPTION]}" name="description">`);
+            expect(negotiated).toContain('<meta content="zh_CN" property="og:locale">');
+            expect(negotiated).toContain('<meta content="en_US" property="og:locale:alternate">');
         });
 
         test('defaults to english without language signals', async () => {
@@ -160,6 +183,8 @@ describe('Layout', () => {
             expect(negotiated).toContain('<html lang="en">');
             expect(negotiated).toContain('<meta content="InterSub" property="og:site_name">');
             expect(negotiated).toContain(`<meta content="${HOME_DESCRIPTION}" name="description">`);
+            expect(negotiated).toContain('<meta content="en_US" property="og:locale">');
+            expect(negotiated).toContain('<meta content="zh_CN" property="og:locale:alternate">');
         });
     });
 
@@ -173,7 +198,7 @@ describe('Layout', () => {
         });
 
         test('composes the chinese title from the translated prefix when no exact key exists', async () => {
-            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, OUTCOMES_TITLE);
+            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, { title: OUTCOMES_TITLE });
 
             expect(negotiated).toContain('<title>成果案例 \u2014 InterSub</title>');
             expect(negotiated).toContain(`<meta content="${OUTCOMES_TITLE}" name="title-en">`);
@@ -181,7 +206,7 @@ describe('Layout', () => {
         });
 
         test('keeps an untranslatable title in english', async () => {
-            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, UNTRANSLATED_TITLE);
+            const negotiated = await renderWithHeaders({ cookie: 'lang=zh' }, { title: UNTRANSLATED_TITLE });
 
             expect(negotiated).toContain(`<title>${UNTRANSLATED_TITLE}</title>`);
             expect(negotiated).toContain(`<meta content="${UNTRANSLATED_TITLE}" name="title-en">`);

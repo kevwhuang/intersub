@@ -3,9 +3,7 @@
 declare module 'eslint-plugin-jsx-a11y';
 
 type PanelKey = 'events' | 'outcomes' | 'testimonials';
-
 type SortDirection = 'asc' | 'desc';
-
 type Translations = Record<string, string>;
 
 interface AdminEvent {
@@ -40,7 +38,6 @@ interface ButtonProps {
 
 interface EditFormField<Values> {
     errorMessage?: string;
-    isMonospace?: boolean;
     key: keyof Values & string;
     kind: 'date' | 'input' | 'select' | 'textarea';
     label: string;

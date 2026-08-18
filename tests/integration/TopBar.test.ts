@@ -4,7 +4,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import TopBar from '../../src/components/dashboard/TopBar';
 
+import type { ReactElement, ReactNode } from 'react';
+
 type TopBarProps = Parameters<typeof TopBar>[0];
+
+interface SearchInputProps {
+    onChange: (event: { target: { value: string } }) => void;
+}
 
 function renderTopBar(overrides: Partial<TopBarProps> = {}) {
     return renderToStaticMarkup(createElement(TopBar, {
@@ -52,5 +58,25 @@ describe('TopBar', () => {
         const html = renderTopBar();
 
         expect(html).toContain('aria-hidden="true"');
+    });
+
+    test('wires the toggle and search input to their handlers', () => {
+        const onSearchChange = vi.fn();
+        const onToggleDrawer = vi.fn();
+
+        const tree = TopBar({ isDrawerOpen: true, onSearchChange, onToggleDrawer, searchValue: '' });
+
+        const [toggle, label] = tree.props.children as [ReactElement<ButtonProps>, ReactElement<{ children: ReactNode[] }>];
+
+        toggle.props.onClick();
+
+        expect(onToggleDrawer).toHaveBeenCalledTimes(1);
+        expect(onSearchChange).not.toHaveBeenCalled();
+
+        const [, input] = label.props.children as [ReactNode, ReactElement<SearchInputProps>];
+
+        input.props.onChange({ target: { value: 'workshop' } });
+
+        expect(onSearchChange).toHaveBeenCalledWith('workshop');
     });
 });

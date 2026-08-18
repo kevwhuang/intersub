@@ -2,13 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { join } from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 
-import {
-    compareByDateDescending,
-    compareByNumericId,
-    getEvents,
-    getOutcomes,
-    getTestimonials,
-} from '../../src/lib/store';
+import { compareByDateDescending, compareByNumericId, getEvents, getOutcomes, getTestimonials } from '../../src/lib/store';
 
 import type { Mock } from 'vitest';
 
@@ -88,19 +82,20 @@ describe('getEvents', () => {
 
 describe('getOutcomes', () => {
     test('returns every outcome sorted numerically ascending by id', async () => {
-        const outcomes = await getOutcomes();
         const expectedIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
+
+        const outcomes = await getOutcomes();
 
         expect(outcomes.map(outcome => outcome.id)).toEqual(expectedIds);
     });
 });
 
 describe('getTestimonials', () => {
-    test('returns all four testimonials with expected ids', async () => {
-        const testimonials = await getTestimonials();
+    test('returns every testimonial with filename-stem ids', async () => {
         const expectedIds = listIds('testimonials').sort();
 
-        expect(testimonials).toHaveLength(4);
+        const testimonials = await getTestimonials();
+
         expect(testimonials.map(testimonial => testimonial.id).sort()).toEqual(expectedIds);
     });
 });
@@ -156,6 +151,8 @@ describe('loadCollection', () => {
     });
 
     test('falls back to the astro:content seed when getStore throws', async () => {
+        const expectedIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
+
         const getStoreStub = vi.fn(() => {
             throw new Error('blobs unavailable');
         });
@@ -163,7 +160,6 @@ describe('loadCollection', () => {
         const production = await importProductionStore(getStoreStub);
 
         const seeded = await production.getOutcomes();
-        const expectedIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
 
         expect(getStoreStub).toHaveBeenCalledTimes(1);
         expect(seeded.map(outcome => outcome.id)).toEqual(expectedIds);

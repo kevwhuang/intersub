@@ -1,12 +1,21 @@
-import { createElement } from 'react';
+import { createElement, isValidElement } from 'react';
 import { describe, expect, test, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import EditForm from '../../src/components/dashboard/EditForm';
-import eventJune from '../../src/content/events/2026-06-15.json';
+import eventJune from '../../src/content/events/2026_06_15.json';
 import { LEVELS } from '../../src/lib/constants';
 
+import type { ReactElement, ReactNode } from 'react';
+
 type EditFormProps = Parameters<typeof EditForm<EventFormData>>[0];
+
+interface WiredProps {
+    children?: ReactNode;
+    onChange?: (event: { target: { value: string } }) => void;
+    onClick?: () => void;
+    onSubmit?: (event: { preventDefault: () => void }) => void;
+}
 
 const EMPTY_FORM: EventFormData = { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' };
 
@@ -21,12 +30,12 @@ const EVENT_FIELD_ROWS: EditFormField<EventFormData>[][] = [
         { key: 'level', kind: 'select', label: 'Who', options: LEVELS },
     ],
     [{ errorMessage: 'Cover must be a URL or internal image path.', key: 'cover', kind: 'input', label: 'Cover' }],
-    [{ errorMessage: 'Content is required.', isMonospace: true, key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
+    [{ errorMessage: 'Content is required.', key: 'content', kind: 'textarea', label: 'Content', labelSuffix: '\u00B7 Markdown', minHeight: 200, required: true, rows: 9 }],
 ];
 
-function renderForm(overrides: Partial<EditFormProps> = {}) {
-    return renderToStaticMarkup(createElement(EditForm, {
-        editingId: '2026-06-15',
+function buildProps(overrides: Partial<EditFormProps> = {}): EditFormProps {
+    return {
+        editingId: '2026_06_15',
         entity: 'event',
         fieldRows: EVENT_FIELD_ROWS,
         form: eventJune,
@@ -38,7 +47,23 @@ function renderForm(overrides: Partial<EditFormProps> = {}) {
         onSave: vi.fn(),
         onUpdate: vi.fn(),
         ...overrides,
-    }));
+    };
+}
+
+function collectElements(node: ReactNode, type: string): ReactElement<WiredProps>[] {
+    if (Array.isArray(node)) return node.flatMap(child => collectElements(child as ReactNode, type));
+
+    if (!isValidElement(node)) return [];
+
+    const element = node as ReactElement<WiredProps>;
+
+    const nested = collectElements(element.props.children, type);
+
+    return element.type === type ? [element, ...nested] : nested;
+}
+
+function renderForm(overrides: Partial<EditFormProps> = {}) {
+    return renderToStaticMarkup(createElement(EditForm<EventFormData>, buildProps(overrides)));
 }
 
 describe('EditForm', () => {
@@ -60,7 +85,7 @@ describe('EditForm', () => {
         expect(html).toContain('value="2026-06-15"');
         expect(html).toContain('value="19:00\u201321:00"');
         expect(html).toContain('value="Shanghai"');
-        expect(html).toContain('value="/images/events/2026-06-15.webp"');
+        expect(html).toContain('value="/images/events/2026_06_15.webp"');
         expect(html).toContain('Modern beauty culture is increasingly shaped by social media');
     });
 
@@ -71,7 +96,9 @@ describe('EditForm', () => {
         expect(html).toMatch(/<option (?=[^>]*selected="")[^>]*value="Advanced"[^>]*>Advanced<\/option>/);
         expect(html.split('selected=""').length - 1).toBe(1);
 
-        for (const level of LEVELS) expect(html).toMatch(new RegExp(`<option [^>]*value="${level}"[^>]*>${level}</option>`));
+        for (const level of LEVELS) {
+            expect(html).toMatch(new RegExp(`<option [^>]*value="${level}"[^>]*>${level}</option>`));
+        }
     });
 
     test('annotates labels with required markers and suffixes', () => {
@@ -81,7 +108,13 @@ describe('EditForm', () => {
         expect(html).toContain('>Who<');
         expect(html).toContain('\u00B7 Markdown');
         expect(html.split('> *</span>').length - 1).toBe(5);
+    });
+
+    test('sizes the content textarea from its field config', () => {
+        const html = renderForm();
+
         expect(html).toContain('rows="9"');
+        expect(html).toContain('min-height:200px');
     });
 
     test('renders the create mode with empty fields and no delete action', () => {
@@ -127,5 +160,37 @@ describe('EditForm', () => {
         expect(html).toContain('dashboard__spin');
         expect(html.split('disabled=""').length - 1).toBe(3);
         expect(html).not.toContain('>Save changes</button>');
+    });
+
+    test('wires the form and actions to their handlers', () => {
+        const preventDefault = vi.fn();
+        const props = buildProps();
+
+        const tree = EditForm(props);
+
+        const [form] = collectElements(tree, 'form');
+
+        form.props.onSubmit?.({ preventDefault });
+
+        expect(preventDefault).toHaveBeenCalledTimes(1);
+        expect(props.onSave).toHaveBeenCalledTimes(1);
+
+        const [titleInput] = collectElements(tree, 'input');
+
+        titleInput.props.onChange?.({ target: { value: 'x' } });
+
+        expect(props.onUpdate).toHaveBeenCalledTimes(1);
+        expect(props.onUpdate).toHaveBeenCalledWith({ title: 'x' });
+
+        const [, cancelButton, deleteButton] = collectElements(tree, 'button');
+
+        cancelButton.props.onClick?.();
+
+        expect(props.onCancel).toHaveBeenCalledTimes(1);
+        expect(props.onDelete).not.toHaveBeenCalled();
+
+        deleteButton.props.onClick?.();
+
+        expect(props.onDelete).toHaveBeenCalledTimes(1);
     });
 });

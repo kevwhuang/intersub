@@ -13,11 +13,11 @@
     --color-cream: #fbf0df;
     --color-cream-cover: #f6f0e6;
     --color-crimson: #a4324a;
-    --color-crimson-30: #a4324a4c;
+    --color-crimson-30: #a4324a4d;
     --color-midnight-20: #090b1133;
-    --color-midnight-30: #090b114c;
+    --color-midnight-30: #090b114d;
     --color-midnight-40: #090b1166;
-    --color-midnight-70: #090b11b2;
+    --color-midnight-70: #090b11b3;
     --color-mint: #e7f4ef;
     --color-mint-cover: #eef4f1;
     --color-navy: #0b0d13;
@@ -72,6 +72,7 @@
     --header-height: 68px;
     --section-padding: clamp(64px, calc(45.33px + 5.83vw), 120px);
     --shell-pad: clamp(20px, calc(5.33px + 4.58vw), 64px);
+    --width-shell: 1280px;
 }
 
 a,
@@ -92,6 +93,7 @@ h4 {
 html {
     scroll-behavior: smooth;
     scroll-padding-top: var(--header-height);
+    touch-action: manipulation;
 }
 
 html[data-astro-transition] {
@@ -129,10 +131,10 @@ html[data-astro-transition] {
     *::after,
     *::before {
         animation-delay: 0s !important;
-        animation-duration: 0.01s !important;
+        animation-duration: 0.00001s !important;
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
         transition-delay: 0s !important;
-        transition-duration: 0.01s !important;
+        transition-duration: 0.00001s !important;
     }
 }

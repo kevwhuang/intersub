@@ -1,12 +1,13 @@
+import { basename, join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
 import { readFileSync, readdirSync } from 'node:fs';
 
 import type { Page } from '@playwright/test';
 
 interface EventEntry {
     date: string;
+    id: string;
     level?: string;
     location: string;
     time: string;
@@ -17,7 +18,7 @@ const EVENTS_DIR = fileURLToPath(new URL('../../src/content/events', import.meta
 
 const events = readdirSync(EVENTS_DIR)
     .filter(file => file.endsWith('.json'))
-    .map(file => JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')) as EventEntry)
+    .map(file => ({ ...JSON.parse(readFileSync(join(EVENTS_DIR, file), 'utf-8')), id: basename(file, '.json') }) as EventEntry)
     .sort((entryA, entryB) => entryB.date.localeCompare(entryA.date));
 
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
@@ -31,7 +32,7 @@ async function expectVisibleCards(page: Page, expected: EventEntry[]) {
     await expect(page.locator('[data-count]')).toHaveText(`${expected.length} ${expected.length === 1 ? 'event' : 'events'}`);
 
     for (const event of expected) {
-        await expect(page.locator(`[data-card][href="/events/${event.date}"]`)).toBeVisible();
+        await expect(page.locator(`[data-card][href="/events/${event.id}"]`)).toBeVisible();
     }
 }
 
@@ -59,7 +60,7 @@ test.describe('events catalog', () => {
             .locator('[data-card]')
             .evaluateAll(cards => cards.map(card => card.getAttribute('href')));
 
-        expect(hrefs).toEqual(events.map(event => `/events/${event.date}`));
+        expect(hrefs).toEqual(events.map(event => `/events/${event.id}`));
     });
 
     test('narrows the list with each level chip', async ({ page }) => {
@@ -131,9 +132,9 @@ test.describe('events catalog', () => {
     test('opens the event detail page from a card', async ({ page }) => {
         const [newest] = events;
 
-        await page.locator(`[data-card][href="/events/${newest.date}"]`).click();
+        await page.locator(`[data-card][href="/events/${newest.id}"]`).click();
 
-        await expect(page).toHaveURL(`/events/${newest.date}`);
-        await expect(page.locator('.event-detail__title')).toHaveText(newest.title);
+        await expect(page).toHaveURL(`/events/${newest.id}`);
+        await expect(page.locator('.event__title')).toHaveText(newest.title);
     });
 });

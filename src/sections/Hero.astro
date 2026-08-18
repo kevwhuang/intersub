@@ -9,7 +9,7 @@ import hero from '@images/hero.webp';
     aria-labelledby="hero-title"
 >
     <div
-        class="hero__background absolute"
+        class="hero__background absolute -z-2"
         aria-hidden="true"
     >
         <Image
@@ -21,7 +21,7 @@ import hero from '@images/hero.webp';
             widths={[768, 1_280, 1_920, 2_400]}
         />
     </div>
-    <div class="hero__overlay absolute" aria-hidden="true" />
+    <div class="hero__overlay absolute -z-1" aria-hidden="true" />
     <div class="hero__content shell relative">
         <h1
             id="hero-title"
@@ -45,7 +45,6 @@ import hero from '@images/hero.webp';
 
     .hero__background {
         inset: 0;
-        z-index: -2;
     }
 
     .hero__background-image {
@@ -65,7 +64,6 @@ import hero from '@images/hero.webp';
             linear-gradient(to right, var(--color-midnight-70) 0%, var(--color-midnight-40) 70%, var(--color-midnight-30) 100%),
             var(--color-midnight-20);
         inset: 0;
-        z-index: -1;
     }
 
     .hero__subtitle {

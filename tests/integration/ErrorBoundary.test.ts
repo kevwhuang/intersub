@@ -1,27 +1,8 @@
-import { createElement, isValidElement } from 'react';
+import { createElement } from 'react';
 import { describe, expect, test } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import ErrorBoundary from '../../src/components/ErrorBoundary';
-
-import type { ReactElement, ReactNode } from 'react';
-
-interface TreeProps {
-    children?: ReactNode;
-    href?: string;
-}
-
-function collectByType(node: ReactNode, type: string): ReactElement<TreeProps>[] {
-    if (Array.isArray(node)) return node.flatMap(child => collectByType(child as ReactNode, type));
-
-    if (!isValidElement(node)) return [];
-
-    const element = node as ReactElement<TreeProps>;
-
-    const nested = collectByType(element.props.children, type);
-
-    return element.type === type ? [element, ...nested] : nested;
-}
 
 class FailingBoundary extends ErrorBoundary {
     state = { hasError: true };
@@ -63,17 +44,5 @@ describe('ErrorBoundary', () => {
         expect(html).not.toContain('<button');
         expect(html).toContain('<a class="button" href="/">Go home</a>');
         expect(html.match(/<a /g)).toHaveLength(1);
-    });
-
-    test('points the home link at the root', () => {
-        const boundary = new ErrorBoundary({ children: null });
-
-        Object.assign(boundary.state, { hasError: true });
-
-        const fallback = boundary.render();
-
-        const [homeLink] = collectByType(fallback, 'a');
-
-        expect(homeLink.props.href).toBe('/');
     });
 });

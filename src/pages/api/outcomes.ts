@@ -61,7 +61,12 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
 
-    const points = Array.isArray(body.points) ? body.points.map(point => String(point).trim()).filter(Boolean) : [];
+    const points = Array.isArray(body.points)
+        ? body.points
+                .map(point => String(point).trim())
+                .filter(Boolean)
+        : [];
+
     const summary = String(body.summary || '').trim();
     const title = String(body.title || '').trim();
 

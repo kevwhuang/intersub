@@ -49,11 +49,11 @@ describe('Method', () => {
         expect(html).toContain('data-i18n-aria="Our method"');
     });
 
-    test('renders the decorative method curve svg', () => {
-        expect(html).toMatch(/<svg[^>]*class="method__curve"[^>]*aria-hidden="true"/);
+    test('renders the decorative curve svg', () => {
+        expect(html).toMatch(/<svg[^>]*class="curve"[^>]*aria-hidden="true"/);
         expect(html).toContain('viewBox="0 0 300 1000"');
-        expect(html.split('method__curve-path').length - 1).toBe(1);
-        expect(html.split('method__curve-dot').length - 1).toBe(4);
+        expect(html.split('curve__path').length - 1).toBe(1);
+        expect(html.split('curve__dot').length - 1).toBe(4);
     });
 
     test('renders one block per method step', () => {
@@ -70,17 +70,23 @@ describe('Method', () => {
     });
 
     test('renders block statements as headings in order with i18n hooks', () => {
-        for (const block of METHOD_BLOCKS) expect(html).toMatch(new RegExp(`<h2[^>]*data-i18n="${block.statement}"`));
+        for (const block of METHOD_BLOCKS) {
+            expect(html).toMatch(new RegExp(`<h2[^>]*data-i18n="${block.statement}"`));
+        }
 
         expectAscending(METHOD_BLOCKS.map(block => html.indexOf(`data-i18n="${block.statement}"`)));
     });
 
     test('renders block details with i18n hooks', () => {
-        for (const block of METHOD_BLOCKS) expect(html).toContain(`data-i18n="${block.detail}"`);
+        for (const block of METHOD_BLOCKS) {
+            expect(html).toContain(`data-i18n="${block.detail}"`);
+        }
     });
 
     test('indents every other block', () => {
-        expect(html.split('method__block--indent').length - 1).toBe(2);
+        const indented = [...html.matchAll(/<div class="(method__block[^"]*)"/g)].map(match => match[1].includes('method__block--indent'));
+
+        expect(indented).toEqual([false, true, false, true]);
     });
 
     test('marks every block for scroll animation', () => {

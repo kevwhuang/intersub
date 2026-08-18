@@ -1,11 +1,16 @@
 import { expect, test } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+});
+
 test.describe('404 page', () => {
     test('returns 404 and renders the error section for an unknown path', async ({ page }) => {
         const response = await page.goto('/this-page-does-not-exist');
 
         expect(response?.status()).toBe(404);
 
+        await expect(page).toHaveTitle('Page Not Found \u2014 InterSub');
         await expect(page.locator('.error-not-found__code')).toHaveText('404');
         await expect(page.locator('#error-not-found-title')).toHaveText('This page doesn\'t exist');
         await expect(page.getByRole('link', { name: 'Go home' })).toBeVisible();
@@ -17,6 +22,12 @@ test.describe('404 page', () => {
         expect(response?.status()).toBe(404);
 
         await expect(page.locator('.error-not-found__code')).toHaveText('404');
+    });
+
+    test('marks the page noindex for robots', async ({ page }) => {
+        await page.goto('/this-page-does-not-exist');
+
+        await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
     });
 
     test('navigates home from the home link', async ({ page }) => {

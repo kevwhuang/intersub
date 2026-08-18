@@ -18,21 +18,21 @@ interface BlobStoreStub {
 }
 
 const OUTCOME_ID = '1';
+
+const SENTINEL_OUTCOME = {
+    points: ['Sentinel point one', 'Sentinel point two'],
+    summary: 'Sentinel lifecycle summary for automated tests.',
+    title: 'Sentinel Lifecycle Outcome',
+} as const;
+
 const UPDATED_SUMMARY = 'Updated sentinel lifecycle summary.';
 
 const createdIds: string[] = [];
-
 const outcomesDir = join(process.cwd(), 'src/content/outcomes');
 
 const outcomePath = join(outcomesDir, `${OUTCOME_ID}.json`);
 
 const existingOutcome: Record<string, unknown> = JSON.parse(readFileSync(outcomePath, 'utf-8'));
-
-const sentinelOutcome = {
-    points: ['Sentinel point one', 'Sentinel point two'],
-    summary: 'Sentinel lifecycle summary for automated tests.',
-    title: 'Sentinel Lifecycle Outcome',
-};
 
 let committedNames: string[] = [];
 let committedSnapshot: Record<string, string> = {};
@@ -66,7 +66,7 @@ async function createSentinel(): Promise<string> {
 
     createdIds.push(id);
 
-    const response = await postJson(sentinelOutcome);
+    const response = await postJson(SENTINEL_OUTCOME);
 
     const result: Record<string, unknown> = await response.json();
 
@@ -89,10 +89,10 @@ function getNextOutcomeId(): string {
     return String(ids.reduce((max, value) => Math.max(max, value), 0) + 1);
 }
 
-async function importProductionRoutes(getStoreStub: () => BlobStoreStub): Promise<RoutesModule> {
+async function importProductionRoutes(getStoreStub: () => BlobStoreStub, isAuthorized = true): Promise<RoutesModule> {
     vi.resetModules();
     vi.doMock('@netlify/blobs', () => ({ getStore: getStoreStub }));
-    vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => true) }));
+    vi.doMock('../../src/lib/authServer', () => ({ verifyAuth: vi.fn(async () => isAuthorized) }));
 
     vi.doMock('../../src/lib/constants', async (importOriginal) => {
         const original = await importOriginal<typeof import('../../src/lib/constants')>();
@@ -116,7 +116,9 @@ async function postJson(body: Record<string, unknown>): Promise<Response> {
 }
 
 function removeCreated() {
-    for (const id of createdIds) rmSync(join(outcomesDir, `${id}.json`), { force: true });
+    for (const id of createdIds) {
+        rmSync(join(outcomesDir, `${id}.json`), { force: true });
+    }
 }
 
 function snapshotCommitted(): Record<string, string> {
@@ -149,6 +151,24 @@ afterAll(() => {
 });
 
 describe('DELETE', () => {
+    test('rejects a malformed body', async () => {
+        const response = await DELETE(createContext('DELETE', '{'));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(result.error).toBe('Invalid request body');
+    });
+
+    test('rejects a missing id', async () => {
+        const response = await DELETE(createContext('DELETE', JSON.stringify({})));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(result.error).toBe('Missing id');
+    });
+
     test('rejects an unknown id', async () => {
         const response = await DELETE(createContext('DELETE', JSON.stringify({ id: '999' })));
 
@@ -188,6 +208,15 @@ describe('POST', () => {
         expect(response.status).toBe(200);
         expect(result.id).toBe(OUTCOME_ID);
         expect(after).toBe(before);
+    });
+
+    test('rejects a malformed body', async () => {
+        const response = await POST(createContext('POST', '{'));
+
+        const result: Record<string, unknown> = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(result.error).toBe('Invalid request body');
     });
 
     test('rejects an empty points array', async () => {
@@ -243,7 +272,7 @@ describe('lifecycle', () => {
 
             const bytes = readFileSync(join(outcomesDir, `${id}.json`), 'utf-8');
 
-            expect(bytes).toBe(JSON.stringify(sentinelOutcome, null, 4));
+            expect(bytes).toBe(JSON.stringify(SENTINEL_OUTCOME, null, 4));
         } finally {
             removeCreated();
         }
@@ -253,7 +282,7 @@ describe('lifecycle', () => {
         try {
             const id = await createSentinel();
 
-            const response = await postJson({ ...sentinelOutcome, id, summary: UPDATED_SUMMARY });
+            const response = await postJson({ ...SENTINEL_OUTCOME, id, summary: UPDATED_SUMMARY });
 
             const result: Record<string, unknown> = await response.json();
 
@@ -319,8 +348,8 @@ describe('production blobs', () => {
 
         const response = await routes.POST(createContext('POST', JSON.stringify({
             points: ['  Sentinel point one  ', '', 'Sentinel point two'],
-            summary: `  ${sentinelOutcome.summary}  `,
-            title: `  ${sentinelOutcome.title}  `,
+            summary: `  ${SENTINEL_OUTCOME.summary}  `,
+            title: `  ${SENTINEL_OUTCOME.title}  `,
         })));
 
         const result: Record<string, unknown> = await response.json();
@@ -328,12 +357,33 @@ describe('production blobs', () => {
         expect(response.status).toBe(200);
         expect(result.id).toBe('999');
         expect(getStoreStub).toHaveBeenCalledWith({ consistency: 'strong', name: 'outcomes' });
-        expect(store.setJSON).toHaveBeenCalledExactlyOnceWith('999', sentinelOutcome);
+        expect(store.setJSON).toHaveBeenCalledExactlyOnceWith('999', SENTINEL_OUTCOME);
         expect(existsSync(join(outcomesDir, '999.json'))).toBe(false);
     });
 
+    test('rejects an unauthenticated write with 401', async () => {
+        const store = buildBlobStore({});
+
+        const routes = await importProductionRoutes(() => store, false);
+
+        const postResponse = await routes.POST(createContext('POST', JSON.stringify(SENTINEL_OUTCOME)));
+
+        const postResult: Record<string, unknown> = await postResponse.json();
+
+        const deleteResponse = await routes.DELETE(createContext('DELETE', JSON.stringify({ id: OUTCOME_ID })));
+
+        const deleteResult: Record<string, unknown> = await deleteResponse.json();
+
+        expect(postResponse.status).toBe(401);
+        expect(postResult.error).toBe('Unauthorized');
+        expect(deleteResponse.status).toBe(401);
+        expect(deleteResult.error).toBe('Unauthorized');
+        expect(store.setJSON).not.toHaveBeenCalled();
+        expect(store.delete).not.toHaveBeenCalled();
+    });
+
     test('deletes an outcome from the blob store by its string id', async () => {
-        const store = buildBlobStore({ 999: { ...sentinelOutcome } });
+        const store = buildBlobStore({ 999: { ...SENTINEL_OUTCOME } });
 
         const getStoreStub = vi.fn(() => store);
 
@@ -351,9 +401,9 @@ describe('production blobs', () => {
 
     test('lists blob-backed outcomes numerically ascending through the loader', async () => {
         const store = buildBlobStore({
-            '02': { ...sentinelOutcome },
-            '3': { ...sentinelOutcome },
-            '10': { ...sentinelOutcome },
+            '02': { ...SENTINEL_OUTCOME },
+            '3': { ...SENTINEL_OUTCOME },
+            '10': { ...SENTINEL_OUTCOME },
         });
 
         const routes = await importProductionRoutes(() => store);

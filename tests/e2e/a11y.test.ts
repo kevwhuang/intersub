@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { join } from 'node:path';
+import { readdirSync } from 'node:fs';
 
 const FOCUS_TARGETS = [
     { name: 'home nav link', selector: '.site-nav__link[href="/"]' },
@@ -7,16 +9,22 @@ const FOCUS_TARGETS = [
 ] as const;
 
 const MAX_TAB_PRESSES = 12;
-const PUBLIC_PATHS = ['/', '/events', '/events/2026-06-15', '/nonexistent-404'] as const;
 const SCRIPT_TIMEOUT = 20_000;
 const TITLE_PATTERN = /^.+ \u2014 InterSub$/;
+
+const eventSlugs = readdirSync(join(process.cwd(), 'src/content/events'))
+    .filter(file => file.endsWith('.json'))
+    .map(file => file.replace(/\.json$/, ''))
+    .sort();
+
+const publicPaths = ['/', '/500', '/events', `/events/${eventSlugs[eventSlugs.length - 1]}`, '/nonexistent-404'] as const;
 
 test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
 test.describe('document structure', () => {
-    for (const path of PUBLIC_PATHS) {
+    for (const path of publicPaths) {
         test(`${path} exposes sound landmarks, headings, and labels`, async ({ page }) => {
             await page.goto(path);
 
@@ -58,7 +66,7 @@ test.describe('keyboard navigation', () => {
             baseline[target.selector] = await page.locator(target.selector).evaluate(element => getComputedStyle(element).boxShadow);
         }
 
-        for (let press = 0; press < MAX_TAB_PRESSES && remaining.size > 0; press += 1) {
+        for (let press = 0; press < MAX_TAB_PRESSES && remaining.size > 0; press++) {
             await page.keyboard.press('Tab');
 
             for (const selector of [...remaining.keys()]) {
@@ -92,10 +100,10 @@ test.describe('language', () => {
 });
 
 test.describe('page titles', () => {
-    test('titles are unique and follow the InterSub suffix pattern', async ({ page }) => {
+    test('titles are unique, bare on home, and suffixed with an em dash elsewhere', async ({ page }) => {
         const titles: string[] = [];
 
-        for (const path of PUBLIC_PATHS) {
+        for (const path of publicPaths) {
             await page.goto(path);
             titles.push(await page.title());
         }
@@ -103,6 +111,8 @@ test.describe('page titles', () => {
         expect(new Set(titles).size).toBe(titles.length);
         expect(titles[0]).toBe('InterSub');
 
-        for (const title of titles.slice(1)) expect(title).toMatch(TITLE_PATTERN);
+        for (const title of titles.slice(1)) {
+            expect(title).toMatch(TITLE_PATTERN);
+        }
     });
 });

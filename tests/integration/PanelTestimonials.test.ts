@@ -3,14 +3,14 @@ import { describe, expect, test, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import PanelTestimonials from '../../src/components/dashboard/PanelTestimonials';
-import testimonialHerry from '../../src/content/testimonials/herry-j-consultant.json';
-import testimonialJason from '../../src/content/testimonials/jason-z-founder.json';
+import testimonialHerry from '../../src/content/testimonials/herry_j_consultant.json';
+import testimonialJason from '../../src/content/testimonials/jason_z_founder.json';
 
 type PanelProps = Parameters<typeof PanelTestimonials>[0];
 
 const TESTIMONIALS: AdminTestimonial[] = [
-    { ...testimonialHerry, id: 'herry-j-consultant' },
-    { ...testimonialJason, id: 'jason-z-founder' },
+    { ...testimonialHerry, id: 'herry_j_consultant' },
+    { ...testimonialJason, id: 'jason_z_founder' },
 ];
 
 function renderPanel(overrides: Partial<PanelProps> = {}) {
@@ -101,8 +101,13 @@ describe('PanelTestimonials', () => {
 
     test('renders the edit form populated with the testimonial values', () => {
         const html = renderPanel({
-            editingTestimonialId: 'herry-j-consultant',
-            testimonialForm: { industry: testimonialHerry.industry, name: testimonialHerry.name, quote: testimonialHerry.quote, role: testimonialHerry.role },
+            editingTestimonialId: 'herry_j_consultant',
+            testimonialForm: {
+                industry: testimonialHerry.industry,
+                name: testimonialHerry.name,
+                quote: testimonialHerry.quote,
+                role: testimonialHerry.role,
+            },
         });
 
         expect(html).toContain('>Edit testimonial</h1>');

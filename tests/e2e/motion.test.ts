@@ -114,7 +114,7 @@ test.describe('scroll motion', () => {
         expect(await getOpacity(footer)).toBe('1');
     });
 
-    test('scopes scroll animations to the events page', async ({ page }) => {
+    test('reveals the events hero on load and the cards once the grid is scrolled into view', async ({ page }) => {
         await page.goto('/events');
 
         const cards = page.locator('.events__card');

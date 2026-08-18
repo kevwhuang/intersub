@@ -7,9 +7,9 @@ import FormField from '../../src/components/dashboard/FormField';
 type FormFieldProps = Parameters<typeof FormField>[0];
 
 function renderField(overrides: Partial<FormFieldProps> = {}) {
-    const props = { label: 'Title', ...overrides };
+    const props = { children: createElement('input', { name: 'title' }), label: 'Title', ...overrides };
 
-    return renderToStaticMarkup(createElement(FormField, props, createElement('input', { name: 'title' })));
+    return renderToStaticMarkup(createElement(FormField, props));
 }
 
 describe('FormField', () => {

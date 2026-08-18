@@ -97,7 +97,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!TIME_PATTERN.test(time)) return Response.json({ error: 'Time must be a 24-hour range' }, { status: 400 });
     if (!title) return Response.json({ error: 'Title is required' }, { status: 400 });
 
-    const id = date;
+    const id = date.replaceAll('-', '_');
     const previousId = body.id ? String(body.id) : null;
 
     const events = await loadEvents();

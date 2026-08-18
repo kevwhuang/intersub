@@ -96,7 +96,9 @@ describe('getInitials', () => {
 
 describe('getLevelMeta', () => {
     test('returns the palette for each known level', () => {
-        for (const [level, meta] of Object.entries(LEVEL_EXPECTATIONS)) expect(getLevelMeta(level)).toEqual(meta);
+        for (const [level, meta] of Object.entries(LEVEL_EXPECTATIONS)) {
+            expect(getLevelMeta(level)).toEqual(meta);
+        }
     });
 
     test('returns the neutral fallback for an unknown level', () => {

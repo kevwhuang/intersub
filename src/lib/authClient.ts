@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { AUTH_TOKEN_PATTERN, ERROR_GENERIC, IS_DEV, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
+import { AUTH_TOKEN_PATTERN, ERROR_GENERIC, IS_DEV, JSON_HEADERS, PASSWORD_MAX, PASSWORD_MIN } from '@lib/constants';
 
 interface AuthUser {
     email?: string;
@@ -30,7 +30,11 @@ const IS_LOCAL = IS_DEV
 let refreshPromise: Promise<StoredSession | null> | null = null;
 
 function clearSession() {
-    localStorage.removeItem(AUTH_KEY);
+    try {
+        localStorage.removeItem(AUTH_KEY);
+    } catch {
+        return;
+    }
 }
 
 async function createSession(data: TokenResponse): Promise<AuthUser | null> {
@@ -156,13 +160,17 @@ function storeSession(data: TokenResponse, email: string) {
         refreshToken: data.refresh_token,
     };
 
-    localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+    try {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(session));
+    } catch {
+        return;
+    }
 }
 
 async function verifyToken(body: Record<string, string>): Promise<AuthUser | null> {
     const response = await fetchIdentity('/verify', {
         body: JSON.stringify(body),
-        headers: { 'Content-Type': 'application/json' },
+        headers: JSON_HEADERS,
         method: 'POST',
     });
 
@@ -292,10 +300,7 @@ export function useAuth() {
 
             const response = await fetchIdentity('/user', {
                 body: JSON.stringify({ password }),
-                headers: {
-                    'Authorization': `Bearer ${session.token}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: { ...JSON_HEADERS, Authorization: `Bearer ${session.token}` },
                 method: 'PUT',
             });
 
@@ -325,7 +330,7 @@ export function useAuth() {
                 if (authHash.kind === 'invite') {
                     const probe = await fetchIdentity('/verify', {
                         body: JSON.stringify({ token: authHash.token, type: 'signup' }),
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: JSON_HEADERS,
                         method: 'POST',
                     });
 
@@ -375,5 +380,17 @@ export function useAuth() {
         initAuth();
     }, []);
 
-    return { error, getToken, handleCancelSetPassword, handleLogin, handleLogout, handleSessionExpired, handleSetPassword, isLoading, isPending, isRecovery, user };
+    return {
+        error,
+        getToken,
+        handleCancelSetPassword,
+        handleLogin,
+        handleLogout,
+        handleSessionExpired,
+        handleSetPassword,
+        isLoading,
+        isPending,
+        isRecovery,
+        user,
+    };
 }

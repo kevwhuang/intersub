@@ -1,14 +1,21 @@
 import { describe, expect, test } from 'vitest';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
     AUTH_TOKEN_PATTERN,
+    COBALT,
     COLLECTIONS,
+    CONTENT_DIR,
     COVER_PATH_PATTERN,
     EMAIL_MAX,
     EMAIL_PATTERN,
     ERROR_GENERIC,
     ERROR_RATE_LIMITED,
     FOCUSABLE_SELECTOR,
+    FONT_HEADING,
+    FONT_MONO,
+    LANG_KEY,
     LEVELS,
     MESSAGE_MAX,
     NAME_MAX,
@@ -18,6 +25,7 @@ import {
     STYLES,
     TIME_PATTERN,
     TIMINGS,
+    TOPBAR_HEIGHT,
     TOUCH_TARGET,
     URL_PATTERN,
     WECHAT_MAX,
@@ -25,6 +33,7 @@ import {
 } from '../../src/lib/constants';
 
 const ACTIONS_COLUMN = '138px';
+const CSS_TOKEN_PATTERN = /^var\(--[\w-]+\)$/;
 
 const INVALID_COVER_PATHS = [
     '/images/team/cover.webp',
@@ -133,29 +142,49 @@ describe('COLLECTIONS', () => {
     });
 });
 
+describe('CONTENT_DIR', () => {
+    test('points at a directory that exists on disk', () => {
+        expect(existsSync(join(process.cwd(), CONTENT_DIR))).toBe(true);
+    });
+});
+
 describe('COVER_PATH_PATTERN', () => {
     test('accepts event covers with allowed extensions', () => {
-        for (const path of VALID_COVER_PATHS) expect(path).toMatch(COVER_PATH_PATTERN);
+        for (const path of VALID_COVER_PATHS) {
+            expect(path).toMatch(COVER_PATH_PATTERN);
+        }
     });
 
     test('rejects other directories, traversal, and other extensions', () => {
-        for (const path of INVALID_COVER_PATHS) expect(path).not.toMatch(COVER_PATH_PATTERN);
+        for (const path of INVALID_COVER_PATHS) {
+            expect(path).not.toMatch(COVER_PATH_PATTERN);
+        }
     });
 });
 
 describe('EMAIL_PATTERN', () => {
     test('accepts well-formed addresses', () => {
-        for (const email of VALID_EMAILS) expect(email).toMatch(EMAIL_PATTERN);
+        for (const email of VALID_EMAILS) {
+            expect(email).toMatch(EMAIL_PATTERN);
+        }
     });
 
     test('rejects malformed addresses', () => {
-        for (const email of INVALID_EMAILS) expect(email).not.toMatch(EMAIL_PATTERN);
+        for (const email of INVALID_EMAILS) {
+            expect(email).not.toMatch(EMAIL_PATTERN);
+        }
     });
 });
 
 describe('FOCUSABLE_SELECTOR', () => {
     test('targets anchors and buttons', () => {
         expect(FOCUSABLE_SELECTOR).toBe('a, button');
+    });
+});
+
+describe('LANG_KEY', () => {
+    test('is the shared language storage key', () => {
+        expect(LANG_KEY).toBe('lang');
     });
 });
 
@@ -204,11 +233,15 @@ describe('STYLES', () => {
 
 describe('TIME_PATTERN', () => {
     test('accepts 24-hour ranges with hyphen, en dash, or em dash', () => {
-        for (const time of VALID_TIMES) expect(time).toMatch(TIME_PATTERN);
+        for (const time of VALID_TIMES) {
+            expect(time).toMatch(TIME_PATTERN);
+        }
     });
 
     test('rejects out-of-range hours, minutes, and 12-hour formats', () => {
-        for (const time of INVALID_TIMES) expect(time).not.toMatch(TIME_PATTERN);
+        for (const time of INVALID_TIMES) {
+            expect(time).not.toMatch(TIME_PATTERN);
+        }
     });
 });
 
@@ -222,6 +255,13 @@ describe('TIMINGS', () => {
     });
 });
 
+describe('TOPBAR_HEIGHT', () => {
+    test('is 60px, clearing the touch target minimum', () => {
+        expect(TOPBAR_HEIGHT).toBe(60);
+        expect(TOPBAR_HEIGHT).toBeGreaterThan(TOUCH_TARGET);
+    });
+});
+
 describe('TOUCH_TARGET', () => {
     test('is 48px, above the 44px accessibility minimum', () => {
         expect(TOUCH_TARGET).toBe(48);
@@ -230,11 +270,15 @@ describe('TOUCH_TARGET', () => {
 
 describe('URL_PATTERN', () => {
     test('accepts http and https urls', () => {
-        for (const url of VALID_URLS) expect(url).toMatch(URL_PATTERN);
+        for (const url of VALID_URLS) {
+            expect(url).toMatch(URL_PATTERN);
+        }
     });
 
     test('rejects other schemes and bare hosts', () => {
-        for (const url of INVALID_URLS) expect(url).not.toMatch(URL_PATTERN);
+        for (const url of INVALID_URLS) {
+            expect(url).not.toMatch(URL_PATTERN);
+        }
     });
 });
 
@@ -248,6 +292,20 @@ describe('Z_INDEX', () => {
         expect(Z_INDEX.toast).toBeGreaterThan(Z_INDEX.topBar);
         expect(Z_INDEX.topBar).toBeGreaterThan(Z_INDEX.sidebar);
         expect(Z_INDEX.sidebar).toBeGreaterThan(Z_INDEX.overlay);
+    });
+});
+
+describe('css tokens', () => {
+    test('pin the cobalt color and both font families to css variables', () => {
+        expect(COBALT).toBe('var(--color-cobalt)');
+        expect(FONT_HEADING).toBe('var(--font-heading)');
+        expect(FONT_MONO).toBe('var(--font-mono)');
+    });
+
+    test('match the shared token pattern', () => {
+        for (const token of [COBALT, FONT_HEADING, FONT_MONO]) {
+            expect(token, token).toMatch(CSS_TOKEN_PATTERN);
+        }
     });
 });
 

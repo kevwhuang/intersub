@@ -2,12 +2,12 @@ import { expect, test } from '@playwright/test';
 import { join } from 'node:path';
 import { readdirSync } from 'node:fs';
 
-const PAGE_PATHS = ['/', '/events', '/events/2026-06-15', '/admin'] as const;
 const contentRoot = join(process.cwd(), 'src/content');
-
 const eventIds = listIds('events').sort((idA, idB) => idB.localeCompare(idA));
 const outcomeIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
 const testimonialIds = listIds('testimonials').sort();
+
+const pagePaths = ['/', '/events', `/events/${eventIds[0]}`, '/admin'] as const;
 
 function listIds(collection: string) {
     return readdirSync(join(contentRoot, collection))
@@ -17,7 +17,7 @@ function listIds(collection: string) {
 
 test.describe('pages', () => {
     test('serves the core pages as html', async ({ request }) => {
-        for (const path of PAGE_PATHS) {
+        for (const path of pagePaths) {
             const response = await request.get(path);
 
             expect(response.status()).toBe(200);
@@ -36,7 +36,11 @@ test.describe('pages', () => {
         const response = await request.get('/');
 
         expect(response.headers()['content-security-policy']).toBe('base-uri \'none\'; connect-src \'self\' https://*.supabase.co; default-src \'self\'; font-src \'self\' data:; form-action \'self\'; frame-ancestors \'self\'; img-src \'self\' https:; script-src \'self\' \'unsafe-inline\' data:; style-src \'self\' \'unsafe-inline\'');
+        expect(response.headers()['permissions-policy']).toBe('camera=(), microphone=(), geolocation=()');
         expect(response.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+        expect(response.headers()['strict-transport-security']).toBe('max-age=31536000; includeSubDomains; preload');
+        expect(response.headers()['x-content-type-options']).toBe('nosniff');
+        expect(response.headers()['x-frame-options']).toBe('sameorigin');
     });
 });
 

@@ -3,16 +3,16 @@ import { describe, expect, test, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import PanelEvents from '../../src/components/dashboard/PanelEvents';
-import eventApril from '../../src/content/events/2026-04-25.json';
-import eventJune from '../../src/content/events/2026-06-15.json';
+import eventApril from '../../src/content/events/2026_04_25.json';
+import eventJune from '../../src/content/events/2026_06_15.json';
 
 type PanelProps = Parameters<typeof PanelEvents>[0];
 
 const EMPTY_FORM: EventFormData = { content: '', cover: '', date: '', level: '', location: '', time: '', title: '' };
 
 const EVENTS: AdminEvent[] = [
-    { ...eventApril, id: '2026-04-25' },
-    { ...eventJune, id: '2026-06-15' },
+    { ...eventApril, id: '2026_04_25' },
+    { ...eventJune, id: '2026_06_15' },
 ];
 
 function renderPanel(overrides: Partial<PanelProps> = {}) {
@@ -112,7 +112,7 @@ describe('PanelEvents', () => {
     });
 
     test('renders the edit form populated with the event values', () => {
-        const html = renderPanel({ editingEventId: '2026-06-15', eventForm: eventJune });
+        const html = renderPanel({ editingEventId: '2026_06_15', eventForm: eventJune });
 
         expect(html).toContain('>Edit event</h1>');
         expect(html).toContain('value="Better Face Inside Your Face"');
