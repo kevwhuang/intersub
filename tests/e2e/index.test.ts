@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+interface JsonLd {
+    '@context': string;
+    '@graph': JsonLdNode[];
+}
+
+interface JsonLdNode {
+    '@type': string;
+    'itemListElement'?: unknown[];
+    'name'?: string;
+    'url'?: string;
+}
+
 const DESCRIPTION_MAX = 160;
 const DESCRIPTION_MIN = 120;
 
@@ -45,13 +57,18 @@ test.describe('index page', () => {
     });
 
     test('embeds parseable json-ld website data', async ({ page }) => {
+        const navLinkCount = await page.locator('.site-nav__link').count();
         const raw = await page.locator('script[type="application/ld+json"]').textContent();
 
-        const data = JSON.parse(String(raw)) as { '@type': string; 'name': string; 'url': string };
+        const data = JSON.parse(String(raw)) as JsonLd;
 
-        expect(data['@type']).toBe('WebSite');
-        expect(data.name).toBe('InterSub');
-        expect(data.url).toContain('intersubstudio.com');
+        const itemList = data['@graph'].find(node => node['@type'] === 'ItemList');
+        const website = data['@graph'].find(node => node['@type'] === 'WebSite');
+
+        expect(data['@context']).toBe('https://schema.org');
+        expect(itemList?.itemListElement).toHaveLength(navLinkCount);
+        expect(website?.name).toBe('InterSub');
+        expect(website?.url).toContain('intersubstudio.com');
     });
 
     test('fits the default viewport without horizontal overflow', async ({ page }) => {

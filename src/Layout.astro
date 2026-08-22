@@ -12,7 +12,7 @@ import { ClientRouter } from 'astro:transitions';
 
 import '@/global.css';
 import '@/styles.css';
-import { LANG_EN, LANG_KEY, LANG_ZH } from '@lib/constants';
+import { LANG_EN, LANG_KEY, LANG_ZH, ROUTES } from '@lib/constants';
 import { translateDescription, translateTitle } from '@lib/i18n';
 
 interface Props {
@@ -21,12 +21,14 @@ interface Props {
     title: string;
 }
 
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const canonicalUrl = new URL(Astro.routePattern.replace(/\[(\w+)\]/g, (_match, key) => Astro.params[key] ?? ''), Astro.site);
 const cookieLang = Astro.cookies.get(LANG_KEY)?.value;
+const currentRoute = ROUTES.find(route => route.href === Astro.routePattern);
 const { description, noindex, title } = Astro.props;
 const ogImageUrl = `${Astro.site}og.png`;
 const preferredLang = Astro.request.headers.get('accept-language')?.split(',')[0]?.trim().toLowerCase() ?? '';
 
+const breadcrumbRoutes = currentRoute && currentRoute !== ROUTES[0] ? [ROUTES[0], currentRoute] : [];
 const isChinese = cookieLang === LANG_ZH || (cookieLang !== LANG_EN && preferredLang.startsWith(LANG_ZH));
 
 const htmlLang = isChinese ? LANG_ZH : LANG_EN;
@@ -36,6 +38,42 @@ const localizedTitle = translateTitle(title, isChinese);
 const ogLocale = isChinese ? 'zh_CN' : 'en_US';
 const ogLocaleAlternate = isChinese ? 'en_US' : 'zh_CN';
 
+const breadcrumbList = {
+    '@type': 'BreadcrumbList',
+    'itemListElement': breadcrumbRoutes.map((route, index) => ({
+        '@type': 'ListItem',
+        'item': new URL(route.href, Astro.site).href,
+        'name': route.label,
+        'position': index + 1,
+    })),
+};
+
+const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+        ...(breadcrumbRoutes.length > 0 ? [breadcrumbList] : []),
+        {
+            '@type': 'ItemList',
+            'itemListElement': ROUTES.map((route, index) => ({
+                '@type': 'SiteNavigationElement',
+                'name': route.label,
+                'position': index + 1,
+                'url': new URL(route.href, Astro.site).href,
+            })),
+        },
+        {
+            '@type': 'WebSite',
+            'author': {
+                '@type': 'Person',
+                'name': 'Lydia Zhu',
+            },
+            'inLanguage': htmlLang,
+            'name': localizedSiteName,
+            'url': Astro.site,
+        },
+    ],
+};
+
 Astro.response.headers.set('Content-Language', htmlLang);
 Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
 ---
@@ -44,43 +82,29 @@ Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
 <html lang={htmlLang}>
     <head>
         <meta charset="utf-8" />
-        <meta content="width=device-width, initial-scale=1" name="viewport" />
         <title>{localizedTitle}</title>
-        <meta content={title} name="title-en" />
+        <meta content="Lydia Zhu" name="author" />
         <meta content={localizedDescription} name="description" />
-        <meta content="Kevin Huang" name="author" />
-        <meta content="#ffffff" name="theme-color" />
         <meta content={noindex ? 'noindex, nofollow' : 'index, follow'} name="robots" />
-        <link href={canonicalUrl} rel="canonical" />
+        <meta content="#ffffff" name="theme-color" />
+        <meta content={title} name="title-en" />
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
         <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
+        <link href={canonicalUrl} rel="canonical" />
         <link href="/favicon.png" rel="icon" type="image/png" />
-        <meta content={localizedTitle} property="og:title" />
         <meta content={localizedDescription} property="og:description" />
         <meta content={ogImageUrl} property="og:image" />
-        <meta content={canonicalUrl} property="og:url" />
-        <meta content={localizedSiteName} property="og:site_name" />
-        <meta content="website" property="og:type" />
         <meta content={ogLocale} property="og:locale" />
         <meta content={ogLocaleAlternate} property="og:locale:alternate" />
+        <meta content={localizedSiteName} property="og:site_name" />
+        <meta content={localizedTitle} property="og:title" />
+        <meta content="website" property="og:type" />
+        <meta content={canonicalUrl} property="og:url" />
         <meta content="summary_large_image" name="twitter:card" />
-        <meta content={localizedTitle} name="twitter:title" />
         <meta content={localizedDescription} name="twitter:description" />
         <meta content={ogImageUrl} name="twitter:image" />
-        <script
-            is:inline
-            set:html={JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'WebSite',
-                'author': {
-                    '@type': 'Person',
-                    'name': 'Kevin Huang',
-                },
-                'inLanguage': htmlLang,
-                'name': localizedSiteName,
-                'url': Astro.site,
-            })}
-            type="application/ld+json"
-        />
+        <meta content={localizedTitle} name="twitter:title" />
+        <script is:inline set:html={JSON.stringify(structuredData)} type="application/ld+json" />
         <ClientRouter />
     </head>
     <body class="flex flex-col min-h-svh antialiased font-sans bg-white text-slate">
@@ -99,6 +123,6 @@ Astro.response.headers.set('Vary', 'Accept-Language, Cookie');
         window.location.replace(`/admin${window.location.hash}`);
     }
 
-    redirectAuthHash();
     document.addEventListener('astro:page-load', initMotion);
+    redirectAuthHash();
 </script>

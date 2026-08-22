@@ -4,6 +4,19 @@ import { beforeAll, describe, expect, test, vi } from 'vitest';
 import Layout from '../../src/Layout.astro';
 import descriptions from '../../src/content/translations/descriptions.json';
 import titles from '../../src/content/translations/titles.json';
+import { ROUTES } from '../../src/lib/constants';
+
+interface JsonLd {
+    '@context': string;
+    '@graph': JsonLdNode[];
+}
+
+interface JsonLdNode {
+    '@type': string;
+    'author'?: unknown;
+    'itemListElement'?: unknown[];
+    'name'?: string;
+}
 
 interface LayoutProps {
     description: string;
@@ -98,7 +111,7 @@ describe('Layout', () => {
         expect(html).toContain('<meta content="InterSub" property="og:site_name">');
         expect(html).toContain('<meta content="website" property="og:type">');
         expect(html).toContain('<meta content="summary_large_image" name="twitter:card">');
-        expect(html).toContain('<meta content="Kevin Huang" name="author">');
+        expect(html).toContain('<meta content="Lydia Zhu" name="author">');
         expect(html).toContain('<meta content="#ffffff" name="theme-color">');
         expect(html).toContain('property="og:image"');
     });
@@ -121,13 +134,16 @@ describe('Layout', () => {
     test('embeds valid json-ld describing the site', () => {
         const match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
 
-        const jsonLd = match ? JSON.parse(match[1]) : null;
+        const jsonLd: JsonLd | null = match ? JSON.parse(match[1]) : null;
+
+        const itemList = jsonLd?.['@graph'].find(node => node['@type'] === 'ItemList');
+        const website = jsonLd?.['@graph'].find(node => node['@type'] === 'WebSite');
 
         expect(jsonLd).not.toBeNull();
-        expect(jsonLd['@context']).toBe('https://schema.org');
-        expect(jsonLd['@type']).toBe('WebSite');
-        expect(jsonLd.name).toBe('InterSub');
-        expect(jsonLd.author).toEqual({ '@type': 'Person', 'name': 'Kevin Huang' });
+        expect(jsonLd?.['@context']).toBe('https://schema.org');
+        expect(itemList?.itemListElement).toHaveLength(ROUTES.length);
+        expect(website?.name).toBe('InterSub');
+        expect(website?.author).toEqual({ '@type': 'Person', 'name': 'Lydia Zhu' });
     });
 
     test('enables the client router', () => {
