@@ -28,7 +28,7 @@ export default function PanelOutcomes({ editingOutcomeId, isMobile, isSaving, on
     sortKey: string;
 }) {
     function renderBody() {
-        if (!outcomes.length) return <TableEmpty description="Try a different search, or add a new outcome." title="No outcomes found" />;
+        if (!outcomes.length) return <TableEmpty description="Try a different search, or add a new outcome." title="No outcomes found." />;
 
         return outcomes.map(renderRow);
     }

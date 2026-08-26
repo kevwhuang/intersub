@@ -154,7 +154,7 @@ describe('loadCollection', () => {
         const expectedIds = listIds('outcomes').sort((idA, idB) => Number(idA) - Number(idB));
 
         const getStoreStub = vi.fn(() => {
-            throw new Error('blobs unavailable');
+            throw new Error('Blobs unavailable.');
         });
 
         const production = await importProductionStore(getStoreStub);

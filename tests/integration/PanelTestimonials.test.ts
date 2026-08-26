@@ -94,7 +94,7 @@ describe('PanelTestimonials', () => {
     test('shows the empty state when there are no testimonials', () => {
         const html = renderPanel({ testimonials: [] });
 
-        expect(html).toContain('No testimonials found');
+        expect(html).toContain('No testimonials found.');
         expect(html).toContain('Try a different search, or add a new testimonial.');
         expect(html).not.toContain('role="table"');
     });

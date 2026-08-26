@@ -128,7 +128,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects a missing id', async () => {
@@ -137,7 +137,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Missing id');
+        expect(result.error).toBe('Missing id.');
     });
 
     test('rejects an unknown id', async () => {
@@ -146,7 +146,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
-        expect(result.error).toBe('Event not found');
+        expect(result.error).toBe('Event not found.');
     });
 });
 
@@ -197,7 +197,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects a blank content', async () => {
@@ -206,7 +206,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Content is required');
+        expect(result.error).toBe('Content is required.');
     });
 
     test('rejects an invalid cover path', async () => {
@@ -215,7 +215,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Cover must be a URL or internal image path');
+        expect(result.error).toBe('Cover must be a URL or internal image path.');
     });
 
     test('rejects a blank date', async () => {
@@ -224,7 +224,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Date must be a valid date in YYYY-MM-DD format');
+        expect(result.error).toBe('Date must be a valid date in YYYY-MM-DD format.');
     });
 
     test('rejects an invalid date format', async () => {
@@ -233,7 +233,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Date must be a valid date in YYYY-MM-DD format');
+        expect(result.error).toBe('Date must be a valid date in YYYY-MM-DD format.');
     });
 
     test('rejects an impossible calendar date', async () => {
@@ -242,7 +242,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Date must be a valid date in YYYY-MM-DD format');
+        expect(result.error).toBe('Date must be a valid date in YYYY-MM-DD format.');
     });
 
     test('rejects an unknown level', async () => {
@@ -251,7 +251,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Level is invalid');
+        expect(result.error).toBe('Level is invalid.');
     });
 
     test('rejects a blank location', async () => {
@@ -260,7 +260,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Location is required');
+        expect(result.error).toBe('Location is required.');
     });
 
     test('rejects an invalid time format', async () => {
@@ -269,7 +269,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Time must be a 24-hour range');
+        expect(result.error).toBe('Time must be a 24-hour range.');
     });
 
     test('rejects a blank title', async () => {
@@ -278,7 +278,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Title is required');
+        expect(result.error).toBe('Title is required.');
     });
 
     test('rejects an unknown previous id', async () => {
@@ -287,7 +287,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
-        expect(result.error).toBe('Event not found');
+        expect(result.error).toBe('Event not found.');
     });
 
     test('rejects a duplicate date without an id', async () => {
@@ -296,7 +296,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(409);
-        expect(result.error).toBe('An event already exists on this date');
+        expect(result.error).toBe('An event already exists on this date.');
     });
 });
 
@@ -383,7 +383,7 @@ describe('lifecycle', () => {
             expect(result.deleted).toBe(true);
             expect(existsSync(join(eventsDir, `${SENTINEL_ID}.json`))).toBe(false);
             expect(repeat.status).toBe(404);
-            expect(repeatResult.error).toBe('Event not found');
+            expect(repeatResult.error).toBe('Event not found.');
         } finally {
             removeSentinels();
         }
@@ -471,9 +471,9 @@ describe('production blobs', () => {
         const deleteResult: Record<string, unknown> = await deleteResponse.json();
 
         expect(postResponse.status).toBe(401);
-        expect(postResult.error).toBe('Unauthorized');
+        expect(postResult.error).toBe('Unauthorized.');
         expect(deleteResponse.status).toBe(401);
-        expect(deleteResult.error).toBe('Unauthorized');
+        expect(deleteResult.error).toBe('Unauthorized.');
         expect(store.setJSON).not.toHaveBeenCalled();
         expect(store.delete).not.toHaveBeenCalled();
     });

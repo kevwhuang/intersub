@@ -18,13 +18,13 @@ interface SyntheticEvent {
 }
 
 const COVER_ERROR = 'Cover must be a URL or internal image path.';
-const DELETE_ERROR = 'Failed to delete';
-const DUPLICATE_DATE_ERROR = 'An event already exists on this date';
+const DELETE_ERROR = 'Failed to delete.';
+const DUPLICATE_DATE_ERROR = 'An event already exists on this date.';
 const INVALID_COVER = 'not-a-cover';
-const LOAD_ERROR = 'Failed to load data';
+const LOAD_ERROR = 'Failed to load data.';
 const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
 const RENAMED_TITLE = 'Alpha Negotiation Lab (Edited)';
-const SAVE_ERROR = 'Failed to save';
+const SAVE_ERROR = 'Failed to save.';
 
 const SHANGHAI_EVENT = {
     content: 'Synthetic Shanghai session for dashboard error testing.',
@@ -65,7 +65,7 @@ async function mockDashboardApi(page: Page, options: MockOptions = {}) {
 
         if (method === 'GET') {
             if (options.eventsStatus && pathname === '/api/events') {
-                await route.fulfill({ json: { error: 'Synthetic load failure' }, status: options.eventsStatus });
+                await route.fulfill({ json: { error: 'Synthetic load failure.' }, status: options.eventsStatus });
 
                 return;
             }
@@ -111,7 +111,7 @@ test.describe('load failure', () => {
 
         await expect(page.getByRole('status')).toHaveText(LOAD_ERROR);
         await expect(page.getByText('0 events')).toBeVisible();
-        await expect(page.getByText('No events found')).toBeVisible();
+        await expect(page.getByText('No events found.')).toBeVisible();
 
         expect(mutations).toEqual([]);
     });
@@ -272,7 +272,7 @@ test.describe('synthetic filters', () => {
         await expect(getEventsTable(page).getByRole('row').nth(1).getByRole('cell').first()).toHaveText(SUZHOU_EVENT.title);
 
         await page.getByRole('button', { name: 'Intermediate' }).click();
-        await expect(page.getByText('No events found')).toBeVisible();
+        await expect(page.getByText('No events found.')).toBeVisible();
         await expect(page.getByText('Try a different search or filter, or add a new event.')).toBeVisible();
 
         await page.getByRole('button', { name: 'Everyone' }).click();

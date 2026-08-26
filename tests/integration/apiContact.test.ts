@@ -33,18 +33,18 @@ interface SendResult {
     error: { message: string } | null;
 }
 
-const CONFIG_ERROR = 'Email service not configured';
+const CONFIG_ERROR = 'Email service not configured.';
 const CONTACT_TO = 'owner@example.com';
-const EMAIL_ERROR = 'Please enter a valid email (max 200 characters)';
+const EMAIL_ERROR = 'Please enter a valid email (max 200 characters).';
 const EMAIL_FROM = 'InterSub <noreply@intersubstudio.com>';
 const GLOBAL_KEY = 'contact-global';
 const GLOBAL_LIMIT = 50;
-const MESSAGE_ERROR = 'Message is required (max 2000 characters)';
-const NAME_ERROR = 'Name is required (max 100 characters)';
+const MESSAGE_ERROR = 'Message is required (max 2000 characters).';
+const NAME_ERROR = 'Name is required (max 100 characters).';
 const RATE_LIMIT = 10;
 const RATE_WINDOW = 3_600_000;
-const SEND_ERROR = 'Failed to send message';
-const WECHAT_ERROR = 'WeChat is required, no spaces (max 50 characters)';
+const SEND_ERROR = 'Failed to send message.';
+const WECHAT_ERROR = 'WeChat is required, no spaces (max 50 characters).';
 
 const templatePath = join(process.cwd(), 'src/lib/contact.html');
 
@@ -133,7 +133,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects a missing name', async () => {
@@ -303,7 +303,7 @@ describe('rate limiter', () => {
     test('fails open to the send stage when the store read throws', async () => {
         const store = buildRateStore({});
 
-        store.get.mockRejectedValue(new Error('blobs offline'));
+        store.get.mockRejectedValue(new Error('Blobs offline.'));
 
         const post = await importProductionPost(() => store);
 
@@ -318,7 +318,7 @@ describe('rate limiter', () => {
     test('fails open to the send stage when the store write throws', async () => {
         const store = buildRateStore({});
 
-        store.setJSON.mockRejectedValue(new Error('blobs offline'));
+        store.setJSON.mockRejectedValue(new Error('Blobs offline.'));
 
         const post = await importProductionPost(() => store);
 

@@ -157,7 +157,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects a missing id', async () => {
@@ -166,7 +166,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Missing id');
+        expect(result.error).toBe('Missing id.');
     });
 
     test('rejects an unknown id', async () => {
@@ -175,7 +175,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
-        expect(result.error).toBe('Outcome not found');
+        expect(result.error).toBe('Outcome not found.');
     });
 });
 
@@ -216,7 +216,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects an empty points array', async () => {
@@ -225,7 +225,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('At least one outcome is required');
+        expect(result.error).toBe('At least one outcome is required.');
     });
 
     test('rejects points containing only blank strings', async () => {
@@ -234,7 +234,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('At least one outcome is required');
+        expect(result.error).toBe('At least one outcome is required.');
     });
 
     test('rejects a blank summary', async () => {
@@ -243,7 +243,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Summary is required');
+        expect(result.error).toBe('Summary is required.');
     });
 
     test('rejects a blank title', async () => {
@@ -252,7 +252,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Title is required');
+        expect(result.error).toBe('Title is required.');
     });
 
     test('rejects an unknown id', async () => {
@@ -261,7 +261,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
-        expect(result.error).toBe('Outcome not found');
+        expect(result.error).toBe('Outcome not found.');
     });
 });
 
@@ -312,7 +312,7 @@ describe('lifecycle', () => {
             expect(result.deleted).toBe(true);
             expect(existsSync(join(outcomesDir, `${id}.json`))).toBe(false);
             expect(repeat.status).toBe(404);
-            expect(repeatResult.error).toBe('Outcome not found');
+            expect(repeatResult.error).toBe('Outcome not found.');
         } finally {
             removeCreated();
         }
@@ -375,9 +375,9 @@ describe('production blobs', () => {
         const deleteResult: Record<string, unknown> = await deleteResponse.json();
 
         expect(postResponse.status).toBe(401);
-        expect(postResult.error).toBe('Unauthorized');
+        expect(postResult.error).toBe('Unauthorized.');
         expect(deleteResponse.status).toBe(401);
-        expect(deleteResult.error).toBe('Unauthorized');
+        expect(deleteResult.error).toBe('Unauthorized.');
         expect(store.setJSON).not.toHaveBeenCalled();
         expect(store.delete).not.toHaveBeenCalled();
     });

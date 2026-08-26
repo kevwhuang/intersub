@@ -209,7 +209,7 @@ describe('applyLanguage', () => {
         vi.stubGlobal('localStorage', {
             getItem: () => null,
             setItem: () => {
-                throw new Error('quota exceeded');
+                throw new Error('Quota exceeded.');
             },
         });
 
@@ -266,7 +266,7 @@ describe('translate', () => {
     test('falls back to the key when localStorage getItem throws', () => {
         vi.stubGlobal('localStorage', {
             getItem: () => {
-                throw new Error('storage unavailable');
+                throw new Error('Storage unavailable.');
             },
         });
 

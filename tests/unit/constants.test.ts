@@ -310,7 +310,7 @@ describe('css tokens', () => {
 });
 
 describe('error messages', () => {
-    test('are complete user-facing sentences', () => {
+    test('are capitalized without trailing periods', () => {
         expect(ERROR_GENERIC).toBe('Something went wrong. Please try again.');
         expect(ERROR_RATE_LIMITED).toBe('Too many requests. Please try again later.');
     });

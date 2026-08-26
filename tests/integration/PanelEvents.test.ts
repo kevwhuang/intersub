@@ -105,7 +105,7 @@ describe('PanelEvents', () => {
     test('shows the empty state when no events match the filters', () => {
         const html = renderPanel({ events: [] });
 
-        expect(html).toContain('No events found');
+        expect(html).toContain('No events found.');
         expect(html).toContain('Try a different search or filter, or add a new event.');
         expect(html).toContain('<span>2 events</span>');
         expect(html).not.toContain('role="table"');

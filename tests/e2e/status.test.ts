@@ -95,7 +95,7 @@ test.describe('api', () => {
 
         const body: Record<string, unknown> = await response.json();
 
-        expect(body.error).toBe('Not found');
+        expect(body.error).toBe('Not found.');
     });
 
     test('rejects an empty contact payload with 400', async ({ request }) => {
@@ -106,7 +106,7 @@ test.describe('api', () => {
 
         const body: Record<string, unknown> = await response.json();
 
-        expect(body.error).toBe('Name is required (max 100 characters)');
+        expect(body.error).toBe('Name is required (max 100 characters).');
     });
 
     test('rejects a malformed events payload with 400', async ({ request }) => {
@@ -120,6 +120,6 @@ test.describe('api', () => {
 
         const body: Record<string, unknown> = await response.json();
 
-        expect(body.error).toBe('Invalid request body');
+        expect(body.error).toBe('Invalid request body.');
     });
 });

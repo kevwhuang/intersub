@@ -129,7 +129,7 @@ test.describe('contact form', () => {
 
     test('shows the generic message on 500', async ({ page }) => {
         const calls = await routeContact(page, route => route.fulfill({
-            json: { error: 'Failed to send message' },
+            json: { error: 'Failed to send message.' },
             status: 500,
         }));
 

@@ -10,11 +10,11 @@ const contentRoot = join(import.meta.dir, '..', CONTENT_DIR);
 async function fetchCollection(collection: string): Promise<Record<string, unknown>[]> {
     const response = await fetch(`${BASE_URL}/api/${collection}`);
 
-    if (!response.ok) throw new Error(`${collection}: ${response.status} ${response.statusText}`);
+    if (!response.ok) throw new Error(`Failed to fetch ${collection}: ${response.status} ${response.statusText}.`);
 
     const data: Record<string, unknown>[] = await response.json();
 
-    if (!data.length) throw new Error(`${collection}: empty response`);
+    if (!data.length) throw new Error(`Failed to fetch ${collection}: empty response.`);
 
     return data;
 }

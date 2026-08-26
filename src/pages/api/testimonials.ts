@@ -16,22 +16,22 @@ async function loadTestimonials(): Promise<AdminTestimonial[]> {
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized.' }, { status: 401 });
 
     let id: string;
 
     try {
         ({ id } = await request.json());
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!id) return Response.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) return Response.json({ error: 'Missing id.' }, { status: 400 });
 
     const testimonials = await loadTestimonials();
 
     if (!testimonials.some(entry => String(entry.id) === String(id))) {
-        return Response.json({ error: 'Testimonial not found' }, { status: 404 });
+        return Response.json({ error: 'Testimonial not found.' }, { status: 404 });
     }
 
     if (IS_DEV) deleteEntry('testimonials', id);
@@ -49,27 +49,27 @@ export const GET: APIRoute = async () => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized.' }, { status: 401 });
 
     let body: Record<string, unknown>;
 
     try {
         body = await request.json();
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body.' }, { status: 400 });
 
     const industry = String(body.industry || '').trim();
     const name = String(body.name || '').trim();
     const quote = String(body.quote || '').trim();
     const role = String(body.role || '').trim();
 
-    if (!industry) return Response.json({ error: 'Industry is required' }, { status: 400 });
-    if (!name) return Response.json({ error: 'Name is required' }, { status: 400 });
-    if (!quote) return Response.json({ error: 'Quote is required' }, { status: 400 });
-    if (!role) return Response.json({ error: 'Role is required' }, { status: 400 });
+    if (!industry) return Response.json({ error: 'Industry is required.' }, { status: 400 });
+    if (!name) return Response.json({ error: 'Name is required.' }, { status: 400 });
+    if (!quote) return Response.json({ error: 'Quote is required.' }, { status: 400 });
+    if (!role) return Response.json({ error: 'Role is required.' }, { status: 400 });
 
     const data = { industry, name, quote, role };
 
@@ -78,11 +78,11 @@ export const POST: APIRoute = async ({ request }) => {
     let id = body.id ? String(body.id) : null;
 
     if (id && !testimonials.some(entry => String(entry.id) === id)) {
-        return Response.json({ error: 'Testimonial not found' }, { status: 404 });
+        return Response.json({ error: 'Testimonial not found.' }, { status: 404 });
     }
 
     if (testimonials.some(entry => entry.name === name && entry.role === role && String(entry.id) !== id)) {
-        return Response.json({ error: 'A testimonial for this name and role already exists' }, { status: 409 });
+        return Response.json({ error: 'A testimonial for this name and role already exists.' }, { status: 409 });
     }
 
     if (!id) {

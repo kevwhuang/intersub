@@ -48,8 +48,8 @@ interface DashboardState {
     toast: string | null;
 }
 
-const DELETE_ERROR = 'Failed to delete';
-const LOAD_ERROR = 'Failed to load data';
+const DELETE_ERROR = 'Failed to delete.';
+const LOAD_ERROR = 'Failed to load data.';
 const MOBILE_BREAKPOINT = 1_024;
 const OFFLINE_ERROR = 'You appear to be offline. Please try again.';
 const PANEL_KEY = 'intersub_panel';
@@ -60,7 +60,7 @@ const PANEL_META = {
     testimonial: { endpoint: '/api/testimonials', label: 'Testimonial' },
 } as const;
 
-const SAVE_ERROR = 'Failed to save';
+const SAVE_ERROR = 'Failed to save.';
 const TOAST_DURATION = 3_000;
 
 function compareStrings(valueA: string, valueB: string, direction: number) {
@@ -190,7 +190,7 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
         if (!token) {
             if (navigator.onLine) onSessionExpired();
 
-            throw new Error('Session expired');
+            throw new Error('Session expired.');
         }
 
         const headers = { ...options.headers, Authorization: `Bearer ${token}` };
@@ -247,7 +247,7 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
             PANEL_META.event.endpoint,
             body,
             { editingEventId: null, eventForm: null, eventFormErrors: {} },
-            isNew ? 'Event created' : 'Changes saved',
+            isNew ? 'Event created.' : 'Changes saved.',
         );
     }
 
@@ -287,7 +287,7 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
             PANEL_META.outcome.endpoint,
             body,
             { editingOutcomeId: null, outcomeForm: null, outcomeFormErrors: {} },
-            isNew ? 'Outcome created' : 'Changes saved',
+            isNew ? 'Outcome created.' : 'Changes saved.',
         );
     }
 
@@ -318,7 +318,7 @@ function useDashboardState(getToken: () => Promise<string | null>, isAuthenticat
             PANEL_META.testimonial.endpoint,
             body,
             { editingTestimonialId: null, testimonialForm: null, testimonialFormErrors: {} },
-            isNew ? 'Testimonial created' : 'Changes saved',
+            isNew ? 'Testimonial created.' : 'Changes saved.',
         );
     }
 
@@ -642,7 +642,7 @@ function DashboardInner() {
             });
 
             fetchData();
-            showToast(`${label} deleted`);
+            showToast(`${label} deleted.`);
         } catch {
             showToast(getFailureMessage(DELETE_ERROR), true);
         } finally {

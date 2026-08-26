@@ -55,7 +55,7 @@ function compareText(valueA: string, valueB: string) {
 
 async function expectEventRowCount(page: Page, count: number) {
     if (count === 0) {
-        await expect(page.getByText('No events found')).toBeVisible();
+        await expect(page.getByText('No events found.')).toBeVisible();
 
         return;
     }
@@ -263,7 +263,7 @@ test.describe('events table', () => {
         test.skip(!unusedLevel, 'every level has events in content');
 
         await page.getByRole('button', { name: unusedLevel }).click();
-        await expect(page.getByText('No events found')).toBeVisible();
+        await expect(page.getByText('No events found.')).toBeVisible();
         await expect(page.getByText('Try a different search or filter, or add a new event.')).toBeVisible();
 
         await page.getByRole('button', { name: 'Everyone' }).click();
@@ -293,7 +293,7 @@ test.describe('events table', () => {
         );
 
         await page.getByLabel('Search').fill('zzzz');
-        await expect(page.getByText('No events found')).toBeVisible();
+        await expect(page.getByText('No events found.')).toBeVisible();
 
         await page.getByLabel('Search').fill(loweredTitle);
         await expectEventRowCount(page, matching.length);

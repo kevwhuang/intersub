@@ -794,7 +794,7 @@ test.describe('session expiry during save', () => {
         await openFirstEventEdit(page);
         await page.getByRole('button', { name: 'Save changes' }).click();
 
-        await expect(page.getByRole('status')).toHaveText('Failed to save');
+        await expect(page.getByRole('status')).toHaveText('Failed to save.');
         await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
         await expect(page.getByText(SESSION_EXPIRED_ERROR)).toHaveCount(0);
         await expect(page.getByLabel('Email')).toHaveCount(0);

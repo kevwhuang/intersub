@@ -47,7 +47,7 @@ export default function PanelEvents({ activeLevel, activeLocation, activeTiming,
     sortKey: string;
 }) {
     function renderBody() {
-        if (!events.length) return <TableEmpty description="Try a different search or filter, or add a new event." title="No events found" />;
+        if (!events.length) return <TableEmpty description="Try a different search or filter, or add a new event." title="No events found." />;
 
         return events.map(renderRow);
     }

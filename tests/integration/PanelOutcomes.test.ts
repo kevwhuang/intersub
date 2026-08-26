@@ -100,7 +100,7 @@ describe('PanelOutcomes', () => {
     test('shows the empty state when there are no outcomes', () => {
         const html = renderPanel({ outcomes: [] });
 
-        expect(html).toContain('No outcomes found');
+        expect(html).toContain('No outcomes found.');
         expect(html).toContain('Try a different search, or add a new outcome.');
         expect(html).not.toContain('role="table"');
     });

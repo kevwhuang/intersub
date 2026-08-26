@@ -88,7 +88,7 @@ describe('verifyAuth', () => {
 
     test('returns false in production when the identity request throws', async () => {
         const fetchStub = vi.fn(async () => {
-            throw new Error('network failure');
+            throw new Error('Network failure.');
         });
 
         vi.stubGlobal('fetch', fetchStub);

@@ -6,12 +6,12 @@ import TableEmpty from '../../src/components/dashboard/TableEmpty';
 
 const html = renderToStaticMarkup(createElement(TableEmpty, {
     description: 'Try a different search or filter, or add a new event.',
-    title: 'No events found',
+    title: 'No events found.',
 }));
 
 describe('TableEmpty', () => {
     test('renders the title and description', () => {
-        expect(html).toContain('No events found</p>');
+        expect(html).toContain('No events found.</p>');
         expect(html).toContain('Try a different search or filter, or add a new event.</p>');
     });
 

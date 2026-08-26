@@ -8,7 +8,7 @@ const SAFE_ID_PATTERN = /^[\w-]+$/;
 const contentRoot = join(process.cwd(), CONTENT_DIR);
 
 export function deleteEntry(collection: string, id: string) {
-    if (!SAFE_ID_PATTERN.test(id)) throw new Error(`Invalid id: ${id}`);
+    if (!SAFE_ID_PATTERN.test(id)) throw new Error(`Invalid id: ${id}.`);
 
     const filepath = join(contentRoot, collection, `${id}.json`);
 
@@ -30,7 +30,7 @@ export function readCollection<Entry = Record<string, unknown>>(collection: stri
 }
 
 export function writeEntry(collection: string, id: string, data: Record<string, unknown>) {
-    if (!SAFE_ID_PATTERN.test(id)) throw new Error(`Invalid id: ${id}`);
+    if (!SAFE_ID_PATTERN.test(id)) throw new Error(`Invalid id: ${id}.`);
 
     const directory = join(contentRoot, collection);
     const entry = { ...data };

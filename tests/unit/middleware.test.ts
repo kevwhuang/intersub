@@ -65,7 +65,7 @@ describe('onRequest', () => {
         const { context, rewrite } = createContext('/api/events');
 
         const next: MiddlewareNext = vi.fn(async () => {
-            throw new Error('boom');
+            throw new Error('Boom.');
         });
 
         const response = await onRequest(context, next) as Response;
@@ -73,7 +73,7 @@ describe('onRequest', () => {
         expect(response).toBeInstanceOf(Response);
         expect(response.status).toBe(500);
 
-        await expect(response.json()).resolves.toEqual({ error: 'Internal server error' });
+        await expect(response.json()).resolves.toEqual({ error: 'Internal server error.' });
 
         expect(rewrite).not.toHaveBeenCalled();
     });
@@ -82,7 +82,7 @@ describe('onRequest', () => {
         const { context, rewrite, rewritten } = createContext('/events');
 
         const next: MiddlewareNext = vi.fn(async () => {
-            throw new Error('boom');
+            throw new Error('Boom.');
         });
 
         const response = await onRequest(context, next);

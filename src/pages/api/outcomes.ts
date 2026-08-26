@@ -16,22 +16,22 @@ async function loadOutcomes(): Promise<AdminOutcome[]> {
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized.' }, { status: 401 });
 
     let id: string;
 
     try {
         ({ id } = await request.json());
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!id) return Response.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) return Response.json({ error: 'Missing id.' }, { status: 400 });
 
     const outcomes = await loadOutcomes();
 
     if (!outcomes.some(entry => String(entry.id) === String(id))) {
-        return Response.json({ error: 'Outcome not found' }, { status: 404 });
+        return Response.json({ error: 'Outcome not found.' }, { status: 404 });
     }
 
     if (IS_DEV) deleteEntry('outcomes', id);
@@ -49,17 +49,17 @@ export const GET: APIRoute = async () => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized.' }, { status: 401 });
 
     let body: Record<string, unknown>;
 
     try {
         body = await request.json();
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body.' }, { status: 400 });
 
     const points = Array.isArray(body.points)
         ? body.points
@@ -70,16 +70,16 @@ export const POST: APIRoute = async ({ request }) => {
     const summary = String(body.summary || '').trim();
     const title = String(body.title || '').trim();
 
-    if (!points.length) return Response.json({ error: 'At least one outcome is required' }, { status: 400 });
-    if (!summary) return Response.json({ error: 'Summary is required' }, { status: 400 });
-    if (!title) return Response.json({ error: 'Title is required' }, { status: 400 });
+    if (!points.length) return Response.json({ error: 'At least one outcome is required.' }, { status: 400 });
+    if (!summary) return Response.json({ error: 'Summary is required.' }, { status: 400 });
+    if (!title) return Response.json({ error: 'Title is required.' }, { status: 400 });
 
     let id = body.id ? String(body.id) : null;
 
     const outcomes = await loadOutcomes();
 
     if (id && !outcomes.some(entry => String(entry.id) === id)) {
-        return Response.json({ error: 'Outcome not found' }, { status: 404 });
+        return Response.json({ error: 'Outcome not found.' }, { status: 404 });
     }
 
     if (!id) {

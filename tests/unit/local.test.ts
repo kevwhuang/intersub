@@ -34,8 +34,8 @@ describe('deleteEntry', () => {
     });
 
     test('throws on unsafe ids without touching disk', () => {
-        expect(() => deleteEntry('events', '../escape')).toThrow('Invalid id: ../escape');
-        expect(() => deleteEntry('events', 'nested/id')).toThrow('Invalid id: nested/id');
+        expect(() => deleteEntry('events', '../escape')).toThrow('Invalid id: ../escape.');
+        expect(() => deleteEntry('events', 'nested/id')).toThrow('Invalid id: nested/id.');
         expect(existsSync).not.toHaveBeenCalled();
         expect(unlinkSync).not.toHaveBeenCalled();
     });
@@ -96,9 +96,9 @@ describe('writeEntry', () => {
     });
 
     test('throws on unsafe ids without writing', () => {
-        expect(() => writeEntry('events', '../escape', {})).toThrow('Invalid id: ../escape');
-        expect(() => writeEntry('events', 'dot.dot', {})).toThrow('Invalid id: dot.dot');
-        expect(() => writeEntry('events', '', {})).toThrow('Invalid id: ');
+        expect(() => writeEntry('events', '../escape', {})).toThrow('Invalid id: ../escape.');
+        expect(() => writeEntry('events', 'dot.dot', {})).toThrow('Invalid id: dot.dot.');
+        expect(() => writeEntry('events', '', {})).toThrow('Invalid id: .');
         expect(writeFileSync).not.toHaveBeenCalled();
     });
 });

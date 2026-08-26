@@ -119,7 +119,7 @@ test.describe('events catalog', () => {
         await page.locator(`[data-filter-level="${emptyLevel}"]`).click();
 
         await expect(page.locator('[data-empty]')).toBeVisible();
-        await expect(page.locator('.events__empty-title')).toHaveText('No events match those filters');
+        await expect(page.locator('.events__empty-title')).toHaveText('No events match those filters.');
         await expect(page.locator('[data-grid]')).toBeHidden();
         await expect(page.locator('[data-count]')).toHaveText('0 events');
 

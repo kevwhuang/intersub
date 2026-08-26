@@ -26,22 +26,22 @@ async function loadEvents(): Promise<AdminEvent[]> {
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized.' }, { status: 401 });
 
     let id: string;
 
     try {
         ({ id } = await request.json());
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!id) return Response.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) return Response.json({ error: 'Missing id.' }, { status: 400 });
 
     const events = await loadEvents();
 
     if (!events.some(entry => String(entry.id) === String(id))) {
-        return Response.json({ error: 'Event not found' }, { status: 404 });
+        return Response.json({ error: 'Event not found.' }, { status: 404 });
     }
 
     if (IS_DEV) deleteEntry('events', id);
@@ -59,17 +59,17 @@ export const GET: APIRoute = async () => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!await verifyAuth(request)) return Response.json({ error: 'Unauthorized.' }, { status: 401 });
 
     let body: Record<string, unknown>;
 
     try {
         body = await request.json();
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body.' }, { status: 400 });
 
     const content = String(body.content || '').trim();
     const cover = String(body.cover || '').trim();
@@ -79,23 +79,23 @@ export const POST: APIRoute = async ({ request }) => {
     const time = String(body.time || '').trim();
     const title = String(body.title || '').trim();
 
-    if (!content) return Response.json({ error: 'Content is required' }, { status: 400 });
+    if (!content) return Response.json({ error: 'Content is required.' }, { status: 400 });
 
     if (cover && !COVER_PATH_PATTERN.test(cover) && !URL_PATTERN.test(cover)) {
-        return Response.json({ error: 'Cover must be a URL or internal image path' }, { status: 400 });
+        return Response.json({ error: 'Cover must be a URL or internal image path.' }, { status: 400 });
     }
 
     if (!DATE_PATTERN.test(date) || !isCalendarDate(date)) {
-        return Response.json({ error: 'Date must be a valid date in YYYY-MM-DD format' }, { status: 400 });
+        return Response.json({ error: 'Date must be a valid date in YYYY-MM-DD format.' }, { status: 400 });
     }
 
     if (level && !LEVELS.some(allowedLevel => allowedLevel === level)) {
-        return Response.json({ error: 'Level is invalid' }, { status: 400 });
+        return Response.json({ error: 'Level is invalid.' }, { status: 400 });
     }
 
-    if (!location) return Response.json({ error: 'Location is required' }, { status: 400 });
-    if (!TIME_PATTERN.test(time)) return Response.json({ error: 'Time must be a 24-hour range' }, { status: 400 });
-    if (!title) return Response.json({ error: 'Title is required' }, { status: 400 });
+    if (!location) return Response.json({ error: 'Location is required.' }, { status: 400 });
+    if (!TIME_PATTERN.test(time)) return Response.json({ error: 'Time must be a 24-hour range.' }, { status: 400 });
+    if (!title) return Response.json({ error: 'Title is required.' }, { status: 400 });
 
     const id = date.replaceAll('-', '_');
     const previousId = body.id ? String(body.id) : null;
@@ -103,11 +103,11 @@ export const POST: APIRoute = async ({ request }) => {
     const events = await loadEvents();
 
     if (previousId && !events.some(entry => String(entry.id) === previousId)) {
-        return Response.json({ error: 'Event not found' }, { status: 404 });
+        return Response.json({ error: 'Event not found.' }, { status: 404 });
     }
 
     if (events.some(entry => String(entry.date) === date && String(entry.id) !== previousId)) {
-        return Response.json({ error: 'An event already exists on this date' }, { status: 409 });
+        return Response.json({ error: 'An event already exists on this date.' }, { status: 409 });
     }
 
     const [start, end] = time.split(/\s*[-\u2013\u2014]\s*/);

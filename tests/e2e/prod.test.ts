@@ -30,7 +30,7 @@ async function expectUnauthorized(response: APIResponse) {
 
     const body: Record<string, unknown> = await response.json();
 
-    expect(body.error).toBe('Unauthorized');
+    expect(body.error).toBe('Unauthorized.');
 }
 
 async function fetchHtml(api: APIRequestContext, path: string) {

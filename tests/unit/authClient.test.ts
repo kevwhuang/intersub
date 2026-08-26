@@ -183,7 +183,7 @@ describe('getToken', () => {
 
     test('keeps the stored session when the refresh request rejects', async () => {
         const { auth, storage } = await loadAuth(async () => {
-            throw new Error('network down');
+            throw new Error('Network down.');
         });
 
         const raw = JSON.stringify(buildSession());

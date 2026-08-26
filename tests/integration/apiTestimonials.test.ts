@@ -123,7 +123,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects a missing id', async () => {
@@ -132,7 +132,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Missing id');
+        expect(result.error).toBe('Missing id.');
     });
 
     test('rejects an unknown id', async () => {
@@ -141,7 +141,7 @@ describe('DELETE', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
-        expect(result.error).toBe('Testimonial not found');
+        expect(result.error).toBe('Testimonial not found.');
     });
 });
 
@@ -182,7 +182,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Invalid request body');
+        expect(result.error).toBe('Invalid request body.');
     });
 
     test('rejects a blank industry', async () => {
@@ -191,7 +191,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Industry is required');
+        expect(result.error).toBe('Industry is required.');
     });
 
     test('rejects a blank name', async () => {
@@ -200,7 +200,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Name is required');
+        expect(result.error).toBe('Name is required.');
     });
 
     test('rejects a blank quote', async () => {
@@ -209,7 +209,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Quote is required');
+        expect(result.error).toBe('Quote is required.');
     });
 
     test('rejects a blank role', async () => {
@@ -218,7 +218,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(400);
-        expect(result.error).toBe('Role is required');
+        expect(result.error).toBe('Role is required.');
     });
 
     test('rejects an unknown id', async () => {
@@ -227,7 +227,7 @@ describe('POST', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(404);
-        expect(result.error).toBe('Testimonial not found');
+        expect(result.error).toBe('Testimonial not found.');
     });
 
     test('rejects a duplicate name and role without an id', async () => {
@@ -240,7 +240,7 @@ describe('POST', () => {
         const after = readdirSync(testimonialsDir);
 
         expect(response.status).toBe(409);
-        expect(result.error).toBe('A testimonial for this name and role already exists');
+        expect(result.error).toBe('A testimonial for this name and role already exists.');
         expect(after).toEqual(before);
     });
 });
@@ -267,7 +267,7 @@ describe('lifecycle', () => {
             const result: Record<string, unknown> = await response.json();
 
             expect(response.status).toBe(409);
-            expect(result.error).toBe('A testimonial for this name and role already exists');
+            expect(result.error).toBe('A testimonial for this name and role already exists.');
         } finally {
             removeSentinel();
         }
@@ -307,7 +307,7 @@ describe('lifecycle', () => {
             expect(result.deleted).toBe(true);
             expect(existsSync(join(testimonialsDir, `${SENTINEL_ID}.json`))).toBe(false);
             expect(repeat.status).toBe(404);
-            expect(repeatResult.error).toBe('Testimonial not found');
+            expect(repeatResult.error).toBe('Testimonial not found.');
         } finally {
             removeSentinel();
         }
@@ -373,7 +373,7 @@ describe('production blobs', () => {
         const result: Record<string, unknown> = await response.json();
 
         expect(response.status).toBe(409);
-        expect(result.error).toBe('A testimonial for this name and role already exists');
+        expect(result.error).toBe('A testimonial for this name and role already exists.');
         expect(store.setJSON).not.toHaveBeenCalled();
     });
 
@@ -422,9 +422,9 @@ describe('production blobs', () => {
         const deleteResult: Record<string, unknown> = await deleteResponse.json();
 
         expect(postResponse.status).toBe(401);
-        expect(postResult.error).toBe('Unauthorized');
+        expect(postResult.error).toBe('Unauthorized.');
         expect(deleteResponse.status).toBe(401);
-        expect(deleteResult.error).toBe('Unauthorized');
+        expect(deleteResult.error).toBe('Unauthorized.');
         expect(store.setJSON).not.toHaveBeenCalled();
         expect(store.delete).not.toHaveBeenCalled();
     });

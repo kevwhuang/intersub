@@ -57,10 +57,10 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
     try {
         body = await request.json();
     } catch {
-        return Response.json({ error: 'Invalid request body' }, { status: 400 });
+        return Response.json({ error: 'Invalid request body.' }, { status: 400 });
     }
 
-    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body' }, { status: 400 });
+    if (!body || typeof body !== 'object') return Response.json({ error: 'Invalid request body.' }, { status: 400 });
 
     const email = String(body.email ?? '').trim();
     const message = String(body.message ?? '').trim();
@@ -68,19 +68,19 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
     const wechat = String(body.wechat ?? '').trim();
 
     if (!name || name.length > NAME_MAX) {
-        return Response.json({ error: `Name is required (max ${NAME_MAX} characters)` }, { status: 400 });
+        return Response.json({ error: `Name is required (max ${NAME_MAX} characters).` }, { status: 400 });
     }
 
     if (!wechat || /\s/.test(wechat) || wechat.length > WECHAT_MAX) {
-        return Response.json({ error: `WeChat is required, no spaces (max ${WECHAT_MAX} characters)` }, { status: 400 });
+        return Response.json({ error: `WeChat is required, no spaces (max ${WECHAT_MAX} characters).` }, { status: 400 });
     }
 
     if (email && (!EMAIL_PATTERN.test(email) || email.length > EMAIL_MAX)) {
-        return Response.json({ error: `Please enter a valid email (max ${EMAIL_MAX} characters)` }, { status: 400 });
+        return Response.json({ error: `Please enter a valid email (max ${EMAIL_MAX} characters).` }, { status: 400 });
     }
 
     if (!message || message.length > MESSAGE_MAX) {
-        return Response.json({ error: `Message is required (max ${MESSAGE_MAX} characters)` }, { status: 400 });
+        return Response.json({ error: `Message is required (max ${MESSAGE_MAX} characters).` }, { status: 400 });
     }
 
     if (await isRateLimited(clientAddress)) return Response.json({ error: ERROR_RATE_LIMITED }, { status: 429 });
@@ -90,7 +90,7 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
     const apiKey = import.meta.env.RESEND_API_KEY;
     const contactEmail = import.meta.env.CONTACT_EMAIL;
 
-    if (!apiKey || !contactEmail) return Response.json({ error: 'Email service not configured' }, { status: 503 });
+    if (!apiKey || !contactEmail) return Response.json({ error: 'Email service not configured.' }, { status: 503 });
 
     const resend = new Resend(apiKey);
 
@@ -125,7 +125,7 @@ export const POST: APIRoute = async ({ clientAddress, request }) => {
         to: contactEmail,
     });
 
-    if (error) return Response.json({ error: 'Failed to send message' }, { status: 500 });
+    if (error) return Response.json({ error: 'Failed to send message.' }, { status: 500 });
 
     return Response.json({ sent: true });
 };

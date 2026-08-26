@@ -29,7 +29,7 @@ export default function PanelTestimonials({ editingTestimonialId, isMobile, isSa
     testimonials: AdminTestimonial[];
 }) {
     function renderBody() {
-        if (!testimonials.length) return <TableEmpty description="Try a different search, or add a new testimonial." title="No testimonials found" />;
+        if (!testimonials.length) return <TableEmpty description="Try a different search, or add a new testimonial." title="No testimonials found." />;
 
         return testimonials.map(renderRow);
     }
