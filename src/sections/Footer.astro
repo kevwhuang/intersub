@@ -1,24 +1,15 @@
 ---
 import { Image } from 'astro:assets';
 
-import IconPodcasts from '@components/IconPodcasts.astro';
 import IconXiaoyuzhou from '@components/IconXiaoyuzhou.astro';
 import Qr from '@components/Qr.astro';
 import logoEn from '@images/logos/logo_en.webp';
 import logoZh from '@images/logos/logo_zh.webp';
 import { IS_DEV, ROUTES } from '@lib/constants';
 
-const ICONS: Record<(typeof SOCIALS)[number]['slug'], typeof IconPodcasts> = {
-    podcasts: IconPodcasts,
-    xiaoyuzhou: IconXiaoyuzhou,
-};
-
-const SOCIALS = [
-    { href: 'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411', label: 'Xiaoyuzhou (小宇宙)', slug: 'xiaoyuzhou' },
-    { href: 'https://podcasts.apple.com/cn/podcast/id1856157603', label: 'Apple Podcasts', slug: 'podcasts' },
-] as const;
-
-const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
+const WECHAT_URL = 'http://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
+const XIAOYUZHOU_LABEL = 'Xiaoyuzhou (小宇宙)';
+const XIAOYUZHOU_URL = 'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411';
 ---
 
 <footer
@@ -57,25 +48,15 @@ const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
         <div class="site-footer__column site-footer__connect flex flex-col">
             <div>
                 <p class="site-footer__heading" data-i18n="Follow">Follow</p>
-                <ul class="site-footer__socials flex flex-wrap gap-2">
-                    {SOCIALS.map((social) => {
-                        const Icon = ICONS[social.slug];
-
-                        return (
-                            <li>
-                                <a
-                                    class="site-footer__social site-footer__social--link flex items-center justify-center"
-                                    aria-label={social.label}
-                                    href={social.href}
-                                    target="_blank"
-                                    title={social.label}
-                                >
-                                    <Icon size={22} />
-                                </a>
-                            </li>
-                        );
-                    })}
-                </ul>
+                <a
+                    class="site-footer__social site-footer__social--link flex items-center justify-center"
+                    aria-label={XIAOYUZHOU_LABEL}
+                    href={XIAOYUZHOU_URL}
+                    target="_blank"
+                    title={XIAOYUZHOU_LABEL}
+                >
+                    <IconXiaoyuzhou size={22} />
+                </a>
             </div>
             <div>
                 <p class="site-footer__heading" data-i18n="WeChat">WeChat</p>

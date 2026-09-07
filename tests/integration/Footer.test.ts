@@ -4,12 +4,9 @@ import { beforeAll, describe, expect, test } from 'vitest';
 import Footer from '../../src/sections/Footer.astro';
 import { ROUTES } from '../../src/lib/constants';
 
-const SOCIAL_URLS = [
-    'https://podcasts.apple.com/cn/podcast/id1856157603',
-    'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411',
-] as const;
-
-const WECHAT_URL = 'https://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
+const WECHAT_URL = 'http://weixin.qq.com/r/mp/zSNvd3zEVyEorTgU93bf';
+const XIAOYUZHOU_LABEL = 'Xiaoyuzhou (小宇宙)';
+const XIAOYUZHOU_URL = 'https://xiaoyuzhoufm.com/podcast/6911ae852e59334c8539c411';
 
 describe('Footer', () => {
     let html: string;
@@ -53,20 +50,18 @@ describe('Footer', () => {
         }
     });
 
-    test('renders each social link over https in a new tab', () => {
+    test('renders the xiaoyuzhou link as the only social link in a new tab', () => {
         const socials = html.match(/<a class="site-footer__social [^>]*>/g) ?? [];
 
-        expect(socials).toHaveLength(SOCIAL_URLS.length);
-
-        for (const social of socials) {
-            expect(social).toContain('aria-label=');
-            expect(social).toContain('href="https://');
-            expect(social).toContain('target="_blank"');
-        }
-
-        for (const url of SOCIAL_URLS) {
-            expect(html).toContain(`href="${url}"`);
-        }
+        expect(socials).toHaveLength(1);
+        expect(socials[0]).toContain(`aria-label="${XIAOYUZHOU_LABEL}"`);
+        expect(socials[0]).toContain(`href="${XIAOYUZHOU_URL}"`);
+        expect(socials[0]).toContain('target="_blank"');
+        expect(socials[0]).toContain(`title="${XIAOYUZHOU_LABEL}"`);
+        expect(html).toContain('clip-path="url(#xyz-outside)"');
+        expect(html).not.toContain('Apple Podcasts');
+        expect(html).not.toContain('podcasts.apple.com');
+        expect(html).not.toContain('site-footer__socials');
     });
 
     test('renders the wechat qr code linked to the wechat url', () => {
