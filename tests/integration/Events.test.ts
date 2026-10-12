@@ -126,7 +126,7 @@ describe('Events', () => {
         for (const event of coveredEvents) {
             const coverName = String(event.cover).split('/').at(-1) ?? '';
 
-            expect(html).toContain(coverName);
+            expect(html).toContain(coverName.replaceAll('&', '&amp;'));
         }
     });
 

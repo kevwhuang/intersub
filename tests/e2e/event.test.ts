@@ -31,6 +31,7 @@ const uiTranslations = JSON.parse(readFileSync(join(CONTENT_DIR, 'translations',
 const [event] = events.filter(entry => entry.cover);
 
 const blocks = parseEventContent(event.content);
+const coverName = String(event.cover).split('/').at(-1) ?? '';
 const documentTitle = `${event.title} \u2014 InterSub`;
 const metaLabels = ['Date', ...event.time ? ['Time'] : [], 'Location', 'Who'];
 const who = event.level ?? 'Everyone';
@@ -103,7 +104,7 @@ test.describe('event page', () => {
         const cover = page.locator('.event__cover-image');
 
         await expect(cover).toBeVisible();
-        expect(await cover.getAttribute('src')).toContain(event.id);
+        expect(await cover.getAttribute('src')).toContain(coverName);
     });
 
     test('renders the markdown content as headings, lists, and paragraphs', async ({ page }) => {
